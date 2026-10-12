@@ -1,0 +1,3417 @@
+[
+  {
+    "method": "eval",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/index.html",
+    "javascript_char_offset": 3963,
+    "javascript_byte_offset": 3963,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "setting.get",
+    "javascript_api": "callSync",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/index.html",
+    "javascript_char_offset": 4603,
+    "javascript_byte_offset": 4603,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.readText",
+    "javascript_api": "callSync",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 20617,
+    "javascript_byte_offset": 20629,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.write",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 20691,
+    "javascript_byte_offset": 20703,
+    "native_candidates": [
+      {
+        "function": "-[ClipboardCommands setup]",
+        "instruction": "0x0000000100012708",
+        "disassembly_line": 15015
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.read",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 21024,
+    "javascript_byte_offset": 21036,
+    "native_candidates": [
+      {
+        "function": "-[ClipboardCommands setup]",
+        "instruction": "0x0000000100012678",
+        "disassembly_line": 14979
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.readImage",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 22220,
+    "javascript_byte_offset": 22232,
+    "native_candidates": [
+      {
+        "function": "-[ClipboardCommands setup]",
+        "instruction": "0x00000001000126c0",
+        "disassembly_line": 14997
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "menu.updateMenu",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 22817,
+    "javascript_byte_offset": 22829,
+    "native_candidates": [
+      {
+        "function": "-[MenuCommands setup]",
+        "instruction": "0x000000010005f248",
+        "disassembly_line": 95118
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.zoomIn",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 22992,
+    "javascript_byte_offset": 23004,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x00000001000691c0",
+        "disassembly_line": 105534
+      },
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x00000001000693d0",
+        "disassembly_line": 105666
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.zoomOut",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 23157,
+    "javascript_byte_offset": 23169,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100069208",
+        "disassembly_line": 105552
+      },
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100069418",
+        "disassembly_line": 105684
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.resetZoom",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 23327,
+    "javascript_byte_offset": 23339,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100069250",
+        "disassembly_line": 105570
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "setting.put",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 23756,
+    "javascript_byte_offset": 23768,
+    "native_candidates": [
+      {
+        "function": "-[SettingCommands setup]",
+        "instruction": "0x0000000100020c28",
+        "disassembly_line": 30027
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.execForAll",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 23899,
+    "javascript_byte_offset": 23911,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x00000001000692e8",
+        "disassembly_line": 105608
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.showInFinder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 23977,
+    "javascript_byte_offset": 23989,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064b54",
+        "disassembly_line": 100926
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.openFolderInFinder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 24094,
+    "javascript_byte_offset": 24106,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064b0c",
+        "disassembly_line": 100908
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.openFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 24204,
+    "javascript_byte_offset": 24216,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064c04",
+        "disassembly_line": 100970
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.openURL",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 24305,
+    "javascript_byte_offset": 24317,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064bb4",
+        "disassembly_line": 100950
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.selectFolderOrFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 24584,
+    "javascript_byte_offset": 24596,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064ec8",
+        "disassembly_line": 101147
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.setFencesOnSetLang",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 84548,
+    "javascript_byte_offset": 84590,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c8d0",
+        "disassembly_line": 8806
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "word.getTextReplacement",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 93576,
+    "javascript_byte_offset": 93618,
+    "native_candidates": [
+      {
+        "function": "-[WordCommands setup]",
+        "instruction": "0x0000000100064478",
+        "disassembly_line": 100474
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "fences.needUpdateReplaceDict",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 95322,
+    "javascript_byte_offset": 95364,
+    "native_candidates": [
+      {
+        "function": "-[WordCommands observeValueForKeyPath:ofObject:change:context:]",
+        "instruction": "0x0000000100064958",
+        "disassembly_line": 100794
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.setFencesOnSetLang",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 99701,
+    "javascript_byte_offset": 99743,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c8d0",
+        "disassembly_line": 8806
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.copyImage",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 141465,
+    "javascript_byte_offset": 141509,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e238",
+        "disassembly_line": 60674
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.upload",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 144222,
+    "javascript_byte_offset": 144266,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e358",
+        "disassembly_line": 60746
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.fetchImageLocalStorageFolder",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 150632,
+    "javascript_byte_offset": 150728,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands fetchImageLocalStorageFolder:]",
+        "instruction": "0x000000010003fc48",
+        "disassembly_line": 62375
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.allImageUploadCallback",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 150750,
+    "javascript_byte_offset": 150846,
+    "native_candidates": [
+      {
+        "function": "___38-[IPicBridge doUploadAllImages:using:]_block_invoke_2",
+        "instruction": "0x0000000100019490",
+        "disassembly_line": 22115
+      },
+      {
+        "function": "___38-[IPicBridge doUploadAllImages:using:]_block_invoke_3",
+        "instruction": "0x00000001000196b0",
+        "disassembly_line": 22254
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.tagetImageStorageFolderExcludeSetting",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 150912,
+    "javascript_byte_offset": 151008,
+    "native_candidates": [
+      {
+        "function": "-[IPicBridge toggleCopyImageToFolder]",
+        "instruction": "0x0000000100019cd4",
+        "disassembly_line": 22651
+      },
+      {
+        "function": "-[IPicBridge toggleCopyImageToiPic]",
+        "instruction": "0x000000010001a218",
+        "disassembly_line": 22992
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.doSetImageCopyToFolder",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151038,
+    "javascript_byte_offset": 151134,
+    "native_candidates": [
+      {
+        "function": "___37-[IPicBridge toggleCopyImageToFolder]_block_invoke_3",
+        "instruction": "0x000000010001a110",
+        "disassembly_line": 22925
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.doSetImageCopyToIPic",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151144,
+    "javascript_byte_offset": 151240,
+    "native_candidates": [
+      {
+        "function": "___35-[IPicBridge toggleCopyImageToiPic]_block_invoke",
+        "instruction": "0x000000010001a38c",
+        "disassembly_line": 23086
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.doRemoveImageCopyToFolder",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151258,
+    "javascript_byte_offset": 151354,
+    "native_candidates": [
+      {
+        "function": "___37-[IPicBridge toggleCopyImageToFolder]_block_invoke_2",
+        "instruction": "0x000000010001a044",
+        "disassembly_line": 22873
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.doSetImageRootPath",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151369,
+    "javascript_byte_offset": 151465,
+    "native_candidates": [
+      {
+        "function": "___36-[IPicBridge toggleSetImageRootPath]_block_invoke_2",
+        "instruction": "0x000000010001a71c",
+        "disassembly_line": 23317
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.prepareUploadAllImagesOnMac",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151467,
+    "javascript_byte_offset": 151563,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Edit) doUploadAllImages]",
+        "instruction": "0x000000010000d590",
+        "disassembly_line": 9647
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.insertImage",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151576,
+    "javascript_byte_offset": 151672,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands insertImage:extension:]",
+        "instruction": "0x0000000100041940",
+        "disassembly_line": 64255
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.zoomImage",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151665,
+    "javascript_byte_offset": 151761,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Op) opZoomImageTo:]",
+        "instruction": "0x000000010001fde4",
+        "disassembly_line": 29071
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.switchSyntax",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151758,
+    "javascript_byte_offset": 151854,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Op) opSwitchImageToMarkdownSyntax:]",
+        "instruction": "0x000000010001fe70",
+        "disassembly_line": 29107
+      },
+      {
+        "function": "-[TyWindowController(Op) opSwitchImageToHTMLSyntax:]",
+        "instruction": "0x000000010001fef4",
+        "disassembly_line": 29141
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.copyAllImages",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 151843,
+    "javascript_byte_offset": 151939,
+    "native_candidates": [
+      {
+        "function": "___38-[ImageCommands doCopyAllImageTo:and:]_block_invoke",
+        "instruction": "0x00000001000429d0",
+        "disassembly_line": 65327
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.insertLocalImage",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 162391,
+    "javascript_byte_offset": 162487,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e198",
+        "disassembly_line": 60634
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.prepImageMove",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 163498,
+    "javascript_byte_offset": 163594,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e310",
+        "disassembly_line": 60728
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.writeImage",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 174365,
+    "javascript_byte_offset": 174461,
+    "native_candidates": [
+      {
+        "function": "-[ClipboardCommands setup]",
+        "instruction": "0x0000000100012758",
+        "disassembly_line": 15035
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.showErrorDialog",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 178918,
+    "javascript_byte_offset": 179016,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000af90",
+        "disassembly_line": 7139
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.iPicValidateBeforeUpload",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 179127,
+    "javascript_byte_offset": 179225,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e2c8",
+        "disassembly_line": 60710
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.startCopyAllImages",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 181305,
+    "javascript_byte_offset": 181403,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e4e4",
+        "disassembly_line": 60845
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.getScale",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 183265,
+    "javascript_byte_offset": 183369,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e3a0",
+        "disassembly_line": 60764
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "setting.showAndHighlight",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 185672,
+    "javascript_byte_offset": 185780,
+    "native_candidates": [
+      {
+        "function": "-[SettingCommands setup]",
+        "instruction": "0x0000000100020c58",
+        "disassembly_line": 30039
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.refreshFullContentState",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 190953,
+    "javascript_byte_offset": 191061,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100069330",
+        "disassembly_line": 105626
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "File.getSuggestedFileName",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 192663,
+    "javascript_byte_offset": 192771,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Export) runSaveModal:withOption:withCallback:]",
+        "instruction": "0x000000010007183c",
+        "disassembly_line": 114285
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "File.reloadContent",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 192761,
+    "javascript_byte_offset": 192869,
+    "native_candidates": [
+      {
+        "function": "-[Document syncToClient]",
+        "instruction": "0x0000000100044a20",
+        "disassembly_line": 67429
+      },
+      {
+        "function": "-[Document revertToContentsOfURL:ofType:error:]",
+        "instruction": "0x0000000100045c50",
+        "disassembly_line": 68612
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "File.setFilePath",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 192862,
+    "javascript_byte_offset": 192970,
+    "native_candidates": [
+      {
+        "function": "-[Document observeValueForKeyPath:ofObject:change:context:]",
+        "instruction": "0x0000000100047750",
+        "disassembly_line": 70370
+      },
+      {
+        "function": "-[Document observeValueForKeyPath:ofObject:change:context:]",
+        "instruction": "0x00000001000477bc",
+        "disassembly_line": 70397
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "File.loadFile",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 193209,
+    "javascript_byte_offset": 193317,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Files) postSetDocument:]",
+        "instruction": "0x000000010007a0b4",
+        "disassembly_line": 123103
+      },
+      {
+        "function": "-[TyWindowController(Files) postSetDocument:]",
+        "instruction": "0x000000010007a20c",
+        "disassembly_line": 123189
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "File.generateSnapForBackup",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 193306,
+    "javascript_byte_offset": 193414,
+    "native_candidates": [
+      {
+        "function": "-[Document backupDocumentSnap:]",
+        "instruction": "0x0000000100043c24",
+        "disassembly_line": 66522
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "File.getContent",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 193504,
+    "javascript_byte_offset": 193612,
+    "native_candidates": [
+      {
+        "function": "-[Document syncToSelf]",
+        "instruction": "0x0000000100044754",
+        "disassembly_line": 67248
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setBackground",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 196934,
+    "javascript_byte_offset": 197062,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068db4",
+        "disassembly_line": 105275
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setIsSchemeAwareness",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 196979,
+    "javascript_byte_offset": 197107,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068de4",
+        "disassembly_line": 105287
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setTitlebarTextMarginLeft",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 197514,
+    "javascript_byte_offset": 197642,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068e2c",
+        "disassembly_line": 105305
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "Analytics.record",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 264780,
+    "javascript_byte_offset": 264912,
+    "native_candidates": [
+      {
+        "function": "-[Document saveToURL:ofType:forSaveOperation:completionHandler:]",
+        "instruction": "0x0000000100044ce8",
+        "disassembly_line": 67609
+      },
+      {
+        "function": "-[Document saveToURL:ofType:forSaveOperation:completionHandler:]",
+        "instruction": "0x0000000100044ddc",
+        "disassembly_line": 67670
+      },
+      {
+        "function": "___47-[TyWindowController(Export) exportWithPandoc:]_block_invoke",
+        "instruction": "0x0000000100072be8",
+        "disassembly_line": 115560
+      },
+      {
+        "function": "-[TyWindowController(Export) exportHTML:]",
+        "instruction": "0x00000001000755ac",
+        "disassembly_line": 118252
+      },
+      {
+        "function": "-[TyWindowController(Export) exportHTMLWithoutStyles:]",
+        "instruction": "0x0000000100075724",
+        "disassembly_line": 118347
+      },
+      {
+        "function": "-[TyWindowController(Export) exportPDF:]",
+        "instruction": "0x0000000100077544",
+        "disassembly_line": 120292
+      },
+      {
+        "function": "-[TyWindowController(Export) printFile:]",
+        "instruction": "0x0000000100078664",
+        "disassembly_line": 121400
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "setting.fetchAnalytics",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 265749,
+    "javascript_byte_offset": 265881,
+    "native_candidates": [
+      {
+        "function": "-[SettingCommands setup]",
+        "instruction": "0x0000000100020c88",
+        "disassembly_line": 30051
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.getContent",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 276204,
+    "javascript_byte_offset": 276336,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x000000010006304c",
+        "disassembly_line": 99151
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.updateChangeCount",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 279033,
+    "javascript_byte_offset": 279165,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100062ed4",
+        "disassembly_line": 99057
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.updateChangeCount",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 279116,
+    "javascript_byte_offset": 279248,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100062ed4",
+        "disassembly_line": 99057
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.updateChangeCountIfUnedited",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 279167,
+    "javascript_byte_offset": 279299,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100062f1c",
+        "disassembly_line": 99075
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.updateChangeCount",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 279402,
+    "javascript_byte_offset": 279534,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100062ed4",
+        "disassembly_line": 99057
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.needsUpdateSnap",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 282741,
+    "javascript_byte_offset": 282881,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100063204",
+        "disassembly_line": 99261
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.requestBuildSnap",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 282953,
+    "javascript_byte_offset": 283093,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x000000010006329c",
+        "disassembly_line": 99299
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.refreshContentFromDisk",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 286164,
+    "javascript_byte_offset": 286308,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100063094",
+        "disassembly_line": 99169
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.getDataFromFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 286306,
+    "javascript_byte_offset": 286450,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x00000001000630dc",
+        "disassembly_line": 99187
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.enterOversize",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 287818,
+    "javascript_byte_offset": 287962,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100062f6c",
+        "disassembly_line": 99095
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.isDocumentEdited",
+    "javascript_api": "callSync",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 291303,
+    "javascript_byte_offset": 291447,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.openInTypora",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 299412,
+    "javascript_byte_offset": 299556,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ae64",
+        "disassembly_line": 7064
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.isDirectory",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 299746,
+    "javascript_byte_offset": 299890,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064e7c",
+        "disassembly_line": 101128
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.openFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 300069,
+    "javascript_byte_offset": 300213,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ad44",
+        "disassembly_line": 6992
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.openInTypora",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 300407,
+    "javascript_byte_offset": 300551,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ae64",
+        "disassembly_line": 7064
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.updateFindReplaceMode",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 305259,
+    "javascript_byte_offset": 305403,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c920",
+        "disassembly_line": 8826
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.updateFindReplaceMode",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 305551,
+    "javascript_byte_offset": 305695,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c920",
+        "disassembly_line": 8826
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.updateFindReplaceMode",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 305842,
+    "javascript_byte_offset": 305986,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c920",
+        "disassembly_line": 8826
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.showFindReplaceTouchBar",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 312222,
+    "javascript_byte_offset": 312366,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c968",
+        "disassembly_line": 8844
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.updateFindReplaceMode",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 312277,
+    "javascript_byte_offset": 312421,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c920",
+        "disassembly_line": 8826
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "wordCount.getLabelsToShowOnMac",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 322912,
+    "javascript_byte_offset": 323058,
+    "native_candidates": [
+      {
+        "function": "-[TitlebarRightAccessoryViewController toggleWordCountPopover:]",
+        "instruction": "0x0000000100016bc0",
+        "disassembly_line": 19468
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "word.updateWordCount",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 325774,
+    "javascript_byte_offset": 325920,
+    "native_candidates": [
+      {
+        "function": "-[WordCommands setup]",
+        "instruction": "0x0000000100064400",
+        "disassembly_line": 100444
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "word.updateWordCount",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 326025,
+    "javascript_byte_offset": 326171,
+    "native_candidates": [
+      {
+        "function": "-[WordCommands setup]",
+        "instruction": "0x0000000100064400",
+        "disassembly_line": 100444
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "word.getSpellSuggestionInContext",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 329771,
+    "javascript_byte_offset": 329921,
+    "native_candidates": [
+      {
+        "function": "-[WordCommands setup]",
+        "instruction": "0x0000000100064448",
+        "disassembly_line": 100462
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.moveTo",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 330970,
+    "javascript_byte_offset": 331122,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064dd4",
+        "disassembly_line": 101086
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.removeFiles",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 331290,
+    "javascript_byte_offset": 331442,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064e4c",
+        "disassembly_line": 101116
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.runCommand",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 363128,
+    "javascript_byte_offset": 363288,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000aff0",
+        "disassembly_line": 7163
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.exportToNative",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 367103,
+    "javascript_byte_offset": 367267,
+    "native_candidates": [
+      {
+        "function": "___47-[TyWindowController(Export) exportWithPandoc:]_block_invoke",
+        "instruction": "0x0000000100072b38",
+        "disassembly_line": 115516
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.onExportSuccess",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 367249,
+    "javascript_byte_offset": 367413,
+    "native_candidates": [
+      {
+        "function": "___68-[TyWindowController(ImageExport) exportImageFrom:withOption:width:]_block_invoke_3",
+        "instruction": "0x0000000100061714",
+        "disassembly_line": 97506
+      },
+      {
+        "function": "___72-[TyWindowController(ImageExport) oldExportImageFromContent:withOption:]_block_invoke",
+        "instruction": "0x000000010006205c",
+        "disassembly_line": 98106
+      },
+      {
+        "function": "-[TyWindowController(Export) exportWithPandocFinishCallback:output:error:withOption:withArgs:]",
+        "instruction": "0x000000010007458c",
+        "disassembly_line": 117208
+      },
+      {
+        "function": "___42-[TyWindowController(Export) exportHTML_:]_block_invoke_2",
+        "instruction": "0x00000001000753d4",
+        "disassembly_line": 118133
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.onExportCanceled",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 367371,
+    "javascript_byte_offset": 367535,
+    "native_candidates": [
+      {
+        "function": "___73-[TyWindowController(Export) runSaveModal:withOption:allow:withCallback:]_block_invoke.25",
+        "instruction": "0x0000000100072010",
+        "disassembly_line": 114791
+      },
+      {
+        "function": "-[TyWindowController(Export) exportWithPandoc:]",
+        "instruction": "0x0000000100072954",
+        "disassembly_line": 115394
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.onExportFailed",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 367457,
+    "javascript_byte_offset": 367621,
+    "native_candidates": [
+      {
+        "function": "___68-[TyWindowController(ImageExport) exportImageFrom:withOption:width:]_block_invoke_3",
+        "instruction": "0x0000000100061598",
+        "disassembly_line": 97411
+      },
+      {
+        "function": "___68-[TyWindowController(ImageExport) exportImageFrom:withOption:width:]_block_invoke_3",
+        "instruction": "0x00000001000617b8",
+        "disassembly_line": 97547
+      },
+      {
+        "function": "___72-[TyWindowController(ImageExport) oldExportImageFromContent:withOption:]_block_invoke",
+        "instruction": "0x00000001000620fc",
+        "disassembly_line": 98146
+      },
+      {
+        "function": "___48-[TyWindowController(Export) exportWithCommand:]_block_invoke",
+        "instruction": "0x0000000100072330",
+        "disassembly_line": 114993
+      },
+      {
+        "function": "___42-[TyWindowController(Export) exportHTML_:]_block_invoke_2",
+        "instruction": "0x0000000100075484",
+        "disassembly_line": 118177
+      },
+      {
+        "function": "___71-[TyWindowController(Export) printOperationDidRun:success:contextInfo:]_block_invoke",
+        "instruction": "0x0000000100075ab0",
+        "disassembly_line": 118576
+      },
+      {
+        "function": "___57-[TyWindowController(Export) _doPrintTo:from:withOption:]_block_invoke_2",
+        "instruction": "0x0000000100077908",
+        "disassembly_line": 120538
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.dataForExport",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 367832,
+    "javascript_byte_offset": 367996,
+    "native_candidates": [
+      {
+        "function": "-[PrintPanelAccessoryController genPrintView:withBackground:]",
+        "instruction": "0x000000010003122c",
+        "disassembly_line": 47023
+      },
+      {
+        "function": "-[TyWindowController(ImageExport) exportImage:]",
+        "instruction": "0x0000000100062340",
+        "disassembly_line": 98292
+      },
+      {
+        "function": "-[TyWindowController(Export) _exportPDF:]",
+        "instruction": "0x0000000100076468",
+        "disassembly_line": 119202
+      },
+      {
+        "function": "-[TyWindowController(Export) wkExportToPDF:]",
+        "instruction": "0x0000000100076e5c",
+        "disassembly_line": 119845
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.exportToHTML",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 368335,
+    "javascript_byte_offset": 368499,
+    "native_candidates": [
+      {
+        "function": "___42-[TyWindowController(Export) exportHTML_:]_block_invoke",
+        "instruction": "0x0000000100075284",
+        "disassembly_line": 118048
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.exportWithCommand",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 368519,
+    "javascript_byte_offset": 368683,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Export) exportWithCommand:]",
+        "instruction": "0x00000001000721e0",
+        "disassembly_line": 114908
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "pdf.getFixData",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 368657,
+    "javascript_byte_offset": 368821,
+    "native_candidates": [
+      {
+        "function": "-[TyPDFEngine repairPDFWith:orFile:to:withOption:callback:]",
+        "instruction": "0x000000010002c274",
+        "disassembly_line": 41795
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "export.prepare",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 368898,
+    "javascript_byte_offset": 369062,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Export) _exportWithOption:]",
+        "instruction": "0x00000001000788a8",
+        "disassembly_line": 121548
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.updateUIAfterExitSourceMode",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 369192,
+    "javascript_byte_offset": 369356,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100069024",
+        "disassembly_line": 105431
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.readText",
+    "javascript_api": "callSync",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 380297,
+    "javascript_byte_offset": 380467,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.openFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 414134,
+    "javascript_byte_offset": 414314,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ad44",
+        "disassembly_line": 6992
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.openFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 414180,
+    "javascript_byte_offset": 414360,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064c04",
+        "disassembly_line": 100970
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.query",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 418819,
+    "javascript_byte_offset": 419007,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands setup]",
+        "instruction": "0x0000000100004470",
+        "disassembly_line": 76
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.reindexFolderIfNeeded",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419001,
+    "javascript_byte_offset": 419189,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands setup]",
+        "instruction": "0x00000001000044b8",
+        "disassembly_line": 94
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.cacheRecentFiles",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419134,
+    "javascript_byte_offset": 419322,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands setup]",
+        "instruction": "0x0000000100004428",
+        "disassembly_line": 58
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.initFileCache",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419554,
+    "javascript_byte_offset": 419742,
+    "native_candidates": [
+      {
+        "function": "___39-[QuickOpenCommands gatheredInitFiles:]_block_invoke",
+        "instruction": "0x0000000100005498",
+        "disassembly_line": 1132
+      },
+      {
+        "function": "___38-[QuickOpenCommands listAllFileByEnum]_block_invoke_2",
+        "instruction": "0x0000000100005c6c",
+        "disassembly_line": 1638
+      },
+      {
+        "function": "___38-[QuickOpenCommands listAllFileByEnum]_block_invoke.48",
+        "instruction": "0x0000000100005de0",
+        "disassembly_line": 1734
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.updateResult",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419657,
+    "javascript_byte_offset": 419845,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands appendQueryResult:]",
+        "instruction": "0x0000000100004894",
+        "disassembly_line": 353
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.setSearchState",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419746,
+    "javascript_byte_offset": 419934,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands finishQueryResult:]",
+        "instruction": "0x000000010000491c",
+        "disassembly_line": 388
+      },
+      {
+        "function": "-[QuickOpenCommands query:]",
+        "instruction": "0x0000000100004f20",
+        "disassembly_line": 780
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.setRecentFiles",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419839,
+    "javascript_byte_offset": 420027,
+    "native_candidates": [
+      {
+        "function": "___37-[QuickOpenCommands cacheRecentFiles]_block_invoke.53",
+        "instruction": "0x00000001000060b8",
+        "disassembly_line": 1923
+      },
+      {
+        "function": "___37-[QuickOpenCommands cacheRecentFiles]_block_invoke.64",
+        "instruction": "0x0000000100006260",
+        "disassembly_line": 2034
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.setRecentFolders",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 419932,
+    "javascript_byte_offset": 420120,
+    "native_candidates": [
+      {
+        "function": "___37-[QuickOpenCommands cacheRecentFiles]_block_invoke.53",
+        "instruction": "0x0000000100006180",
+        "disassembly_line": 1973
+      },
+      {
+        "function": "___37-[QuickOpenCommands cacheRecentFiles]_block_invoke.64",
+        "instruction": "0x000000010000628c",
+        "disassembly_line": 2045
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.updateCacheByRename",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 420029,
+    "javascript_byte_offset": 420217,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands onRename:to:]",
+        "instruction": "0x0000000100006410",
+        "disassembly_line": 2143
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.updateCache",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 420143,
+    "javascript_byte_offset": 420331,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands onUpdateByRemove:add:for:]",
+        "instruction": "0x0000000100006654",
+        "disassembly_line": 2289
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.stopQuery",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 421359,
+    "javascript_byte_offset": 421547,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands setup]",
+        "instruction": "0x0000000100004500",
+        "disassembly_line": 112
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "quickOpen.stopQuery",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 422593,
+    "javascript_byte_offset": 422781,
+    "native_candidates": [
+      {
+        "function": "-[QuickOpenCommands setup]",
+        "instruction": "0x0000000100004500",
+        "disassembly_line": 112
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.listDocsUnder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 479532,
+    "javascript_byte_offset": 479823,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100050fc0",
+        "disassembly_line": 80364
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.newFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 492198,
+    "javascript_byte_offset": 492489,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051098",
+        "disassembly_line": 80418
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.newFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 492457,
+    "javascript_byte_offset": 492748,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x00000001000510e0",
+        "disassembly_line": 80436
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.renameFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 493522,
+    "javascript_byte_offset": 493813,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051170",
+        "disassembly_line": 80472
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "fileList.renderAll",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 498325,
+    "javascript_byte_offset": 498616,
+    "native_candidates": [
+      {
+        "function": "___44-[LibraryCommands endRender:oversize:error:]_block_invoke",
+        "instruction": "0x00000001000540a8",
+        "disassembly_line": 83532
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "fileList.appendItem",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 498560,
+    "javascript_byte_offset": 498851,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands updateListItem:forceMark:]",
+        "instruction": "0x0000000100055b18",
+        "disassembly_line": 85244
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.fetchAllDocs",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 500911,
+    "javascript_byte_offset": 501202,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100050f78",
+        "disassembly_line": 80346
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.updateListItem",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 508968,
+    "javascript_byte_offset": 509259,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051008",
+        "disassembly_line": 80382
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.updateListItem",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 509193,
+    "javascript_byte_offset": 509484,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051008",
+        "disassembly_line": 80382
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.updateListItemIfIsOpen",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 509304,
+    "javascript_byte_offset": 509595,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051050",
+        "disassembly_line": 80400
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.newFileUnder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 511547,
+    "javascript_byte_offset": 511838,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051128",
+        "disassembly_line": 80454
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.newFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 512485,
+    "javascript_byte_offset": 512776,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x00000001000510e0",
+        "disassembly_line": 80436
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.newFileUnder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 512579,
+    "javascript_byte_offset": 512870,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051128",
+        "disassembly_line": 80454
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.focus",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 513301,
+    "javascript_byte_offset": 513592,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068e74",
+        "disassembly_line": 105323
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.renameFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 514137,
+    "javascript_byte_offset": 514428,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051170",
+        "disassembly_line": 80472
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "docMenu.getLocalRootUrl",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 573890,
+    "javascript_byte_offset": 574197,
+    "native_candidates": [
+      {
+        "function": "-[IPicBridge toggleSetImageRootPath]",
+        "instruction": "0x000000010001a444",
+        "disassembly_line": 23133
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "docMenu.removeProperty",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 573982,
+    "javascript_byte_offset": 574289,
+    "native_candidates": [
+      {
+        "function": "___36-[IPicBridge toggleSetImageRootPath]_block_invoke",
+        "instruction": "0x000000010001a4f0",
+        "disassembly_line": 23177
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.processClipboardHTML",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 683542,
+    "javascript_byte_offset": 683943,
+    "native_candidates": [
+      {
+        "function": "___29-[ClipboardCommands postCopy]_block_invoke",
+        "instruction": "0x000000010001461c",
+        "disassembly_line": 17027
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.postCopy",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 687384,
+    "javascript_byte_offset": 687785,
+    "native_candidates": [
+      {
+        "function": "-[ClipboardCommands setup]",
+        "instruction": "0x00000001000127a0",
+        "disassembly_line": 15053
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.open",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 699519,
+    "javascript_byte_offset": 699920,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068ea4",
+        "disassembly_line": 105335
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "logger.info",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 705970,
+    "javascript_byte_offset": 706372,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x000000010006909c",
+        "disassembly_line": 105461
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "logger.debug",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 706251,
+    "javascript_byte_offset": 706653,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x000000010006912c",
+        "disassembly_line": 105497
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.setInlineEnabled",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 712924,
+    "javascript_byte_offset": 713378,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c888",
+        "disassembly_line": 8788
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.setInlineStates",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 712975,
+    "javascript_byte_offset": 713429,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c840",
+        "disassembly_line": 8770
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.showFindReplaceTouchBar",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 715663,
+    "javascript_byte_offset": 716157,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c968",
+        "disassembly_line": 8844
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.showInsertTableTouchBar",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 715806,
+    "javascript_byte_offset": 716300,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c9f8",
+        "disassembly_line": 8880
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.showDialogTouchBar",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 715861,
+    "javascript_byte_offset": 716355,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000ca40",
+        "disassembly_line": 8898
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.setBlockStyle",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 715911,
+    "javascript_byte_offset": 716405,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c7f8",
+        "disassembly_line": 8752
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.updateInsertTableTouchBar",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 736454,
+    "javascript_byte_offset": 737060,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c9b0",
+        "disassembly_line": 8862
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "touchBar.showInsertTableTouchBar",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 738811,
+    "javascript_byte_offset": 739417,
+    "native_candidates": [
+      {
+        "function": "-[TouchbarCommands setup]",
+        "instruction": "0x000000010000c9f8",
+        "disassembly_line": 8880
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "contextMenu.setItems",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1142178,
+    "javascript_byte_offset": 1149133,
+    "native_candidates": [
+      {
+        "function": "-[ContextMenuCommands setup]",
+        "instruction": "0x000000010001ddbc",
+        "disassembly_line": 26890
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "contextMenu.setItems",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1142342,
+    "javascript_byte_offset": 1149297,
+    "native_candidates": [
+      {
+        "function": "-[ContextMenuCommands setup]",
+        "instruction": "0x000000010001ddbc",
+        "disassembly_line": 26890
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.convertFakeUrl",
+    "javascript_api": "callSync",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1163352,
+    "javascript_byte_offset": 1170307,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "images.savePNG",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1182430,
+    "javascript_byte_offset": 1189387,
+    "native_candidates": [
+      {
+        "function": "-[ImageCommands setup]",
+        "instruction": "0x000000010003e1e8",
+        "disassembly_line": 60654
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "clipboard.writeImage",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1182755,
+    "javascript_byte_offset": 1189712,
+    "native_candidates": [
+      {
+        "function": "-[ClipboardCommands setup]",
+        "instruction": "0x0000000100012758",
+        "disassembly_line": 15035
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.showDialog",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1372888,
+    "javascript_byte_offset": 1381143,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x000000010006929c",
+        "disassembly_line": 105589
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.showDialog",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1373794,
+    "javascript_byte_offset": 1382049,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x000000010006929c",
+        "disassembly_line": 105589
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.selectFolderOrFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1385303,
+    "javascript_byte_offset": 1393558,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064ec8",
+        "disassembly_line": 101147
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.showSaveDialog",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1385433,
+    "javascript_byte_offset": 1393688,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064f0c",
+        "disassembly_line": 101164
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.previewFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1393673,
+    "javascript_byte_offset": 1401930,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068ef0",
+        "disassembly_line": 105354
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "globalSearch.onSearchUpdate",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1403862,
+    "javascript_byte_offset": 1412127,
+    "native_candidates": [
+      {
+        "function": "___42-[TyWindowController(Search) onData:from:]_block_invoke",
+        "instruction": "0x0000000100060250",
+        "disassembly_line": 96159
+      },
+      {
+        "function": "___42-[TyWindowController(Search) onData:from:]_block_invoke",
+        "instruction": "0x0000000100060368",
+        "disassembly_line": 96229
+      },
+      {
+        "function": "___43-[TyWindowController(Search) onClose:from:]_block_invoke",
+        "instruction": "0x000000010006077c",
+        "disassembly_line": 96494
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "globalSearch.onErrorMsg",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1404079,
+    "javascript_byte_offset": 1412344,
+    "native_candidates": [
+      {
+        "function": "___43-[TyWindowController(Search) onError:from:]_block_invoke",
+        "instruction": "0x00000001000604a4",
+        "disassembly_line": 96310
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.search",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1411967,
+    "javascript_byte_offset": 1420234,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100050f30",
+        "disassembly_line": 80328
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.onRootChanged",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505332,
+    "javascript_byte_offset": 1513601,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Files) postSetDocument:]",
+        "instruction": "0x0000000100079fd4",
+        "disassembly_line": 123047
+      },
+      {
+        "function": "___42-[TyWindowController(Files) switchFolder:]_block_invoke",
+        "instruction": "0x000000010007b830",
+        "disassembly_line": 124627
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.scheduleChangeHighlight",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505421,
+    "javascript_byte_offset": 1513690,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Files) highlightFile:]",
+        "instruction": "0x000000010007d054",
+        "disassembly_line": 126185
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.onFileChanges",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505530,
+    "javascript_byte_offset": 1513799,
+    "native_candidates": [
+      {
+        "function": "___32-[LibraryCommands newFileUnder:]_block_invoke_2",
+        "instruction": "0x0000000100056310",
+        "disassembly_line": 85762
+      },
+      {
+        "function": "___FileWatcherCallback_block_invoke",
+        "instruction": "0x000000010007b134",
+        "disassembly_line": 124173
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.onLoadFolderFailed",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505619,
+    "javascript_byte_offset": 1513888,
+    "native_candidates": [
+      {
+        "function": "___FileWatcherCallback_block_invoke",
+        "instruction": "0x000000010007b0e8",
+        "disassembly_line": 124154
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.setFilesInDragging",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505718,
+    "javascript_byte_offset": 1513987,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Edit) setFilesInDragging:fromTypora:]",
+        "instruction": "0x000000010000df44",
+        "disassembly_line": 10283
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.refreshOnRefocus",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505849,
+    "javascript_byte_offset": 1514118,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.getActiveTab",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1505972,
+    "javascript_byte_offset": 1514241,
+    "native_candidates": [
+      {
+        "function": "-[TitlebarRightAccessoryViewController toggleSidebarSelector:]",
+        "instruction": "0x0000000100015c58",
+        "disassembly_line": 18469
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.onBecomeActive",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1506054,
+    "javascript_byte_offset": 1514323,
+    "native_candidates": [
+      {
+        "function": "-[Document requestSetActiveWindow:fromSwitch:withCallback:]",
+        "instruction": "0x0000000100042f58",
+        "disassembly_line": 65686
+      },
+      {
+        "function": "___59-[Document requestSetActiveWindow:fromSwitch:withCallback:]_block_invoke",
+        "instruction": "0x00000001000432a0",
+        "disassembly_line": 65897
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setTitlebarTextMarginLeft",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1508046,
+    "javascript_byte_offset": 1516315,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068e2c",
+        "disassembly_line": 105305
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setTitlebarTextMarginLeft",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1508103,
+    "javascript_byte_offset": 1516372,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068e2c",
+        "disassembly_line": 105305
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setTitlebarTextMarginLeft",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1509752,
+    "javascript_byte_offset": 1518029,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068e2c",
+        "disassembly_line": 105305
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.setTitlebarTextMarginLeft",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1510439,
+    "javascript_byte_offset": 1518716,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068e2c",
+        "disassembly_line": 105305
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.switchDocumentTarget",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1512461,
+    "javascript_byte_offset": 1520738,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000add4",
+        "disassembly_line": 7028
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.openFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1512881,
+    "javascript_byte_offset": 1521158,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ad44",
+        "disassembly_line": 6992
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.openInNewWindow",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1512927,
+    "javascript_byte_offset": 1521204,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ae1c",
+        "disassembly_line": 7046
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.startDrag",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1520544,
+    "javascript_byte_offset": 1528821,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000aef8",
+        "disassembly_line": 7101
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.moveFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1530925,
+    "javascript_byte_offset": 1539202,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051200",
+        "disassembly_line": 80508
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.selectFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1533330,
+    "javascript_byte_offset": 1541607,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000acfc",
+        "disassembly_line": 6974
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.getRecentFolders",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1534677,
+    "javascript_byte_offset": 1542954,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051290",
+        "disassembly_line": 80544
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.shouldLoadFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1534919,
+    "javascript_byte_offset": 1543196,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ac24",
+        "disassembly_line": 6920
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.calcMountFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1536875,
+    "javascript_byte_offset": 1545152,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000abdc",
+        "disassembly_line": 6902
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.trashItem",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1541890,
+    "javascript_byte_offset": 1550167,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x00000001000511b8",
+        "disassembly_line": 80490
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.showProperty",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1544438,
+    "javascript_byte_offset": 1552715,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x000000010005136c",
+        "disassembly_line": 80599
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "library.duplicate",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1546198,
+    "javascript_byte_offset": 1554475,
+    "native_candidates": [
+      {
+        "function": "-[LibraryCommands setup]",
+        "instruction": "0x0000000100051248",
+        "disassembly_line": 80526
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.switchFolder",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1546774,
+    "javascript_byte_offset": 1555051,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000ac6c",
+        "disassembly_line": 6938
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.bindFolderMonitor",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1546832,
+    "javascript_byte_offset": 1555109,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000acb4",
+        "disassembly_line": 6956
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.applyChange",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1552499,
+    "javascript_byte_offset": 1560780,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.applyFullContent",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1552583,
+    "javascript_byte_offset": 1560864,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Files) doFullSyncContentFor:content:fromSourceMode:]",
+        "instruction": "0x000000010007a898",
+        "disassembly_line": 123617
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.insertText",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1552697,
+    "javascript_byte_offset": 1560978,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.setPasteboard",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1552779,
+    "javascript_byte_offset": 1561060,
+    "native_candidates": [
+      {
+        "function": "-[DocWebView performDragOperation:]",
+        "instruction": "0x0000000100081534",
+        "disassembly_line": 130648
+      },
+      {
+        "function": "-[DocWebView performDragOperation:]",
+        "instruction": "0x0000000100081a44",
+        "disassembly_line": 130972
+      },
+      {
+        "function": "-[DocWebView performDragOperation:]",
+        "instruction": "0x0000000100081dbc",
+        "disassembly_line": 131194
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.resetPasteboard",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1552875,
+    "javascript_byte_offset": 1561156,
+    "native_candidates": [
+      {
+        "function": "-[DocWebView performDragOperation:]",
+        "instruction": "0x00000001000813e8",
+        "disassembly_line": 130565
+      },
+      {
+        "function": "___35-[DocWebView performDragOperation:]_block_invoke",
+        "instruction": "0x0000000100081df8",
+        "disassembly_line": 131210
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.showNotificationWithTitle",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1552966,
+    "javascript_byte_offset": 1561247,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Files) showError:detail:]",
+        "instruction": "0x000000010007c178",
+        "disassembly_line": 125227
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.showZoomPanel",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1553095,
+    "javascript_byte_offset": 1561376,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(ViewMode) setZoom:]",
+        "instruction": "0x000000010000f0d8",
+        "disassembly_line": 11453
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.getSpeechText",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1553192,
+    "javascript_byte_offset": 1561473,
+    "native_candidates": [
+      {
+        "function": "-[TyWindowController(Edit) startWebViewSpeaking:]",
+        "instruction": "0x000000010000e7ec",
+        "disassembly_line": 10850
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "editor.jumpToAnchor",
+    "javascript_api": "registerHandler",
+    "direction": "native_to_javascript",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1553280,
+    "javascript_byte_offset": 1561561,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.selectNextTab",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1566121,
+    "javascript_byte_offset": 1574404,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068f88",
+        "disassembly_line": 105392
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.selectPreviousTab",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1566217,
+    "javascript_byte_offset": 1574500,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068fd4",
+        "disassembly_line": 105411
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "window.pasteAsPlainText",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1569967,
+    "javascript_byte_offset": 1578250,
+    "native_candidates": [
+      {
+        "function": "-[WindowCommands setup]",
+        "instruction": "0x0000000100068f3c",
+        "disassembly_line": 105373
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "contextMenu.setItems",
+    "javascript_api": "callSync",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1571687,
+    "javascript_byte_offset": 1579970,
+    "native_candidates": [],
+    "status": "unmatched-by-this-conservative-index",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.openFile",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1591296,
+    "javascript_byte_offset": 1599581,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064c04",
+        "disassembly_line": 100970
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "path.openURL",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1594358,
+    "javascript_byte_offset": 1602647,
+    "native_candidates": [
+      {
+        "function": "-[PathCommands setup]",
+        "instruction": "0x0000000100064bb4",
+        "disassembly_line": 100950
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "controller.syncFullContent",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1611570,
+    "javascript_byte_offset": 1619873,
+    "native_candidates": [
+      {
+        "function": "-[ControllerCommands setup]",
+        "instruction": "0x000000010000af40",
+        "disassembly_line": 7119
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  },
+  {
+    "method": "document.syncChangeIfNeeded",
+    "javascript_api": "callHandler",
+    "direction": "javascript_to_native",
+    "javascript_source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+    "javascript_char_offset": 1612100,
+    "javascript_byte_offset": 1620403,
+    "native_candidates": [
+      {
+        "function": "-[DocumentCommands setup]",
+        "instruction": "0x0000000100062fbc",
+        "disassembly_line": 99115
+      }
+    ],
+    "status": "literal-endpoints-matched",
+    "limitation": "Literal endpoints are a static correspondence, not proof of runtime registration or execution. Synchronous dispatch uses CommandBridge group/selector lookup and is not indexed as async registration."
+  }
+]

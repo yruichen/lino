@@ -1,0 +1,17 @@
+{
+  "name": "open-typora",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An evidence-backed map of Typora's editor and macOS native bridges.",
+  "license": "MIT",
+  "engines": { "node": ">=24.11.0" },
+  "scripts": {
+    "build": "node tools/build-report.cjs",
+    "check": "node tools/check.cjs",
+    "analyze:editor": "node tools/analyze-editor.cjs"
+  },
+  "devDependencies": {
+    "@babel/parser": "8.0.4",
+    "markdown-it": "14.1.0"
+  }
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 440" role="img" aria-labelledby="title desc">
+ <title id="title">open-typora architecture overview</title><desc id="desc">Input flows through a document model to a rendered editor and Markdown. Native services connect through a JavaScript bridge.</desc>
+ <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#10182b"/><stop offset="1" stop-color="#202643"/></linearGradient><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10" fill="#8999bf"/></marker></defs>
+ <rect width="1120" height="440" rx="18" fill="url(#bg)"/>
+ <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+ <text x="52" y="60" fill="#a4b3d1" font-size="13" letter-spacing="3">AN OPEN RESEARCH NOTEBOOK</text>
+ <text x="52" y="117" fill="#f1f5ff" font-size="48" font-weight="700">Inside the Markdown editor.</text>
+ <text x="52" y="152" fill="#afbdd9" font-size="19">83 modules. Native bridges. Evidence you can follow.</text>
+ <g stroke="#8999bf" stroke-width="2" fill="none" marker-end="url(#arrow)"><path d="M239 248H308"/><path d="M505 248H573"/><path d="M770 248H837"/><path d="M408 280V325H935V283" stroke-dasharray="6 5"/></g>
+ <g fill="#232f4b" stroke="#4f638b"><rect x="52" y="207" width="187" height="76" rx="11"/><rect x="311" y="207" width="194" height="76" rx="11"/><rect x="576" y="207" width="194" height="76" rx="11"/><rect x="840" y="207" width="228" height="76" rx="11"/></g>
+ <g text-anchor="middle" fill="#f1f5ff" font-size="19" font-weight="600"><text x="145" y="238">Input</text><text x="408" y="238">Document model</text><text x="673" y="238">Rendered view</text><text x="954" y="238">Native services</text></g>
+ <g text-anchor="middle" fill="#b7c5e0" font-size="13"><text x="145" y="262">Selection · IME · Undo</text><text x="408" y="262">Nodes · Parser · Markdown</text><text x="673" y="262">DOM · Code · Math</text><text x="954" y="262">Files · Search · Export</text></g>
+ <text x="642" y="350" text-anchor="middle" fill="#98add6" font-size="13">JavaScript ↔ macOS bridge</text>
+ <text x="52" y="403" fill="#a8b7d4" font-size="17" font-weight="600">open-typora</text><text x="1068" y="403" text-anchor="end" fill="#8394b5" font-size="12">Static architecture overview · not a runtime trace</text>
+ </g>
+</svg>

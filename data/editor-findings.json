@@ -1,0 +1,679 @@
+{
+  "target": "$APP",
+  "version": "1.9.4",
+  "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+  "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+  "method": "Babel AST parse of inert installed file; no target evaluation",
+  "module_count": 83,
+  "prior_REA_evidence": [
+    "ev_ac99e71ff73c90e826f8e1534e402ce18058b9346d690d0adf89f3fa8ae98112",
+    "ev_bd222c26997c3afb97c3f5f67cc336347b9554118742a0fb15fbbb67f9b8b6d3"
+  ],
+  "module_map": "module-map.json",
+  "findings": [
+    {
+      "id": "model",
+      "observation": "Nodes have parent/children and identifiers; append/prepend/remove methods implement structural updates.",
+      "inference": "The editor keeps a mutable node tree distinct from its DOM.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "13",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1194056,
+        "utf8_byte_offset": 1199379,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "model-serialization",
+      "observation": "NodeMap exposes JSON storage and restoration.",
+      "inference": "Document model can be snapshotted independently of DOM.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "13",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1202583,
+        "utf8_byte_offset": 1207906,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "markdown-output",
+      "observation": "Node.prototype.toMark serializes by node type and chooses CRLF/LF.",
+      "inference": "Markdown text is generated from the model for visual editing.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "12",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 25055,
+        "utf8_byte_offset": 25067,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "render-html",
+      "observation": "Node.prototype.toHTML dispatches by type and emits editable markup.",
+      "inference": "Live preview is model-derived editable HTML.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "14",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 35919,
+        "utf8_byte_offset": 35949,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "render-cid",
+      "observation": "Generated markup carries node identity and Markdown type.",
+      "inference": "DOM/node mapping is maintained through cid/mdtype attributes.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "14",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 37071,
+        "utf8_byte_offset": 37101,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "block-parser",
+      "observation": "Node parsing and block lexer dispatch are implemented in the packaged bundle.",
+      "inference": "Markdown parsing is extended with Typora-specific editor node construction.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "19",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 885872,
+        "utf8_byte_offset": 890860,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "inline-render",
+      "observation": "The MarkParser exposes/uses an InlineLexer; module 30 supplies inline decoration.",
+      "inference": "Block parsing and inline tokenization/decorated rendering are distinct operations.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "19",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 908480,
+        "utf8_byte_offset": 913749,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "brush-queue",
+      "observation": "Brush schedules asynchronous queue processing every configured interval (initial value 200 ms); IME/mouse state gates queue work.",
+      "inference": "Live editing uses deferred local reconciliation to avoid rendering during ongoing composition/selection.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "2a",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 116996,
+        "utf8_byte_offset": 117038,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "input-events",
+      "observation": "Root Editor owns keyboard/composition bindings and editing commands.",
+      "inference": "Input events and the Brush queue collaborate to update model/rendering.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1575736,
+        "utf8_byte_offset": 1582385,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "editor-compose",
+      "observation": "Root controller constructs feature controllers and central node map.",
+      "inference": "Editor integrates code, math, tables, undo, selection, search, source and file navigation.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1552346,
+        "utf8_byte_offset": 1558993,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "editor-local-parse",
+      "observation": "Editor simpleParse conditionally reparses paragraph/raw-edit nodes, pauses Brush, snapshots undo, calls Node.parseFrom and returns replacement HTML/nodes.",
+      "inference": "This is a central incremental editing path.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1609656,
+        "utf8_byte_offset": 1616321,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "editor-insert",
+      "observation": "Editor defines programmatic text insertion.",
+      "inference": "Keyboard/paste/native entry points can share model update operations.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1554356,
+        "utf8_byte_offset": 1561003,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "undo-stack",
+      "observation": "Undo manager stores a command stack and index, and supports JSON restoration.",
+      "inference": "Visual editing uses command-based/snapshot history.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "1b",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1121607,
+        "utf8_byte_offset": 1126928,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "undo-route",
+      "observation": "Source-mode undo routes to CodeMirror; other branches use visual history or native undo.",
+      "inference": "Undo ownership depends on active editing mode/component.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "1b",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1125074,
+        "utf8_byte_offset": 1130395,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "undo-command",
+      "observation": "Undo manager executes commands and applies operation-specific changes.",
+      "inference": "A history command can restore structural/document and cursor state.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "1b",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1122288,
+        "utf8_byte_offset": 1127609,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "selection",
+      "observation": "Selection controller owns editor-associated cursor/range state.",
+      "inference": "DOM ranges and model node positions are coordinated by a dedicated controller.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "31",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 516411,
+        "utf8_byte_offset": 516702,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "source-view",
+      "observation": "Source view sets CodeMirror text and exposes show/hide mode transitions.",
+      "inference": "Switching modes synchronizes plain Markdown with the visual node representation.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "48",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 397854,
+        "utf8_byte_offset": 398024,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "source-save",
+      "observation": "Source view onSave resets CodeMirror lastModTime.",
+      "inference": "The save marker is synchronized with source editor history.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "48",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 400638,
+        "utf8_byte_offset": 400812,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "source-to-visual",
+      "observation": "Leaving source mode reloads Markdown through File.reloadContent or restores cached rendered HTML and synchronizes document changes.",
+      "inference": "Mode switching regenerates the visual model when source was modified.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "48",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 400703,
+        "utf8_byte_offset": 400877,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "code-sync",
+      "observation": "Code controller copies CodeMirror getValue into the model node text.",
+      "inference": "Embedded code editors are persisted through node state.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "18",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 94679,
+        "utf8_byte_offset": 94721,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "code-lazy",
+      "observation": "Code controller loads modes/extensions on demand.",
+      "inference": "Code language support is separate from the core editor.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "18",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 95456,
+        "utf8_byte_offset": 95498,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "table-operations",
+      "observation": "Table controller defines row/column movement and addition/deletion.",
+      "inference": "Table editing operates structurally on the document model.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "55",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 735538,
+        "utf8_byte_offset": 736144,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "table-markdown",
+      "observation": "Markdown table serialization builds alignment separators.",
+      "inference": "The editable table can round-trip to Markdown table syntax.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "12",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 25225,
+        "utf8_byte_offset": 25237,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "inline-math",
+      "observation": "Inline math invokes MathJax.tex2svgPromise and handles failures.",
+      "inference": "Inline LaTeX renders as SVG via bundled MathJax.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "27",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 110608,
+        "utf8_byte_offset": 110650,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "block-math",
+      "observation": "Math-block CodeMirror text is synchronized into a node.",
+      "inference": "Math source editing and rendered display are separate states.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "1c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1103428,
+        "utf8_byte_offset": 1108749,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "math-labels",
+      "observation": "Math controller has label-aware re-rendering and cache controls.",
+      "inference": "Cross-equation label dependencies may require broader re-rendering.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "1c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1101323,
+        "utf8_byte_offset": 1106644,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "diagram-libraries",
+      "observation": "Diagram controller loads diagram, Mermaid and ZenUML scripts.",
+      "inference": "Supported diagram types depend on bundled library and configuration paths.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "15",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1116065,
+        "utf8_byte_offset": 1121386,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "diagram-render",
+      "observation": "Diagram update dispatch inspects source and rendering options.",
+      "inference": "Diagram code blocks produce preview output through library-specific branches.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "15",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1115087,
+        "utf8_byte_offset": 1120408,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "html-raw",
+      "observation": "HTML-block controller supports source editing, DOM refresh and messages.",
+      "inference": "Raw HTML is treated as an embedded component with model synchronization.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "17",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1144610,
+        "utf8_byte_offset": 1149931,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "search",
+      "observation": "Search controller distinguishes source view and visual node search.",
+      "inference": "Search traverses the model and coordinates matches/highlighting.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "3f",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 303185,
+        "utf8_byte_offset": 303329,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "search-replace",
+      "observation": "Replace-all implementation coordinates replacements with editor/undo.",
+      "inference": "Replacement is integrated with document editing state.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "3f",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 304784,
+        "utf8_byte_offset": 304928,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "reconcile",
+      "observation": "Module contains verification and DOM/model reconciliation operations.",
+      "inference": "Browser contenteditable mutations need cleanup and normalization.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "3e",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1175700,
+        "utf8_byte_offset": 1181023,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "save",
+      "observation": "Editor getMarkdown returns source CodeMirror value when in source mode, otherwise NodeMap.toMark with final-newline handling.",
+      "inference": "Saving uses generated or source-mode Markdown depending on editor mode.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1610934,
+        "utf8_byte_offset": 1617599,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "document-sync",
+      "observation": "Mac syncChange sends serialized non-fence changes via document.syncChangeIfNeeded; a callback schedules full content sync.",
+      "inference": "Multiple document views use native coordination and incremental/full synchronization.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1613612,
+        "utf8_byte_offset": 1620281,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "incoming-document-sync",
+      "observation": "Full content applies only to a nonactive window through undo.exeCommand(type sync); applyChange similarly executes incoming commands and refreshes.",
+      "inference": "Document replication reuses the edit-command machinery; exact native coordination remains unresolved.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "5c",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 1613343,
+        "utf8_byte_offset": 1620012,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "export",
+      "observation": "Mac handlers accept export requests and acknowledge success/failure.",
+      "inference": "Native export orchestration crosses JS/native boundaries.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "45",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 366843,
+        "utf8_byte_offset": 367007,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    },
+    {
+      "id": "quickopen",
+      "observation": "Mac quick-open sends query over bridge and registers callbacks.",
+      "inference": "The Mac file indexing backend is native, not established by this JS analysis.",
+      "status": "partially answered; static behavior only",
+      "evidence": {
+        "module_id": "4a",
+        "source": "$APP/Contents/Resources/TypeMark/appsrc/main.js",
+        "source_sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6",
+        "char_offset": 418833,
+        "utf8_byte_offset": 419021,
+        "line": 1,
+        "evidence_type": "direct-packaged-source-static-AST-and-text"
+      }
+    }
+  ],
+  "function_chains": [
+    {
+      "feature": "Markdown file to editable document",
+      "modules": [
+        "3c",
+        "19",
+        "13",
+        "14",
+        "5c"
+      ],
+      "chain": "File/content entry → block parse → Node/NodeMap tree → Node.toHTML → editor refresh/DOM decoration",
+      "status": "partial; native file-read edge delegated to native investigation"
+    },
+    {
+      "feature": "Input/live rendering",
+      "modules": [
+        "2a",
+        "5c",
+        "19",
+        "30",
+        "3e",
+        "14",
+        "1b",
+        "31"
+      ],
+      "chain": "Input event → simpleParse/local node transformation → inline and block rendering → DOM/model reconciliation → selection and undo registration",
+      "status": "partial; event/IME/browser runtime ordering unverified"
+    },
+    {
+      "feature": "Markdown persistence",
+      "modules": [
+        "48",
+        "18",
+        "1c",
+        "17",
+        "13",
+        "12",
+        "5c",
+        "3c"
+      ],
+      "chain": "Active source/component text synchronization → Editor.getMarkdown → visual tree to Markdown serialization or CodeMirror source → File save boundary",
+      "status": "partial; disk write implementation and atomicity unverified"
+    },
+    {
+      "feature": "Undo/redo",
+      "modules": [
+        "1b",
+        "13",
+        "31",
+        "48",
+        "18",
+        "1c"
+      ],
+      "chain": "Edit operation → snapshot/command history → undo/redo branch for source or visual component → model/DOM/cursor restoration",
+      "status": "partial; all operation variants not individually enumerated"
+    },
+    {
+      "feature": "Tables",
+      "modules": [
+        "55",
+        "2c",
+        "54",
+        "13",
+        "14",
+        "12",
+        "1b"
+      ],
+      "chain": "Table UI/keyboard operation → row/column/node changes → rendered cells → aligned Markdown serialization → undo command",
+      "status": "partial; full edge-case matrix absent"
+    },
+    {
+      "feature": "Code, mathematics and diagrams",
+      "modules": [
+        "18",
+        "20",
+        "1c",
+        "27",
+        "15",
+        "13",
+        "14"
+      ],
+      "chain": "Fence/node classification → CodeMirror source → model sync → MathJax or diagram preview → export rendering",
+      "status": "partial; bundled renderer execution not observed"
+    },
+    {
+      "feature": "Source/visual mode switching",
+      "modules": [
+        "48",
+        "20",
+        "12",
+        "19",
+        "5c",
+        "31",
+        "1b"
+      ],
+      "chain": "Visual serialization → source CodeMirror → edited Markdown parsing → visual tree/DOM/cursor synchronization",
+      "status": "partial; precise cursor correspondence not runtime-verified"
+    }
+  ],
+  "limitations": [
+    "Static installed artifact only; no bundled code evaluated or target executed.",
+    "Module IDs recovered exactly; semantic roles are inferred and documented, not original source filenames.",
+    "Every registration and declared dependency in main.js inventoried, but AST interfaces do not constitute a complete call/data-flow graph.",
+    "REA semantic worker previously exhausted 1024/2048 MiB; this AST pass supplies bounded independent source evidence.",
+    "Exports may be assigned indirectly, through Object.assign or mutation; listed assignment interfaces are a lower bound.",
+    "Platform-specific branches coexist; Mac runtime reachability must be corroborated independently.",
+    "Parser conformance, IME/cursor timing, every undo variant, malformed Markdown edge cases and library rendering behavior remain unverified.",
+    "Original comments, TypeScript/types, build system and original project files cannot be recovered from this bundle alone."
+  ]
+}

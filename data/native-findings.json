@@ -1,0 +1,295 @@
+{
+  "target": {
+    "path": "$APP/Contents/MacOS/Typora",
+    "sha256": "907a0ff17b42c117cae09871b5d393b6c6e5daa7aa12d0b16fd549480b6fc01c",
+    "architecture": "arm64"
+  },
+  "method": "Read-only inspection of existing nm/otool-derived JSON and disassembly; static correlated chains and annotated assembly pseudologic, not Hopper decompilation. No app execution, no UI automation.",
+  "inputs": [
+    {
+      "path": "$LOCAL_ANALYSIS/native-main-analysis.json",
+      "sha256": "b17a53d9a5a0f13944384e495d67f10d2128fc9fb7760a1d1caeb534ced99567"
+    },
+    {
+      "path": "$LOCAL_ANALYSIS/native-main-disassembly.txt",
+      "sha256": "16266e2cf1e7c45955f6926eb96fa3274a2e23e3e4d688be2c43d11e854e38d9"
+    },
+    {
+      "path": "$LOCAL_ANALYSIS/native-main-objc.txt",
+      "sha256": "2e92dfc438509eab5c5987fe82d4e2a6a9f2a0abed1cc12d4bd762babcb64849"
+    }
+  ],
+  "feature_ledger": [
+    {
+      "subsystem": "文件全文搜索 / ripgrep",
+      "observations": [
+        "prepTask calls TyporaUtils.isARMCPU; cmp w21,#0 and csel x2,x9,x8,ne select arm rg for nonzero result, x64 rg for zero. CFStrings recover exact TypeMark/lib/bin/arm/rg and TypeMark/lib/bin/x64/rg.",
+        "prepTask uses NSBundle.resourceURL + NSURL.URLWithString:relativeToURL:, combines path/args/mountFolder, allocates SpawnTask, sets delegate then launch:.",
+        "SpawnTask.launch calls pipe twice, posix_spawn file actions, builds UTF8 argv, calls _posix_spawnp, wraps read fds in NSFileHandle and registers NSFileHandleReadCompletionNotification.",
+        "SpawnTask block invokes _waitpid and delegate onClose:from:. Search data block sends globalSearch.onSearchUpdate with text/pathMatch/emptyFilePathMatch.",
+        "search:args:... terminates previous content/path/emptyPath tasks and launches content plus filename and empty-file searches."
+      ],
+      "inferred_pseudologic": [
+        "query -> cancel old tasks -> prepare bundled rg argv -> posix_spawnp -> background pipe reads -> JS search results",
+        "Native filename matching uses *query* glob; case option selects -g/--iglob; empty file search uses --max-filesize 0K --files."
+      ],
+      "evidence_functions": [
+        "-[TyWindowController(Search) prepTask:]",
+        "-[TyWindowController(Search) search:args:caseSensitive:wholeWord:useRegexp:]",
+        "-[TyWindowController(Search) runContentSearch:]",
+        "-[TyWindowController(Search) runPathSearch:caseSensitive:]",
+        "-[TyWindowController(Search) runEmptyFilePathSearch:caseSensitive:]",
+        "-[SpawnTask launch:]",
+        "___20-[SpawnTask launch:]_block_invoke",
+        "___20-[SpawnTask launch:]_block_invoke_2",
+        "-[SpawnTask onData:]",
+        "-[SpawnTask onError:]",
+        "-[SpawnTask terminateAsync]",
+        "___42-[TyWindowController(Search) onData:from:]_block_invoke",
+        "___43-[TyWindowController(Search) onError:from:]_block_invoke"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "Only arm64 host implementation inspected; x64 executable is referenced resource, not analyzed.",
+        "No actual command executed or search results observed."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "文件监视 / FSEvents",
+      "observations": [
+        "bindFolderMonitor calls Notifier.notifierWithCallback:path:andInfo:, stops prior notifier and starts replacement.",
+        "Notifier.initWithCallback:path:andInfo: calls FSEventStreamCreate (line54322), schedules current runloop (54332); setup d0=1.0 and w5=0x14 immediately before create call.",
+        "Notifier start/stop call FSEventStreamStart/Stop; dealloc unschedules.",
+        "FileChanges.add:forType: builds created/removed/modified records; processRename builds oldPath/newPath rename; toJSON serializes array."
+      ],
+      "inferred_pseudologic": [
+        "mount folder -> FSEvents stream -> callback -> FileChanges aggregation -> library.onFileChanges candidate"
+      ],
+      "evidence_functions": [
+        "-[TyWindowController(Files) bindFolderMonitor]",
+        "+[Notifier notifierWithCallback:path:andInfo:]",
+        "-[Notifier initWithCallback:path:andInfo:]",
+        "-[Notifier start]",
+        "-[Notifier stop]",
+        "-[Notifier dealloc]",
+        "-[FileChanges add:forType:]",
+        "-[FileChanges processRename]",
+        "-[FileChanges toJSON]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "FSEvents callback pointer/dispatch association not fully traced here.",
+        "FSEvents flag numeric0x14 and latency1.0 observed; no symbolic interpretation assumed."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "文件库 / 文件系统操作",
+      "observations": [
+        "LibraryCommands.listDocsUnder:maxLevel:addTo: uses NSFileManager.directory enumerator, alias resolving, skipDescendants, shouldSkipDir and shouldIncludeFile.",
+        "Library item literals include isDirectory/subdir/content/isOpen/fetched and packaged spelling alais.",
+        "Library newFolder/createFile/rename/trash functions exist with filesystem selector calls preserved.",
+        "Recent file/folder updates use NSUserDefaults."
+      ],
+      "inferred_pseudologic": [
+        "native traversal -> per-file metadata -> render callbacks; depth/filter branches decide descent",
+        "filesystem mutation entrypoints -> NSFileManager/FileManager delegates -> list update"
+      ],
+      "evidence_functions": [
+        "-[LibraryCommands listDocsUnder:maxLevel:addTo:]",
+        "-[LibraryCommands listDocsUnder:]",
+        "-[LibraryCommands fetchAllDocs:]",
+        "-[LibraryCommands endRender:oversize:error:]",
+        "-[LibraryCommands createDocPropertyFrom:withSummary:]",
+        "-[LibraryCommands renameFile:to:]",
+        "-[LibraryCommands createFolder:]",
+        "-[LibraryCommands createFile:]",
+        "-[LibraryCommands doSafeTrashItem:callback:]",
+        "-[LibraryCommands doTrashItem:callback:]",
+        "-[LibraryCommands updateRecentFile:pinned:]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "Path normalization, aliases, failures and user-document ordering not exercised."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "Pandoc导出与自定义命令",
+      "observations": [
+        "PandocBridge.prepPandocTask: loads NSTask class; configures launchPath,args,NSPipe stdout/stderr and EnvUtils.addEnv:.",
+        "PandocBridge.export:... literals -f native -s -o establish native AST input format; calls prepPandocTask, executable check and runTask.",
+        "runTask setup optionally installs stdin pipe; worker block calls launch, dataUsingEncoding, writeData, closeFile, reads both output streams and dispatches completion.",
+        "customExport gets SHELL env and accepts /bin/ prefix, fallback /bin/bash; sets -l and -c command arguments, current directory and runTask.",
+        "This path uses NSTask and is separate from search SpawnTask.posix_spawnp implementation."
+      ],
+      "inferred_pseudologic": [
+        "JS export.exportToNative -> native AST descriptor -> PandocBridge.export -> NSTask with -f native -> stdin content -> output/error callback",
+        "custom export descriptor -> shell -l -c -> async NSTask -> export success/failure callback"
+      ],
+      "evidence_functions": [
+        "-[TyWindowController(Export) exportWithPandoc:]",
+        "-[TyWindowController(Export) exportWithPandocCallback:withOption:]",
+        "-[TyWindowController(Export) exportWithPandocFinishCallback:output:error:withOption:withArgs:]",
+        "-[PandocBridge prepPandocTask:]",
+        "-[PandocBridge export:to:optArgs:cwd:onBefore:onAfter:]",
+        "-[PandocBridge customExport:cwd:onBefore:onAfter:]",
+        "-[PandocBridge runTask:input:onBefore:onAfter:]",
+        "___47-[PandocBridge runTask:input:onBefore:onAfter:]_block_invoke",
+        "___47-[PandocBridge runTask:input:onBefore:onAfter:]_block_invoke_2",
+        "-[PandocBridge detectPandocPath]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "Installed Pandoc location/version not queried; no export/converter/shell run.",
+        "NSTask implementation in Foundation may use spawn internally, but current evidence does not establish that internals."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "PDF与打印",
+      "observations": [
+        "Both _exportPDF: (NSPrintOperation-style) and wkExportToPDF: code exist, each asks JS export.dataForExport.",
+        "WebKit branch callback makes export HTML view; _doPrintTo:from:withOption: loads WKPDFConfiguration and calls createPDFWithConfiguration:completionHandler:.",
+        "PDF completion requests TyPDFEngine.repairPDFWith:...; repair function asks JS pdf.getFixData, then redrawPDFContent/addOutline/addAttributes/fixFont/writeToFile.",
+        "TyPDFEngine CGPDFContextCreate/BeginPage/EndPage/Close and destination/link routines provide concrete PDF postprocessing APIs.",
+        "Native exportPDF: selector observed calls _exportPDF:; mere presence of WK branch does not prove which frontend route is currently reached."
+      ],
+      "inferred_pseudologic": [
+        "HTML + metadata -> export webview / print operation -> PDF data -> headers/footers/link repair + outlines + metadata + font fixes -> output file"
+      ],
+      "evidence_functions": [
+        "-[TyWindowController(Export) exportPDF:]",
+        "-[TyWindowController(Export) _exportPDF:]",
+        "-[TyWindowController(Export) wkExportToPDF:]",
+        "___44-[TyWindowController(Export) wkExportToPDF:]_block_invoke",
+        "-[TyWindowController(Export) _doPrintTo:from:withOption:]",
+        "___57-[TyWindowController(Export) _doPrintTo:from:withOption:]_block_invoke",
+        "-[TyWindowController(Export) doPrintTo:forOp:withOption:]",
+        "-[TyPDFEngine repairPDFWith:orFile:to:withOption:callback:]",
+        "___59-[TyPDFEngine repairPDFWith:orFile:to:withOption:callback:]_block_invoke",
+        "-[TyPDFEngine redrawPDFContent:withOption:]",
+        "-[TyPDFEngine repairURLForPage:on:withPageNo:]",
+        "-[TyPDFEngine buildOutlineWithObject:onPDF:]",
+        "-[TyPDFEngine addOutline:to:]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "Current frontend branch selection, OS API availability guards and rendered output untested.",
+        "Postprocessing correctness and page/layout behavior not established by static instruction calls alone."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "图片上传与PicGo/PicList",
+      "observations": [
+        "ImageCommands.upload:by:with: ensures local image, distinguishes ipic, else uses IPicBridge.doUpdateAllImages.",
+        "IPicBridge.doUpdateAllImages dispatches ipic/picgo-app/piclist-app/custom uploader.",
+        "Custom uploader uses NSTask launchPath /bin/bash with -c; block launch/waitUntilExitWithTimeout reads stdout/stderr.",
+        "PicGo/PicList native code uses bundle IDs com.molunerfinn.picgo/com.kuingsmile.piclist to open app, then NSURLSession POST http://127.0.0.1:36677/upload with JSON list; response completion/retry blocks exist.",
+        "Bulk upload callbacks send images.allImageUploadCallback with sources/updateMap/success/message."
+      ],
+      "inferred_pseudologic": [
+        "JS images.upload -> ImageCommands -> IPicBridge dispatcher -> iPic / local HTTP / command -> result URL -> editor callback",
+        "bulk upload -> per-image progress -> updateMap/sources -> native-to-JS callback"
+      ],
+      "evidence_functions": [
+        "-[ImageCommands upload:by:with:]",
+        "-[ImageCommands uploadByIpic:with:]",
+        "-[IPicBridge doUpdateAllImages:using:onProgress:onComplete:]",
+        "+[IPicBridge doUpload:using:callback:]",
+        "___38+[IPicBridge doUpload:using:callback:]_block_invoke",
+        "+[IPicBridge doUploadUsingPicgoLike:images:callback:]",
+        "+[IPicBridge doUploadUsingPicgoAfterLaunch:callback:isRetry:]",
+        "___61+[IPicBridge doUploadUsingPicgoAfterLaunch:callback:isRetry:]_block_invoke",
+        "-[IPicBridge doUploadAllImages:using:]",
+        "___38-[IPicBridge doUploadAllImages:using:]_block_invoke_2",
+        "-[ImageCommands doCopyImageFrom:to:fileNameDefined:error:]",
+        "+[ImageCommands download:callback:]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "No image uploads, downloads, local server contacts or external app launch performed.",
+        "Uploader configuration and installed external apps not read."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "偏好设置存储",
+      "observations": [
+        "Setting.init loads NSUserDefaults class then standardUserDefaults/registerDefaults.",
+        "Setting.get: first reads dictionary ivar at self+0x8; if missing falls back to NSUserDefaults.objectForKey:.",
+        "Setting.put:for: writes both dictionary ivar and standardUserDefaults.setObject:forKey:.",
+        "Setting.putTmp:for: writes only dictionary ivar.",
+        "SettingCommands.setup block reads value/key and invokes shared Setting.put:for:."
+      ],
+      "inferred_pseudologic": [
+        "editor setting.put handler -> Setting singleton -> memory cache + NSUserDefaults",
+        "get -> cached value -> fallback defaults",
+        "temporary settings -> memory-only dictionary"
+      ],
+      "evidence_functions": [
+        "-[Setting init]",
+        "-[Setting get:]",
+        "-[Setting put:for:]",
+        "-[Setting putTmp:for:]",
+        "-[SettingCommands setup]",
+        "___24-[SettingCommands setup]_block_invoke",
+        "-[Setting remove:]",
+        "-[Setting setKey:withValue:]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "NSUserDefaults domain/file and current preference values not read.",
+        "Separate _setting page receiver routing is not fully traced here; UI layer entrypoints are reported separately."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    },
+    {
+      "subsystem": "快速打开 / Spotlight",
+      "observations": [
+        "QuickOpenCommands.setup explicitly loads NSMetadataQuery; bindQueryCallback uses NSNotificationCenter observers.",
+        "Query-related methods and callbacks use predicate/query/results/updateResult selectors; retained exact function data provides paths.",
+        "buildPredicateQueryFrom: contains kMDItemDisplayName LIKE[cd] '*%@*' plus Markdown/text extension and content-type filters; query: sets predicate and calls startQuery."
+      ],
+      "inferred_pseudologic": [
+        "query -> NSMetadataQuery-backed search -> notifications -> native quickOpen result callbacks",
+        "Quick open uses case/diacritic-insensitive display-name wildcard matching through NSMetadataQuery; ranking beyond query results remains unknown."
+      ],
+      "evidence_functions": [
+        "-[QuickOpenCommands setup]",
+        "-[QuickOpenCommands bindQueryCallback]",
+        "-[QuickOpenCommands query:]",
+        "-[QuickOpenCommands calcSearchingScopeFromURL]",
+        "-[QuickOpenCommands buildPredicateQueryFrom:]"
+      ],
+      "status": "statically_correlated; no runtime validation",
+      "unknowns": [
+        "Result ranking and exact cache expiry remain unknown; predicate construction recovered as literal and selector evidence.",
+        "No Spotlight query executed."
+      ],
+      "receiver_limitation": "Calls to same selector can target different classes; these links are static candidates, with explicit class refs where noted. No universal interprocedural object-flow proof."
+    }
+  ],
+  "library_boundary": {
+    "path": "$APP/Contents/Frameworks/libTypora.dylib",
+    "sha256": "41c9caf65e148b763278991dc2b70cfbaee4d22a57554948be45bd46a87b46b2",
+    "counts": {
+      "defined_classes": 0,
+      "method_implementations": 0,
+      "disassembly_labels": 1,
+      "instructions": 198,
+      "bridge_literal_edges": 0
+    },
+    "note": "Auxiliary libTypora.dylib requires attribution audit; its dynamic changes may affect runtime dispatch. This report does not assume runtime behavior equals main-binary static definitions and does not investigate authorization-bypass details."
+  },
+  "limitations": [
+    "Objective-C selector references are not unique receiver identities.",
+    "otool symbol labels establish textual assembly regions, not complete validated control-flow graphs.",
+    "Conservative literal recovery may miss dynamically constructed strings.",
+    "No behavioral, filesystem, network or subprocess action was observed.",
+    "Main executable SHA-256 identity refers installed shipped bytes; actual dynamic dependency provenance remains separate.",
+    "This is correlated static evidence, not recovery of original source project or complete native decompilation."
+  ]
+}

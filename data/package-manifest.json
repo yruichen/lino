@@ -1,0 +1,4219 @@
+{
+  "target": "$APP",
+  "entries": [
+    {
+      "path": "Contents/Frameworks/Sentry.framework/Resources",
+      "kind": "symlink",
+      "destination": "Versions/Current/Resources"
+    },
+    {
+      "path": "Contents/Frameworks/Sentry.framework/Sentry",
+      "kind": "symlink",
+      "destination": "Versions/Current/Sentry"
+    },
+    {
+      "path": "Contents/Frameworks/Sentry.framework/Versions/A/Resources/Info.plist",
+      "kind": "file",
+      "size_bytes": 1324,
+      "sha256": "7179beb045132275a236f8f6db4e08f96e0cfb00c134767e23001d62e88c3d79"
+    },
+    {
+      "path": "Contents/Frameworks/Sentry.framework/Versions/A/Sentry",
+      "kind": "file",
+      "size_bytes": 3448624,
+      "sha256": "3e466aa410df46e96231c6f83ffb2d912c1eaf7b5c720679f45307969c9aa277"
+    },
+    {
+      "path": "Contents/Frameworks/Sentry.framework/Versions/A/_CodeSignature/CodeResources",
+      "kind": "file",
+      "size_bytes": 2442,
+      "sha256": "ffa51a32ac93dd555172837c5b5b985382cc13e760b57b9eae8e17d38c19d20b"
+    },
+    {
+      "path": "Contents/Frameworks/Sentry.framework/Versions/Current",
+      "kind": "symlink",
+      "destination": "A"
+    },
+    {
+      "path": "Contents/Frameworks/SentryPrivate.framework/Resources",
+      "kind": "symlink",
+      "destination": "Versions/Current/Resources"
+    },
+    {
+      "path": "Contents/Frameworks/SentryPrivate.framework/SentryPrivate",
+      "kind": "symlink",
+      "destination": "Versions/Current/SentryPrivate"
+    },
+    {
+      "path": "Contents/Frameworks/SentryPrivate.framework/Versions/A/Resources/Info.plist",
+      "kind": "file",
+      "size_bytes": 1345,
+      "sha256": "134c1a420556207c486f81bb7f5de18011bc0813a8fc721d2c048b45058e168f"
+    },
+    {
+      "path": "Contents/Frameworks/SentryPrivate.framework/Versions/A/SentryPrivate",
+      "kind": "file",
+      "size_bytes": 410928,
+      "sha256": "fd5836e9e5a886499e5643d3c836b1bb712313f5dcf9385ad039e6b6828ae046"
+    },
+    {
+      "path": "Contents/Frameworks/SentryPrivate.framework/Versions/A/_CodeSignature/CodeResources",
+      "kind": "file",
+      "size_bytes": 2442,
+      "sha256": "c0ce4a4e4f93fa337c45aba31384b395e6aca0e350fc818a56e3f94231a42682"
+    },
+    {
+      "path": "Contents/Frameworks/SentryPrivate.framework/Versions/Current",
+      "kind": "symlink",
+      "destination": "A"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Resources",
+      "kind": "symlink",
+      "destination": "Versions/Current/Resources"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Sparkle",
+      "kind": "symlink",
+      "destination": "Versions/Current/Sparkle"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Info.plist",
+      "kind": "file",
+      "size_bytes": 1601,
+      "sha256": "280416014f696181f26347df0f2909a195d43e389ec2f556a302309f9aac04d7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/MacOS/Autoupdate",
+      "kind": "file",
+      "size_bytes": 560496,
+      "sha256": "c95b49391e32348ef8283d052942895d5ea051d7d59b9b748b31ceb037d5b203"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/MacOS/fileop",
+      "kind": "file",
+      "size_bytes": 284480,
+      "sha256": "47238665d3e1ddd159e48fd3b0b1cdbc1905177c06b9c246c8bbd9097c747303"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/PkgInfo",
+      "kind": "file",
+      "size_bytes": 8,
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/AppIcon.icns",
+      "kind": "file",
+      "size_bytes": 37132,
+      "sha256": "9eaee3d2e810c3235b267ffbcc6170c484749e3c14de2ee1018284c9986f51f1"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/SUStatus.nib",
+      "kind": "file",
+      "size_bytes": 12667,
+      "sha256": "02d63d6263efedc5256c558fdaf0b255d8b7fccf97427f7cc0e96b2044b60e09"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/ar.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8468,
+      "sha256": "d9c009279353c70a51829db809adc4b935df688233b18747dd8f5c3426a565f7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/ca.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6792,
+      "sha256": "a26e48ea32a57ae4680b08dfad146a29641bb3697c94b8fc406292e3b731c9b0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/cs.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10638,
+      "sha256": "45f2604f66f749370bbbbd7ed6253d65c4976dfc0c586d441350bb5ab7f7c419"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/da.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8306,
+      "sha256": "c2ed02a46a84efdf935ca2109beabbc9c3d3b9784e97046bff00f9b861c9ccb3"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/de.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10162,
+      "sha256": "5d4a60b051fc2a671b8208297586c949c0a0d2d06273db4d2dd161fbc71b3f2c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/el.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7734,
+      "sha256": "c2dfb6c72bac996010b89e6401095196f15bd703b82fbfeb15d1be56636397e6"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/en.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10196,
+      "sha256": "dfd09d7d9675090433d46775f94931a362479745c44a873f72a58a174f755949"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/es.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10030,
+      "sha256": "9ad3a829da13a46cde4cdcb3c6454638cb04d19dd964eb2620a0df800f5a8fc7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/fi.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6184,
+      "sha256": "f808a229611d1f795eb28ccb2419f7b5f2babe2fd5488d7f4e759598875556c7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/fr.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10170,
+      "sha256": "7f2a899743215d84482da971447a6ffc9a2b58b3952cfb4d7098a888fb659d88"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/he.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 5288,
+      "sha256": "e205255a4c1300d57f8ddee7e0e6685f24fc08072059593fb48ddadb9c26b8b8"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/hr.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9778,
+      "sha256": "4f092586ba281d35e057a43d7dbbef001de63c887ba836c4b0db54ce8d9f42e5"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/hu.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10002,
+      "sha256": "b11929f1cdc1c75a9676185235d39aa753db7e6893ce220dcb51f119e6b74965"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/is.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 5868,
+      "sha256": "c5c575ca1ff35375374ec4544fabc6c9bbc8422b5ff9386ba2037fb8e5a60fc9"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/it.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8340,
+      "sha256": "63e71a356fa0d26b7b1cfe09ac1c49c3eb83c0dde3d7d5186feab9afd721e0ec"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/ja.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8552,
+      "sha256": "7523c8be915b7a51d1bfc9622633774d454f6e00f50df855486984f92f7daae2"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/ko.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6220,
+      "sha256": "f9bc67d0d3e09317472dad4c1d14fe2519589b2d63a48b9a7a7a6cb79453f910"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/nb.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9352,
+      "sha256": "146fb0f8e9cb23b9f09cd09688c4f9d0b53df155a3d5dd3c1257d7e24ece938c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/nl.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8850,
+      "sha256": "c67424ab168ef333f5c698d8de7ca339de057b4809a27d836ede39eae91dfc6c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/pl.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7318,
+      "sha256": "a43abee358e17c44a025ab9e76b6277056353b910c114de747297b9a6c988feb"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/pt_BR.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9728,
+      "sha256": "958e44649c0f73f4667e1c35828b64784281f80357a995253361bddac6707497"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/pt_PT.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7896,
+      "sha256": "454aba5498e7fd0cb276435ba6494bc1f0a0445eb6fae1e15de9f67582c136e4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/ro.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9806,
+      "sha256": "34dbc3b1e720950feeb51e9812ac72323e4af7be9845689e0880bf3d9b960ad4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/ru.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7856,
+      "sha256": "c09679346fa6be3e1a9d114f505caf483d241ab83e640aa496c3df1ee0b12d06"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/sk.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7548,
+      "sha256": "7b7732cc9f3ba210b57dffc1cd9e4ed34327c11134d94f89d4ac1795265e4928"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/sl.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7944,
+      "sha256": "b7c402fbd4c138dc0a2d0bd5ddf295d2e9ac9c04bc643a6a3e291592c14fb567"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/sv.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7834,
+      "sha256": "98963a69e5c59d2c77f1b17adf4cf994d3e63edb2861503069d874282fbdbdf4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/th.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8492,
+      "sha256": "9e53fbadea5b333e84a87a37b195a72b7b73c78ed62925a750b7541c260f80a9"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/tr.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9716,
+      "sha256": "c445d47ebca53e577e7851ab3f28f8c1344f8fbbd458e6767fde2c5b276ad373"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/uk.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7860,
+      "sha256": "bb4e7bd9065887ab01d0641d30631e3da94e7f8ce4c44ed8406ee9a7cf7c4848"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/zh_CN.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6128,
+      "sha256": "cef31b15d815188d25b3dbc8453fac89eedd8f683552342eee24bea4e832068e"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/Resources/zh_TW.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 5748,
+      "sha256": "5657ffe100fbff74b4485ab1993596712c2d4cb58848a512bcb8e98166fb9714"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/_CodeSignature/CodeResources",
+      "kind": "file",
+      "size_bytes": 17150,
+      "sha256": "40f73c497a1e6f79c6c7606f2e6ba115061405493d99d0ae0b9bc76772cc93f0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/DarkAqua.css",
+      "kind": "file",
+      "size_bytes": 98,
+      "sha256": "d46e3e18921de3b13c5228d84f2f717aa03c4692dd39a199419f01f39c9d44e8"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Info.plist",
+      "kind": "file",
+      "size_bytes": 1366,
+      "sha256": "17c78f0c737d26052b5b9247a0560df324fb77a0276412f965f952561deb8b84"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/SUModelTranslation.plist",
+      "kind": "file",
+      "size_bytes": 11859,
+      "sha256": "6f19e94508513895d32f6c6e21e7df477a7e84ebae8e2ede3a80de36a498a938"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/SUStatus.nib",
+      "kind": "file",
+      "size_bytes": 12667,
+      "sha256": "02d63d6263efedc5256c558fdaf0b255d8b7fccf97427f7cc0e96b2044b60e09"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ar.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13606,
+      "sha256": "08bead066e3de5fe3233acfbcbc507461b68a11dcd2c67c350e307b296b777a9"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ar.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23198,
+      "sha256": "084d6a2758ebc148932939596a36ff6e1a65ce8feb7441faa66e5c001c03feb4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ar.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20579,
+      "sha256": "594c7528cd41cfbe6f6d395c8f716f504109de788fd903417bbfe53e2a023206"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ar.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8468,
+      "sha256": "d9c009279353c70a51829db809adc4b935df688233b18747dd8f5c3426a565f7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ca.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6792,
+      "sha256": "a26e48ea32a57ae4680b08dfad146a29641bb3697c94b8fc406292e3b731c9b0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/cs.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13594,
+      "sha256": "63213558dd7faf23edd87d03f60609bffaf4492bfc5584dcc6288d7842e22484"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/cs.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23224,
+      "sha256": "2d647180b64734660e7bade07f468e0fcce83f4dd9d6cee57719ddce459bcc6c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/cs.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20677,
+      "sha256": "7723356e410a007d6c5b7279a710ca1e9359e99257ed81ffc7a8de20246aa647"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/cs.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10638,
+      "sha256": "45f2604f66f749370bbbbd7ed6253d65c4976dfc0c586d441350bb5ab7f7c419"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/da.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13503,
+      "sha256": "8af4cb0fdd76471cb606a218140423b2a8783e87f030b963aa1ea771d604772f"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/da.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23103,
+      "sha256": "0592fd6d473f7f9469647a101a403f5d72afca4321fcbc24a88fb55d6d780719"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/da.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20466,
+      "sha256": "3773acfbac4774ff58fd02efda8904356cc069a63bdd9675c006bebe140a4968"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/da.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8306,
+      "sha256": "c2ed02a46a84efdf935ca2109beabbc9c3d3b9784e97046bff00f9b861c9ccb3"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/de.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13522,
+      "sha256": "bd99ffb57bd2cd664f041a347159c888f8d161f88c12d001b368069662770caa"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/de.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23140,
+      "sha256": "a4e406e0211e9f2302b3a139dd87f6fb2611f7d370b630bd1122fa1e9ef5f623"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/de.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20619,
+      "sha256": "69713051f3c66862b59dd8c5f385460acb530ecc3ecb7aa7e9b5bdd7ded1ff07"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/de.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10162,
+      "sha256": "5d4a60b051fc2a671b8208297586c949c0a0d2d06273db4d2dd161fbc71b3f2c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/el.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13646,
+      "sha256": "f03cb8389eef9615025c257a723c84c4fa1058eb544919ee34ba43c5f7a5e6cb"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/el.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23239,
+      "sha256": "a19f527c74de206359b498c7ef956c4f4d72e55a36b6ad9508f545f1b0dd75e1"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/el.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20709,
+      "sha256": "8f7c4dcacd1d1402ffda2aaf8dfcf63e8a47363f643d948b1c8e52c84f0f6f97"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/el.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7734,
+      "sha256": "c2dfb6c72bac996010b89e6401095196f15bd703b82fbfeb15d1be56636397e6"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/en.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13540,
+      "sha256": "2caf9751523f079be4134d1b685250ce04d53dc590bb6bdfcedc278e49ad01d8"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/en.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23132,
+      "sha256": "735792ce5471f6fa8204b885f38c3e8a28867a28bc4483956a80bc0ecde09dd2"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/en.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20408,
+      "sha256": "91715034e51824554c95e2c893fc2f7ad459a058be12cfc28481ac28490f753b"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/en.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10196,
+      "sha256": "dfd09d7d9675090433d46775f94931a362479745c44a873f72a58a174f755949"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/es.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13556,
+      "sha256": "1ad0f75009c84f9068b21268e1aade00a4abb8f7dabe4bd323235dd208de8c33"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/es.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23274,
+      "sha256": "dca3e0951d680408f82fb200dd8e1f60ab56ae4da4a5b97b8cf6703c207259fa"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/es.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20795,
+      "sha256": "9cf91e3654d589f1acd70c1625b87870accde8a1aca12a055a1857f20703f997"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/es.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10030,
+      "sha256": "9ad3a829da13a46cde4cdcb3c6454638cb04d19dd964eb2620a0df800f5a8fc7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fi.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13646,
+      "sha256": "4159eaf819f9d8bdbb8c74925827793c6201cc0794e07c254ccb8bd3e33724c2"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fi.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23247,
+      "sha256": "479538af2d622c6b67c45b38131f06755eeda5729ba351e81f4aec4902883b53"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fi.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20517,
+      "sha256": "42076917cf9bfb513514e294426a3d81f6bfd276b1a6dc53bf180f02204f9f37"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fi.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6184,
+      "sha256": "f808a229611d1f795eb28ccb2419f7b5f2babe2fd5488d7f4e759598875556c7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fr.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13559,
+      "sha256": "8893ebfd8365d611a004d71b8e912db57ec480d2b0b2ef91de856d5f2a31c55d"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fr.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23196,
+      "sha256": "2ad1e5f27edb9e567722bd32986d1175158d7b34c2773c8187d1ced000764eb0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fr.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20787,
+      "sha256": "2d35842f0b181fc8fd206672db70bfaa652f274fc4e3df13acf7d6b1714e33c7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fr.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10170,
+      "sha256": "7f2a899743215d84482da971447a6ffc9a2b58b3952cfb4d7098a888fb659d88"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/fr_CA.lproj",
+      "kind": "symlink",
+      "destination": "fr.lproj"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/he.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 5288,
+      "sha256": "e205255a4c1300d57f8ddee7e0e6685f24fc08072059593fb48ddadb9c26b8b8"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hr.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13607,
+      "sha256": "da1e1dd3857b1fde7f2ae232d64063cc342ab5fc6766b4732a5c448e4dcd611a"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hr.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23222,
+      "sha256": "45e0c9c13557966f222564e83e9ea168bdc0df92e483236d1187c4610dfc97e0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hr.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20618,
+      "sha256": "b3843feba01a7e2276e4bcd814bc1825131daabd56d9ac0c4a4c65663cbd26d3"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hr.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9778,
+      "sha256": "4f092586ba281d35e057a43d7dbbef001de63c887ba836c4b0db54ce8d9f42e5"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hu.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13648,
+      "sha256": "0bdbc7e26118cb4573404be35d87c230f33882005017500f00146450e510c0f0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hu.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23302,
+      "sha256": "f2f0244547b8ee5166326ef3519339e7f5d12b6d4a6a19926d1cb4031a7a830d"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hu.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20517,
+      "sha256": "1b2124806d265b5b3e4fa373eda43f784bcb628cacbebec1628b6ceb6a075f5c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/hu.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 10002,
+      "sha256": "b11929f1cdc1c75a9676185235d39aa753db7e6893ce220dcb51f119e6b74965"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/is.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13570,
+      "sha256": "42980b8a67498b0769d83545fc3310c89d9983c2f68a1b2b784eef708f14aa1d"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/is.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23209,
+      "sha256": "b7b0358bf96bb1ee53e9466dc9f4dd07fec7447e6f3cdb8e8f623e4242230042"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/is.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20707,
+      "sha256": "556056e3c94e14873b969ac28c257db3805f45885e4e0b099e17b976741ba8e6"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/is.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 5868,
+      "sha256": "c5c575ca1ff35375374ec4544fabc6c9bbc8422b5ff9386ba2037fb8e5a60fc9"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/it.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13506,
+      "sha256": "e7e0c9943bc2ce53f1b5aadec7abc1a7a1813548dcfff5d483574ff982a042fa"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/it.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23134,
+      "sha256": "74c1ca2d73bd8d0fdea615c4cc9f33682889d930fde1776d95fc2a9f4962515a"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/it.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20644,
+      "sha256": "69b2b7eaa8ee805acec89096b9e8662d6b6b514698db157e91520f98d2572a30"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/it.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8340,
+      "sha256": "63e71a356fa0d26b7b1cfe09ac1c49c3eb83c0dde3d7d5186feab9afd721e0ec"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ja.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13510,
+      "sha256": "d7b1e6d8fee669d767bab79f4b8cf3c63c3f8baea1800a8c7cf0a7c397ada7c7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ja.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23114,
+      "sha256": "ab3492d2ce1c32cacaef5e795af5bcb69f93a15705b39a660b0ac10bd2ebfde7"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ja.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20337,
+      "sha256": "e6710faeba53cb39fa79a9468ca6e41c3b6b67686fbbacd79908e52fbc7c5066"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ja.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8552,
+      "sha256": "7523c8be915b7a51d1bfc9622633774d454f6e00f50df855486984f92f7daae2"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ko.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13478,
+      "sha256": "c6148b90277fa16482971ce314938698f3804b7bb4a1ddada3ab613c5fb5862f"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ko.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23068,
+      "sha256": "ad4ee09e98b73ec9c3d27d27a0f24decb294c315c51c28e2c5c5bb5876b5ab66"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ko.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20344,
+      "sha256": "6ef36ab85de9b918e766f1b69d0510b33e56c9752c3b72c2e810ad123c36fbd8"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ko.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6220,
+      "sha256": "f9bc67d0d3e09317472dad4c1d14fe2519589b2d63a48b9a7a7a6cb79453f910"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nb.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13522,
+      "sha256": "93b375eb30ad5d4cfd4823b6ac0d8f4806fe07dceca9e17d90f02520f79142ad"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nb.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23063,
+      "sha256": "f20fc49523b8c885ca04f593fec6d24fcbddcc2b1b11521e1d94b125b0b32783"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nb.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20600,
+      "sha256": "fe8c4535732f7680f60fbca44adb29c1752b704a5109a55b61e6f1357c91b88e"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nb.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9352,
+      "sha256": "146fb0f8e9cb23b9f09cd09688c4f9d0b53df155a3d5dd3c1257d7e24ece938c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nl.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13518,
+      "sha256": "cd5f739adebe6f57db4bc373c21df93c0916e6f758709eb892352343275ef8ca"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nl.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23107,
+      "sha256": "dc8f2bf90c5aa8812a05c759a205d4e55b8383cecbb354b94acd678667ccf0fa"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nl.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20424,
+      "sha256": "6ab465a8e59a7bae0faa7eb2370e3ae92d1136d3c64b1bdb8bb144774d20d71f"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/nl.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8850,
+      "sha256": "c67424ab168ef333f5c698d8de7ca339de057b4809a27d836ede39eae91dfc6c"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pl.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13597,
+      "sha256": "3ef51bfa056af667c1278738469ddcc8c3abe85c3b12a5703926025ddb24c140"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pl.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23226,
+      "sha256": "28da371f242ec1ccf059804b829030cf59e4e0ba3f22e08de126691619fc7626"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pl.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20491,
+      "sha256": "20bcc31a1de325cde13ca47f0039348e268341a1d9bbb66af182d15d3f8e5e37"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pl.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7318,
+      "sha256": "a43abee358e17c44a025ab9e76b6277056353b910c114de747297b9a6c988feb"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt.lproj",
+      "kind": "symlink",
+      "destination": "pt_BR.lproj"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_BR.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13566,
+      "sha256": "ed7bba1fbe8b17f044a8af68d0b247a6de78355dc96d8fd33e88a766ff467d24"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_BR.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23247,
+      "sha256": "7db82f4ac3e4cac8ad9262df3f6e8e998a4ffebfb4e388297cc1ea428429f4db"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_BR.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20719,
+      "sha256": "d7c54c8a8d0246d72fafc8b433e3b7fede35412d79295c521b1a1585061aa711"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_BR.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9728,
+      "sha256": "958e44649c0f73f4667e1c35828b64784281f80357a995253361bddac6707497"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_PT.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13580,
+      "sha256": "2f8283875509126ded6beaa0cc27b7b37448ef15eb018f32e61e5eaa7792dd4a"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_PT.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23274,
+      "sha256": "34e43be5dcff32aecf2e1c2cb04c5c59776d4c5433c7c9bf94ba4b04309a6422"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_PT.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20759,
+      "sha256": "0f8d93439955f04ef758e3974ec5034aeda3a8e154b75f9631c2d44d569bf16f"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt_PT.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7896,
+      "sha256": "454aba5498e7fd0cb276435ba6494bc1f0a0445eb6fae1e15de9f67582c136e4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ro.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13608,
+      "sha256": "294a9c9a4ad10a1f978d787d17b7ee76df7832b786e1b2aa0e1d4f2dab7f1692"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ro.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23258,
+      "sha256": "da62297d3c2846f56e858fc06b706ac3956c8e957ddf114d7013101bcdd0f035"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ro.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20477,
+      "sha256": "84cbe5d1886c32592eb1d43155c52250379042a367fca1705df22a59a0d2ac6d"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ro.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9806,
+      "sha256": "34dbc3b1e720950feeb51e9812ac72323e4af7be9845689e0880bf3d9b960ad4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ru.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13648,
+      "sha256": "ab0bb261708ee07e48b97891859477b9c1a5e52d42b46d9eee4c710a433cbed0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ru.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23308,
+      "sha256": "2afca4b7d87ea3e494b883513a53025e8ae754bfee107d94cf929dd1b3529ba9"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ru.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20793,
+      "sha256": "ec6bb0b5dd8f0e98d35a0fea5f550e0f18117d00c3c4d520378aabe128affc27"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/ru.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7856,
+      "sha256": "c09679346fa6be3e1a9d114f505caf483d241ab83e640aa496c3df1ee0b12d06"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sk.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13626,
+      "sha256": "a994b10cc8ed217c8dc0e658794cf683dc3a34598a152b6acb951b294f4ddc10"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sk.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23260,
+      "sha256": "7c3d16e9c32bfcc6740b4aabb0c0f78c46d774af9eabc2fbb65f3b64f0eca666"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sk.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20705,
+      "sha256": "0f95cfad2048b5db9f736cd50856b35f748499156a40174267400394b9871381"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sk.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7548,
+      "sha256": "7b7732cc9f3ba210b57dffc1cd9e4ed34327c11134d94f89d4ac1795265e4928"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sl.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13536,
+      "sha256": "f64cef74771d56a771b22a084c1b7e026d3ab705dc26928cade30a1c30e3e116"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sl.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23172,
+      "sha256": "af8f1a870c82f04162fb8e17fc4b547d6be1f100aef649698eac30c334078971"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sl.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20624,
+      "sha256": "2fc4ef7d7dffe672c25e4e6835e533ca27ae9ea80452b2b393fb7ee8b7719ffd"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sl.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7944,
+      "sha256": "b7c402fbd4c138dc0a2d0bd5ddf295d2e9ac9c04bc643a6a3e291592c14fb567"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sv.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13585,
+      "sha256": "d8612df7641646e7ffb3c367a160ff1e275a9513682d4a1e2680bb50cdd8d8d8"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sv.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23234,
+      "sha256": "c083ceaa3d0951e3ca6ae30897ab13f18523a31c35ab7ea0fabad0bf09317f0e"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sv.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20620,
+      "sha256": "0b4af76cd00eed600065ae1689851e05032dfa49849dd1f2ccf4f5fff1c1b18a"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/sv.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7834,
+      "sha256": "98963a69e5c59d2c77f1b17adf4cf994d3e63edb2861503069d874282fbdbdf4"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/th.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13572,
+      "sha256": "8057aee679ad33f68bd724d2b16f533e1f5974df2bfe55f98e19ece772e571f0"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/th.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23177,
+      "sha256": "be66f17c2d1c23b20001044d0d0e3757abe8707f774e27a342606bdb73430254"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/th.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20539,
+      "sha256": "1db73e57c1f885f421dcfb9c518d52fbabd7441644ae14da64b609d23428a0ba"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/th.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 8492,
+      "sha256": "9e53fbadea5b333e84a87a37b195a72b7b73c78ed62925a750b7541c260f80a9"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/tr.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13610,
+      "sha256": "dd3fdc3bf70420033c401195839ddb62f718b1e10c3ce867d02fb245e5552445"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/tr.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23178,
+      "sha256": "ab0b2cf31837731596417a822f15ddeb3d7281fe8c1d88cc0cab551b34e91743"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/tr.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20688,
+      "sha256": "7972f67aac44a5b002a8d4248b136aa95acb7aa45b767a4f0a77507085ea75ab"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/tr.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 9716,
+      "sha256": "c445d47ebca53e577e7851ab3f28f8c1344f8fbbd458e6767fde2c5b276ad373"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/uk.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13666,
+      "sha256": "fe55193f79f5eb75853d48e0fa886163ba676e6b6bc6e735eb87b0d2d1660dde"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/uk.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23328,
+      "sha256": "3e6ca8bb0e501736cded5620d515c5366dc80788ce9996a04e2f64f20d82c901"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/uk.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20702,
+      "sha256": "ee58d68a1c77aa77c3ff405675b36dcd08ab045f79859d6c497bb9bd38951ded"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/uk.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 7860,
+      "sha256": "bb4e7bd9065887ab01d0641d30631e3da94e7f8ce4c44ed8406ee9a7cf7c4848"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_CN.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13444,
+      "sha256": "b6ef6831d0428878b245224c1269b9c77a066376829e6c173ec45fd618e3edf6"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_CN.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23012,
+      "sha256": "6fa9cd8cce2f081ad705b8c7e46b5b90f8d98c9c8c7924815cefed0919fe2c56"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_CN.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20263,
+      "sha256": "d89f3bde462acbfd04c84e905d3eada9893275319caf0dff35cbfd72749197b3"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_CN.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 6128,
+      "sha256": "cef31b15d815188d25b3dbc8453fac89eedd8f683552342eee24bea4e832068e"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_TW.lproj/SUAutomaticUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 13450,
+      "sha256": "3ce14e746f6e1a37155e4c77f6c5b6470976149db3b3a034d3bc85d54a43b241"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_TW.lproj/SUUpdateAlert.nib",
+      "kind": "file",
+      "size_bytes": 23029,
+      "sha256": "00577a632db16e662dcf5fabf6efabf6a3646b7a13ce1a37fe7dc30b0c562a81"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_TW.lproj/SUUpdatePermissionPrompt.nib",
+      "kind": "file",
+      "size_bytes": 20273,
+      "sha256": "24d9cda1d13c836d9f907967433c42f6f6a9fe379f0f93648d48e612bbe5f78d"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Resources/zh_TW.lproj/Sparkle.strings",
+      "kind": "file",
+      "size_bytes": 5748,
+      "sha256": "5657ffe100fbff74b4485ab1993596712c2d4cb58848a512bcb8e98166fb9714"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/Sparkle",
+      "kind": "file",
+      "size_bytes": 1419024,
+      "sha256": "247a756afb601b87c5fce0833d6431b2cb47d58f831f92e970d4e292ce5066d6"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/A/_CodeSignature/CodeResources",
+      "kind": "file",
+      "size_bytes": 77016,
+      "sha256": "109c90658ccae50ec8a53e4d4a91e886d6f5253880e8a5e9a19844cb834499d5"
+    },
+    {
+      "path": "Contents/Frameworks/Sparkle.framework/Versions/Current",
+      "kind": "symlink",
+      "destination": "A"
+    },
+    {
+      "path": "Contents/Frameworks/libTypora.dylib",
+      "kind": "file",
+      "size_bytes": 168512,
+      "sha256": "41c9caf65e148b763278991dc2b70cfbaee4d22a57554948be45bd46a87b46b2"
+    },
+    {
+      "path": "Contents/Info.plist",
+      "kind": "file",
+      "size_bytes": 5420,
+      "sha256": "8d5f2044d3ff6d187fbb146d2d6d91ec3a4026e001a2f13b30b189e458b1159b"
+    },
+    {
+      "path": "Contents/MacOS/Typora",
+      "kind": "file",
+      "size_bytes": 3173008,
+      "sha256": "907a0ff17b42c117cae09871b5d393b6c6e5daa7aa12d0b16fd549480b6fc01c"
+    },
+    {
+      "path": "Contents/PkgInfo",
+      "kind": "file",
+      "size_bytes": 8,
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0"
+    },
+    {
+      "path": "Contents/Resources/AppIcon.icns",
+      "kind": "file",
+      "size_bytes": 30910,
+      "sha256": "0740a714e821bd9fe08f8064cbf6f46aafbc3cb19776667e46062bd7366fe0b4"
+    },
+    {
+      "path": "Contents/Resources/Assets.car",
+      "kind": "file",
+      "size_bytes": 439168,
+      "sha256": "542b4244f012f84aef51d8e1399f8b953dc67f6f9a904539bbf848dc975403bb"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/Document.nib",
+      "kind": "file",
+      "size_bytes": 44247,
+      "sha256": "ceef1692ad33093e13c123b42cdd59d648c672b25f52eb77459343a28f9a4a82"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 20122,
+      "sha256": "45e5bd8c506ed46ff6d05e7ce4ff41401872dcd13b2b30eafb601914db16ce2d"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/MainMenu.nib",
+      "kind": "file",
+      "size_bytes": 65510,
+      "sha256": "ffd1b50d62060e8bb60c14c1e0fea710aa04915fa8c53e8126aebb298b168b50"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 21848,
+      "sha256": "bb94c8cab8ae7c5259b69f037423973a95b64f50b33946f74807a90f81255437"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 66856,
+      "sha256": "4f6eec4ba00c6b543eb2954054f70dcc9b0e7edc5f17d4cfebed019593837d5b"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/Preferences.nib",
+      "kind": "file",
+      "size_bytes": 1986,
+      "sha256": "cdabf0419ec14b4ed9eaf5f3e9654cf7f4eeb40bedec342a31a9f7ef275cd06a"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9470,
+      "sha256": "ce07905ab332ec5c1e4b124b22ee3b4bed0239fc0bddd340c9d2f2cef3d6d766"
+    },
+    {
+      "path": "Contents/Resources/Base.lproj/iPicUpload.nib",
+      "kind": "file",
+      "size_bytes": 8533,
+      "sha256": "8ca126c8efe0ae7f8517e4af79ebf95aa4243fab0bbfe01be0f4236edd0765e6"
+    },
+    {
+      "path": "Contents/Resources/Podfile",
+      "kind": "file",
+      "size_bytes": 504,
+      "sha256": "7ff62747f7e3851077615c8debf26fecc0447324debcfa6d1a70e26a3baca339"
+    },
+    {
+      "path": "Contents/Resources/PrintPanelAccessory.nib",
+      "kind": "file",
+      "size_bytes": 8232,
+      "sha256": "661740f12351498d9cf1225dd6d9288da330902c5a09f372e274918324c8f31f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Auto Save, Version Control and Recovery.md",
+      "kind": "file",
+      "size_bytes": 1644,
+      "sha256": "18816ac26cef263566b8ed05417c738648a62a9f03d61297cf266fb773141e94"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Change Log.md",
+      "kind": "file",
+      "size_bytes": 13870,
+      "sha256": "e7b79da1fb74fdebdf316e259f5d9ef74dbb54730ef2bd77afb6cf230d8ef8cb"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Code Fences Language Support.md",
+      "kind": "file",
+      "size_bytes": 2348,
+      "sha256": "e6381a913510de0657d53bfbb607ec83c397a7048c743f37a3041785c9910674"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Credits.md",
+      "kind": "file",
+      "size_bytes": 15161,
+      "sha256": "27b35a5515ef38bea4a0cdf7c5f0e2fdde628cf93f34c8f51d9d01a0acf4360a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Custom Font.md",
+      "kind": "file",
+      "size_bytes": 1368,
+      "sha256": "ea22dc3c5a36117e4b97862ab6744d2dba87baa759c3cbd526418e246a48da6d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Custom Shortcut Keys.md",
+      "kind": "file",
+      "size_bytes": 1427,
+      "sha256": "d73e31c74a6828f4267722e015e7931c5b0b1d73e5f7b34ef29358c46979c1cb"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Custom Themes.md",
+      "kind": "file",
+      "size_bytes": 2165,
+      "sha256": "27d0d1faf646ce6696471a6a68766434e32a846cad49ca76de90654683d3f217"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/DO NOT ADD FILES HERE",
+      "kind": "file",
+      "size_bytes": 95,
+      "sha256": "8b82bc04c9303183dbcbe9aa9a4bc661d218f92c3d1e939dbaeeeb6e8af042b2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Draw Diagrams With Markdown.md",
+      "kind": "file",
+      "size_bytes": 3597,
+      "sha256": "34157eb0075ba1686e36bdc7d2591961c9bc97d307688e05e783fde0ced478c1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Install and Use Pandoc.md",
+      "kind": "file",
+      "size_bytes": 5522,
+      "sha256": "c7d752d77dccb627177af5fb6a87d2d10b8ba2f2d495c612c69bbf1f5a067329"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/License Agreement.md",
+      "kind": "file",
+      "size_bytes": 10298,
+      "sha256": "6b44c2c8b67d1685ecbbe82bcc50a3fa9ed265ee980c039d7518c3eaeee96c88"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Markdown Reference.md",
+      "kind": "file",
+      "size_bytes": 13606,
+      "sha256": "ed1fb1a21856fcab79fc04e3d9dfe9d750a0721cc1938c24efb670c7fa2a6af7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/More Documents.md",
+      "kind": "file",
+      "size_bytes": 53,
+      "sha256": "adc72b44f3d2bbb1b5f007f9ccbe7a756d63572ea8c6e4f0bf55cf91976a9f78"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Privacy Policy.md",
+      "kind": "file",
+      "size_bytes": 6315,
+      "sha256": "00d4c819a82924fec6cdb8599a1ad6f6bc964b2e77c60672e9ec55f8526d061b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Quick Start.md",
+      "kind": "file",
+      "size_bytes": 4633,
+      "sha256": "fa8566478b5e1b68e054562dc4aff27f10c03238cd5a2778e56f684abd96fcd2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Table Editing.md",
+      "kind": "file",
+      "size_bytes": 2651,
+      "sha256": "e3fc2f6849d0e50c1f27a7af775a394b6017eaf90ffebc65327e5b4b0dae9987"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Use Images in Typora.md",
+      "kind": "file",
+      "size_bytes": 6837,
+      "sha256": "0bece968567fd387773cd2fbe736551262d36558c52d430e5b7020735e67d1ca"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/Use Typora From Shell or cmd.md",
+      "kind": "file",
+      "size_bytes": 1009,
+      "sha256": "1bd719072b7897f59c06e9a5db8c71b050e34f6853b63bd7d5070e04264bc0d5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/1.png",
+      "kind": "file",
+      "size_bytes": 68812,
+      "sha256": "588aeb09802897203cc5ee3411f67b62a8595f73413a4868e7e6d26d95726c48"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160502_1.png",
+      "kind": "file",
+      "size_bytes": 23548,
+      "sha256": "44e10c24963535ad339552db85d499783974e437368577cf4cf270f98032cfa9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160814_1.png",
+      "kind": "file",
+      "size_bytes": 131401,
+      "sha256": "99a6bed12cbaba123bdbefaa07092954fb3585b80c976c88e5786c44e1725f01"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160814_5.png",
+      "kind": "file",
+      "size_bytes": 101090,
+      "sha256": "b924d19d915c972808bde7f7d95dc8f9287cb317377453982596f4819f96c3fa"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160814_7.png",
+      "kind": "file",
+      "size_bytes": 83959,
+      "sha256": "4dddc8cf721e4af82a6d1dfa4278711e02d178659a19be5dac2d0021813a737c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160816_1.png",
+      "kind": "file",
+      "size_bytes": 9659,
+      "sha256": "33c929e067d45080dc375afb9c048bc23f24225327249561a3ce1c2063226285"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160816_2.png",
+      "kind": "file",
+      "size_bytes": 9628,
+      "sha256": "e1f715d04010d2e8e8fc0af6733eacb54068d466afc49766b7542f1e8e4d7317"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160816_3.png",
+      "kind": "file",
+      "size_bytes": 35643,
+      "sha256": "2bac34764bf6106ff3fc638875d7eff8cba0414fc90d5f0b2f26eb59e0879fe2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160816_4.png",
+      "kind": "file",
+      "size_bytes": 17170,
+      "sha256": "17b9e92e9d5bb62cc8e1ecab23bc8d819a818a169bbabdba6a189cb20439a6ed"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160816_5.png",
+      "kind": "file",
+      "size_bytes": 78058,
+      "sha256": "f96d16e2c3092c87a383ee20083f519cb11726d7ac1fce0804b7ebf4bef39565"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160921_1.png",
+      "kind": "file",
+      "size_bytes": 67034,
+      "sha256": "752511d6b22ceb63c9eed2d313f7c1bf79a1f3c79848b340ffb670d82ba5eab5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20160921_2.png",
+      "kind": "file",
+      "size_bytes": 101112,
+      "sha256": "c180c19c52fac2a73a436da3061d5f43474eb4e6d4e9a7ebb3baff281b4f783a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20161027_2.png",
+      "kind": "file",
+      "size_bytes": 123014,
+      "sha256": "18fddea21f0eaa27c635db7c0cf24977eb6eef2f452852f37a10c0c6d997cba2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20161117_2.png",
+      "kind": "file",
+      "size_bytes": 129198,
+      "sha256": "e96d1b9b823b4f58f26c42a3d3aeb1e312c23353cb5089431e0896a8e91928d9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Snip20161117_6.png",
+      "kind": "file",
+      "size_bytes": 139835,
+      "sha256": "abba120790e6fa18497cd500436d9d51379b61fc16c729dc2ff55d8fc2584b36"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/Touch Bar Shot 2017-02-28 at 00.40.32.png",
+      "kind": "file",
+      "size_bytes": 10796,
+      "sha256": "932eedaf191d895fb9fbac2b4c1eb3bcfba0b237b6c3f2b7c4e9dde3c63271a7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/drag-img.gif",
+      "kind": "file",
+      "size_bytes": 112550,
+      "sha256": "4011af155db869b96b89e24c7e4c7f530f6656e5df00f0344a92656eff54408e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/general.png",
+      "kind": "file",
+      "size_bytes": 127403,
+      "sha256": "0e4517417cd29551a6ec2bc873d0713c6b45f4961a99a784ae62db06b424273d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/ipic.jpg",
+      "kind": "file",
+      "size_bytes": 10433,
+      "sha256": "30fd158029338f9d24098be85dfb5b3732c011bb24fae1bdeb241ce6c343135b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/pandoc-win.PNG",
+      "kind": "file",
+      "size_bytes": 17419,
+      "sha256": "6f328a272c783c804c78732c4307603ccba18815cf32660567164368b46dacc5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/sshot-1.png",
+      "kind": "file",
+      "size_bytes": 34623,
+      "sha256": "78028b186a4d1a1932b17df9687c6851896156cf9a464f4bebf636a0d40e426c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/sshot-2.png",
+      "kind": "file",
+      "size_bytes": 43071,
+      "sha256": "41d52cc7895ca068bc725650818b5a3fb76fb7508c9f41a4fee4df149447db0e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/Docs/img/table-edit.png",
+      "kind": "file",
+      "size_bytes": 131843,
+      "sha256": "72bb09d9f829735cf461f517ac42106096dd3258f464e14c5ff8f936f4a0c489"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/appsrc/editor/EmojiSearchMap.js",
+      "kind": "file",
+      "size_bytes": 50393,
+      "sha256": "4e12de1163ba6899dc904a3a946271f3264425e71e2712fbc472eaa1087b5a67"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/appsrc/finder-worker.js",
+      "kind": "file",
+      "size_bytes": 9585,
+      "sha256": "a5c7363392de657c608adf8762e1f6d4027ac59038f6306b0f5e0342a746a3c8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/appsrc/main.js",
+      "kind": "file",
+      "size_bytes": 1627668,
+      "sha256": "3749b8dc7be1cc9602d7f76e786672541946056e4282f5319bd4f5827d4617f6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/Typora.VisualElementsManifest.xml",
+      "kind": "file",
+      "size_bytes": 312,
+      "sha256": "cfbebc265f9825015bdaa824ccf719434b1413430f589ce19cc2b18ff4e963d6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/app.ico",
+      "kind": "file",
+      "size_bytes": 476263,
+      "sha256": "9e80814431753d3b641b0d98adcc6e5b122839c640203b3fec32d178f4ec7b49"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/file.ico",
+      "kind": "file",
+      "size_bytes": 410701,
+      "sha256": "f992d24fe7dab948b827ee218c5e8db640f424a8412cf38a82ffc69ef5676649"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/file.png",
+      "kind": "file",
+      "size_bytes": 56839,
+      "sha256": "544daa3c48ed41fddbc63bbf32cfeda89bbbf9360b006d09c21af1aa249a988a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_128x128.png",
+      "kind": "file",
+      "size_bytes": 8314,
+      "sha256": "3bf15057b223d941f4aa486633d169b16f7d122e7f6be0ec7acaaed22416fbc3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_128x128@2x.png",
+      "kind": "file",
+      "size_bytes": 20675,
+      "sha256": "74e3dd2d57abc7cbff17deddcc2fe9ce2ef47ddfd4d7c2ae3814124767df7dde"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_150.png",
+      "kind": "file",
+      "size_bytes": 4109,
+      "sha256": "8538da2899736543e780512e44d219d425fecf9bdd4a579c6b304981167bae8f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_16x16.png",
+      "kind": "file",
+      "size_bytes": 567,
+      "sha256": "c47051fa56587d863dbadc99ecae4613d3f207a4302a81c8a32fc10ecea741c7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_16x16@2x.png",
+      "kind": "file",
+      "size_bytes": 1193,
+      "sha256": "af6326e0790fd1b643ea81c687fc5cf901d5c8f74303a1fb3b6d8de290f7405e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_256x256.png",
+      "kind": "file",
+      "size_bytes": 21810,
+      "sha256": "7105d7d01fc5263d7a3f83025ff6bc2556b3920a30fa8c11f9f1b6df9f0e746b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_256x256@2x.png",
+      "kind": "file",
+      "size_bytes": 59444,
+      "sha256": "0d54bc6d4e471caa887a74da88afc1d424cdca97769f3f4c5fc0c05be76a781c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_32x32.png",
+      "kind": "file",
+      "size_bytes": 1351,
+      "sha256": "743b8b41b6fafae22d84b2927a32f9df0b9d4ad6c9711631335d71fcb36dfbc0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_32x32@2x.png",
+      "kind": "file",
+      "size_bytes": 3068,
+      "sha256": "72456907ba9e2f9570b0bf945c2ebc4fde995629717bd2ebbcdb2b7100a56549"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_512x512.png",
+      "kind": "file",
+      "size_bytes": 59444,
+      "sha256": "0d54bc6d4e471caa887a74da88afc1d424cdca97769f3f4c5fc0c05be76a781c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_512x512@2x.png",
+      "kind": "file",
+      "size_bytes": 168894,
+      "sha256": "7f2d773ad2a02852888ab94710b0d52939daab5dadff6d35a747d10bd7d8c537"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/icon/icon_70.png",
+      "kind": "file",
+      "size_bytes": 2920,
+      "sha256": "7294efcdbf3c8b4e8aa03865bf395ad4f87bd32ff04aa21c4df56a00bf0411b1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/installer.ico",
+      "kind": "file",
+      "size_bytes": 40399,
+      "sha256": "ffd5fd8ea31f42dd963d9ceca6883f6f8cf520674892c9291c84366b5a87a292"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-LargeTile.scale.png",
+      "kind": "file",
+      "size_bytes": 9073,
+      "sha256": "232b3aeab2c98dfe9db37101b5bf82a76983bd2b56c46f14d37de3ae4c2efbec"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-MediumTile.scale-100.png",
+      "kind": "file",
+      "size_bytes": 3554,
+      "sha256": "90eab306b91caa4fcb479e11b171822f9ee46070deafbfca7d30470742756e45"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-MediumTile.scale-200.png",
+      "kind": "file",
+      "size_bytes": 9281,
+      "sha256": "36e4524a2d9818203ad1547b181288e230bc4a73640012a9cc33e543819cdbce"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-MediumTile.scale-400.png",
+      "kind": "file",
+      "size_bytes": 31619,
+      "sha256": "64bad5d8def52986189916df2032bf1d08a2154b2982aace89bcd7b63063e1b5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-SmallTile.scale-100.png",
+      "kind": "file",
+      "size_bytes": 3055,
+      "sha256": "7846639071556392e51f07b4b43d058bba04fb20ac948cd836b720bf4c5fda0e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-SmallTile.scale-200.png",
+      "kind": "file",
+      "size_bytes": 7344,
+      "sha256": "c5b9ad81103ff2906d9398e689a92b91d944cb58c67ebb0bbec982558c7a2966"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-SmallTile.scale-400.png",
+      "kind": "file",
+      "size_bytes": 24786,
+      "sha256": "742f922f18bf56a222d4e65d5831f8d07fd927bff5863064c278b85dcbd945af"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-WideTile.scale-100.png",
+      "kind": "file",
+      "size_bytes": 4254,
+      "sha256": "4feaf3cb11e526825cc50f3e876adfa6e95c5f5675824345c218d53de610e7b3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-WideTile.scale-200.png",
+      "kind": "file",
+      "size_bytes": 11337,
+      "sha256": "c23932a913b05827d2c5409805480f6821554b727af573c85a90ba9fb89667a1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/assets/tile/OD-WideTile.scale-400.png",
+      "kind": "file",
+      "size_bytes": 39672,
+      "sha256": "c62ea148193ec977ec46b8175787b4d1791ffc7610c8fb49be6168d9a96bbbf4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/html/content.html",
+      "kind": "file",
+      "size_bytes": 23933,
+      "sha256": "1043b1bdd1113f09eb5bb89e270a83dbc926cf68aa2ed66d503e211307a49c9a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/index.html",
+      "kind": "file",
+      "size_bytes": 78045,
+      "sha256": "dc8ffa865bba90afa40bcae723e3dad0da8f040a558c772a3ec99825d1379545"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/a11y/complexity.js",
+      "kind": "file",
+      "size_bytes": 18034,
+      "sha256": "cc05edc9c9ead1b972410d0e7c1b8611c565a87fe513822bce94268954d03463"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/a11y/explorer.js",
+      "kind": "file",
+      "size_bytes": 36348,
+      "sha256": "8729b09b7f23927c724a0a502b04acb2df0943109bb75602c26db68cb87643ac"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/a11y/semantic-enrich.js",
+      "kind": "file",
+      "size_bytes": 8084,
+      "sha256": "366e94cbf3ca49386413d64a910ecf5db018449fbed03275f93d6f2e81d5c596"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/input/mml.js",
+      "kind": "file",
+      "size_bytes": 14583,
+      "sha256": "65c93277d980860f34341112c59520b9d2745cd46280d9c2fe036718b826624d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/input/tex/extensions/xypic.js",
+      "kind": "file",
+      "size_bytes": 355205,
+      "sha256": "4f43a95cee098687614efe3c6bd8ffaaa10a086ba30dec1049b67e8eab6f8e7b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/sre/mathmaps/base.json",
+      "kind": "file",
+      "size_bytes": 115025,
+      "sha256": "83311887b069476a6a4d0c6afe7f8e55075c85b44b029588739c0d835fc912b8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/sre/mathmaps/en.json",
+      "kind": "file",
+      "size_bytes": 409173,
+      "sha256": "19d9b309dc0d25d2bde2d3130bd3772b6d7c3f8316ebbd85306bef55ac89b2a7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/sre/sre_browser.js",
+      "kind": "file",
+      "size_bytes": 475166,
+      "sha256": "82438ae616bc8c1f658f1e3fcb64c7c72323d5c2cb3433619124db799d16fb4a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/tex-svg-full.js",
+      "kind": "file",
+      "size_bytes": 2275115,
+      "sha256": "ba5336213874be63131aef64d25b24d962e9c8eda048227d02dda056dce09b4a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/MathJax3/es5/ui/safe.js",
+      "kind": "file",
+      "size_bytes": 11189,
+      "sha256": "9fef48d868277a8bc1852f7ba796b33ead812d38916a7131b0a29ea48961a6a4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/aws-sdk.min.js",
+      "kind": "file",
+      "size_bytes": 316586,
+      "sha256": "8012e228cd8ddabd88dbd151b99c1b34a35dffe2e19437ca71b46e1315e2f0bd"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/bin/arm/rg",
+      "kind": "file",
+      "size_bytes": 6332864,
+      "sha256": "faf7246c3b9ee9862397c7fedb6f0c730e7cec75c7e333342d8ec4bd8ac1872d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/bin/x64/rg",
+      "kind": "file",
+      "size_bytes": 4626848,
+      "sha256": "6108a3764e8568ad97f8d59635a982492c90b730555ecee698a40960b3f5adf5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/bootstrape/config.json",
+      "kind": "file",
+      "size_bytes": 17002,
+      "sha256": "c62aebc97a746f1211c29027f218ce665bc118d89374c0b2a538608d37b25d27"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/bootstrape/css/bootstrap.css",
+      "kind": "file",
+      "size_bytes": 27344,
+      "sha256": "02ed0309dffc51722acac4192ce04419a1fa0c7539918faf6fcc49f0e410441e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/codemirror/mode.min.js",
+      "kind": "file",
+      "size_bytes": 566433,
+      "sha256": "9028a8e0f5f939350661473750658b45cbfe63f85d939d0962034ee56767858a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/diagram/css/mermaid.css",
+      "kind": "file",
+      "size_bytes": 414153,
+      "sha256": "438c63ee0a14a36449c2f95297dfb34f5b213090628229011c8fee3625bfaa5a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/diagram/diagram.min.js",
+      "kind": "file",
+      "size_bytes": 212151,
+      "sha256": "7bcf6eaaabcf03cd3fdac03d9f8ff1a69e6153f11321f797c0191c07a18a19db"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/diagram/mermaid-zenuml.min.js",
+      "kind": "file",
+      "size_bytes": 849077,
+      "sha256": "c05b9bd2dfed88d59e23edb4c49a2bb34af29254f6c099bd9259b378ebf1bc9d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/lib/diagram/mermaid.min.js",
+      "kind": "file",
+      "size_bytes": 3344366,
+      "sha256": "db6e157a6ae9940ae28b71c52983e9248227f02e61453dcd01b157657cfa529a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/Base.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9099,
+      "sha256": "45c8cb8786172a80e5be81d5c6997bf78fbb682c8a9ff8741c6fb3c0e08a4184"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/Base.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9619,
+      "sha256": "962f1c3cd448332966643679af3b20de958273dae25125ccbdd662d7afb8b12e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/Base.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 31271,
+      "sha256": "fb1e4450886c62f923c4cee6c4d1726fef66a2cdb813b1e62f6b7bd0541a3160"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/Base.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4366,
+      "sha256": "2d5e962468db43144ac3831894fd2d8da4ff3ed0b6656ebf1cb8a620fe08d240"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ar-SA.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8981,
+      "sha256": "af3c317e126343f32317665804327e573ec4540f3813324548e65491b290ed14"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ar-SA.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10640,
+      "sha256": "bb30ade37bbb9fe970095d6910bad64465d5c477d8997defaa18c0adbeeb7835"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ar-SA.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 26634,
+      "sha256": "52823503f596d3dce4265019bf305b3ce08cf3e14dc6854f17cfffddd30e5e56"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ar-SA.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4699,
+      "sha256": "ea9ab44b4c198a0cb20588ba466848bd78ac5d2bab9ae75dd6092d49ef4e01b4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ca-ES.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 4550,
+      "sha256": "3b56586c3c2e76ec287fee14b0cb3d32afec0bf6f31efea55aa6238bf622524d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ca-ES.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9792,
+      "sha256": "3f7b171b0511651432788321cfb811c3555155e22803fa5fdc07a89e7cdb358c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ca-ES.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 11570,
+      "sha256": "2fae250bd2d11246ac86c993ac4ac6a936b98b06c72fcfab243436edbbeb8562"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ca-ES.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4278,
+      "sha256": "1f71b966d4e6abb34ad0a713f8959170fa94b193a5818c668c688d7b1c00c247"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/cs-CZ.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 6895,
+      "sha256": "207abea7b6c7f710a780ad00e54cf790bc1b839b4d00819e2f2be4c8cd8d82f0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/cs-CZ.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 8103,
+      "sha256": "f1123220bc2b666981d7ab7dc2e0af9db9b6a2bac728dcf4114d24f9c7a4c3a7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/cs-CZ.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 16463,
+      "sha256": "26b5b9b1d8410ad55f8c5fafa34f98b0f5902a4d2790a3b08e62b90a07a84558"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/cs-CZ.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4146,
+      "sha256": "9c609b49b6475ce4d4c1cf6a4273d197ec8a27583a455dd398333e706e2e488c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/da-DK.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8020,
+      "sha256": "ff7c7332883fb8f885813a8d21210f694dbd6b9646a5d97da6cc48e730d71f4a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/da-DK.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 8884,
+      "sha256": "fc3941f79a46f454f75b281a9a4f3002d6704ff50b93f26bd1e752dd6e6d14be"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/da-DK.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 24307,
+      "sha256": "46af1bca25fa8949a42fb8c1d5dad34fd692fc32d109a181f3c84ab1d0414ef4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/da-DK.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3896,
+      "sha256": "0ec3a4e11a7981c1cdbb3619d295fa6cd3a673e396332525a17fb17c7f95842b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-CH.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 7322,
+      "sha256": "331547b87deb7f8e7c085dd878b394940f33ef8b9870a4bae0b83e8049863729"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-CH.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 8802,
+      "sha256": "8991f58026f37210dcd3c98f6ea320e3efe374cb77bf1aa9bb06478de395c810"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-CH.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 20630,
+      "sha256": "3cf4ca7756fa000349d17fbd42a889cbadcea99178302bc0b46e35607cb81cfc"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-CH.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-DE.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 7319,
+      "sha256": "28aabbf9608a13532066c98801d49f43f3ebb760612273ff9c21a16e45b07faf"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-DE.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10163,
+      "sha256": "eb678f1c8366e2382aeeaa3ecc3f0f8d45fc65067ebf8472e911a8c1a4f738cf"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-DE.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 21458,
+      "sha256": "f2de166946272777ee83ec734a8890220bcffa28bbaf7be3036d20049272aef8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/de-DE.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4074,
+      "sha256": "bc233fe186628ca30e0f09c05371c77cae0f4ed55d7bbf5e8834a5dc9ac1b181"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/el-GR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 6626,
+      "sha256": "78c1fe0a828344ad6e123efac8e28fc190e9434004ee8129013bb300013e9779"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/el-GR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10002,
+      "sha256": "1387dff09a1763bb18c3cae509236bd0351771bdcd2bcb8b41111f974690ee5f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/el-GR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 16964,
+      "sha256": "4cf962f60b76fa2dc0da871e2f80383c4cdfbae489e8c18e7fbaba599f7d15f6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/el-GR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/es-ES.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 4780,
+      "sha256": "3ab9f529519eb7f592b28bf9778a7b7b5ed5c1b1a83fc8e3f7de80d5d216f974"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/es-ES.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 7050,
+      "sha256": "bf934fd777a19d34769211f3ff0fdd8ad6ccbf5d4a08b094377bacd7e5e472a5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/es-ES.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 11625,
+      "sha256": "265e5a61e1ddad762c23c3cd8b712b5661a74f34e907d12c64a729f6892000a7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/es-ES.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4267,
+      "sha256": "5f59dcaec15139913f7392e2a64889e823dc0ef050695914bea43509c5f3ed9e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fa-IR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 11977,
+      "sha256": "5512134afea0845e892073ec9f884ee81328e70058bda026a5a34a9af712e748"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fa-IR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9689,
+      "sha256": "6790e54e74186ae2b488c5589b4fc3484a346305ac3052a42221996a7603fd42"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fa-IR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 21213,
+      "sha256": "e03e6e3b214f3a14bf623a13dda29d2d06a73a274a5eb4612b2b041e2a8e5fa1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fa-IR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4225,
+      "sha256": "ddb4bfa21ed2863bb6ac6b4dbba35358d85c8e3e9aa3d627f1506bd4eab79f32"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fr-FR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 10059,
+      "sha256": "ac36d77b016485771e4075f03acc2fd641a1edf515ef4bcb266fad7504657d02"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fr-FR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10416,
+      "sha256": "bc12b4e7dc356ffd5c4d2ab23d2e6aa4c7cdc7243cc880f55922fd0af3bf2ad6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fr-FR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 31871,
+      "sha256": "2731f5dc7b3b031c2a6881fdcc9cb750b6a4defb6092418c0d16fe91bf2c59a2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/fr-FR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4865,
+      "sha256": "202d262012d79d389bfc1662d821ef4b50e74608ea18dafbb08d5806f691c532"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/gl-ES.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9867,
+      "sha256": "157145bbfb39e4e7f7555bd6417a7daf0680ad229ca81f657e19bab6101d0daa"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/gl-ES.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10571,
+      "sha256": "a1821a3f9fae23d953c0b51987c07de16e1e875de51f0b05fa9dec8625a10547"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/gl-ES.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 33178,
+      "sha256": "2e460274fadce20d16c9df011a345cbdda4977f4ed77fc23bc59a766bee3e463"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/gl-ES.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4684,
+      "sha256": "5fbc79953072cb06abfbc72db737ccf83bcda552a2d412e2a88a5db5bef8c44a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/he-IL.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8568,
+      "sha256": "22519ddbd8859fbebd8ad5baa393c9c195cec07669d70a89ba9b98cdaeb40bca"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/he-IL.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10200,
+      "sha256": "754bae0b7ef54b8d6536da080a34ca0a7f3d768d2f5576045eb9b2b45badf119"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/he-IL.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 28230,
+      "sha256": "39c01311a81ad6003630e193bc6cc29500a78eeeeb8e2296e7d34d41d8ab0fcf"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/he-IL.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi-IN.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 14893,
+      "sha256": "04bf2fbf045724089c78521127509b9c94edcb1b1299446a5aa2a2a1b83636f6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi-IN.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 15505,
+      "sha256": "ba4fd6284402f7129193bb85201668dd06ff2732058101870a1c591a68fea6ce"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi-IN.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 46487,
+      "sha256": "1b227dd2419bf3809317ba89216146d0ed55a2685ecb586c03c88cdf0aa5a4c9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi-IN.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 8026,
+      "sha256": "fc707c8e1cbadce8f60d7a9824bea3ecf970a2276b83f81f1a38fdd8e914f01b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi_IN.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 14912,
+      "sha256": "0d4a4c1782813d2505bf3cfc42446228d3568ba9413001e0babd849242a415a5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi_IN.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 15514,
+      "sha256": "a8ca1f69d9dc829599a06fcc062172895cb1fd2ee5c8b459bc27db78a8a01dc9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi_IN.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 46117,
+      "sha256": "179eb6b18cb09ddf394488a6281428b9fe5abf055420ba0fc24ebba8c078a8ca"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hi_IN.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 7859,
+      "sha256": "b1aafb6c926f06cd8bcc67fce1ba4090c0848c4e5c38ac4e56bef2cb4e661359"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hr-HR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 5028,
+      "sha256": "2e1d2a4c1713ae0d1154d070513ccbf51faf4dd080d9493e123c55c048dde92a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hr-HR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 7395,
+      "sha256": "d8a5c202510aba58ec9150b8ea7f3bba797c70b0bb8c9d747c48ac405473341b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hr-HR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 12390,
+      "sha256": "795fe2037523adbd3de5930dcfee6b39c5a95ca7463cd3f6dcb32c4427809236"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hr-HR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3890,
+      "sha256": "378516394e094b52231c8fa4a9fbd3e413ad49c5c5215f3be522b939f510d4d3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hu-HU.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 10014,
+      "sha256": "61023d15caefc0c19bdb759df5832c212c9a81af3b3acf6f8c07c23269bc9b85"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hu-HU.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10761,
+      "sha256": "6e81e424bb7a94c500a1417c619871dcae6ef28ee4f257f836d9c3ddef6227c9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hu-HU.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 31926,
+      "sha256": "af1774f08f4962b567e5d876f469ae11b8901be6190de0477ef6cd3a35acb023"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/hu-HU.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4840,
+      "sha256": "52b80d242c4a1953cc62412ac4905e6e55e57a0409604e6b46a3dcf1da77dd19"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/id-ID.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8841,
+      "sha256": "a39e5355dca1619991df822ec7c85643f95aebb93428959ac224794703069003"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/id-ID.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9449,
+      "sha256": "ec76957f2b8306585a9029298d60fe63691460f0f4c67d472734ad45b061455e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/id-ID.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 28806,
+      "sha256": "effe07ac67b8eddf6b6d42f1245c185622c5e30e3067d00d2d253f46da919caf"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/id-ID.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4978,
+      "sha256": "dd130ae7fa5cc35c108f43d39fb15830a34ace3f2c10f8529b8a934ad8885653"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/it-IT.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9543,
+      "sha256": "4b2b105e9406bd0a26d06daa1d5474ab42859e1ceff5cfdd3834e7d35ba689b2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/it-IT.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9846,
+      "sha256": "e5b7c5a2bfeea3ea5526ee4716340a0f9f1fe1543f6f65401084ddaaaf41096e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/it-IT.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 29882,
+      "sha256": "ef7a60e832bc6d912fb4510e30451ea9a825c9eefcafbcaa06ce354ceef70dae"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/it-IT.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4656,
+      "sha256": "4f0b6488ea07072c48e7a43b253b05db42bbf0af7cbb7bf05f4b82a71d86f240"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ja-JP.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 10936,
+      "sha256": "ee8f45a9ccbb86b8b5a5da0d2848d9023b7b6831df8a04da2d88134638bb05b1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ja-JP.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 11463,
+      "sha256": "43a3113ecff9f81bde8ecdb692380c7fcfa43e6e1332a21024d4e17ab07bf158"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ja-JP.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 36659,
+      "sha256": "c789c3590fcd5e24c57ca03c97d816d8c7e314977a8e25269506792d33b11d1a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ja-JP.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 5500,
+      "sha256": "5dfca747690edab8cba0e6677d55e671673bf35007c717513f2ae19286f049ff"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ko-KR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8863,
+      "sha256": "e57222fb8912361dc5ec558761317f36319e75899f99b855d69c45050c6419ff"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ko-KR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10005,
+      "sha256": "7e1b9d3e1dbfca6da55aeac3eb4c343f1c9f74af452eaf9b2882dfaf06531ea6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ko-KR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 31460,
+      "sha256": "1a7ed18cb349e8b79f09232b45f0d52319561d1bf298735f0a9f71c59de9cbc9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ko-KR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 5088,
+      "sha256": "6d634116f5c7d813354e8267fc6488f872d5dd599788e9da5d3b9035e4de0529"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ms-MY.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8835,
+      "sha256": "1a7c4a9096c4c2d0627f18dd01d014ff1b6f4ec7166e855011dcc2cdfc141922"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ms-MY.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9121,
+      "sha256": "3f3e98e5294e7d407de5d883d2c29374a859cd44f5e543ff5aea66f9155a58a0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ms-MY.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 27973,
+      "sha256": "5e014e40e87691fd9917dfc3bbfff4125dedd8d72b6d87df506ebb6965667023"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ms-MY.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4735,
+      "sha256": "80d8874f1912919f672bab8c7614bc1751373b2dc3fdd2d40e2f03bc94925ecd"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nb-NO.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9036,
+      "sha256": "17c698ac6b79db1dc103957d4331e2e61508733a01ad2a8930fa2dd8f1e3c82b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nb-NO.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9260,
+      "sha256": "f794f7ff43abf2fcb22f56389c08f44a98c4a3b88b39e08a1a494e67ad48e380"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nb-NO.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 28430,
+      "sha256": "3f71602c6c837c50bca33219030422620ef1db9cd4d2273e03d4b5b431a005b8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nb-NO.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4366,
+      "sha256": "2d5e962468db43144ac3831894fd2d8da4ff3ed0b6656ebf1cb8a620fe08d240"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nl-NL.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8985,
+      "sha256": "6ae931082e70ad921ccf841dc993bab21ebf7575a33a45fc9f659eaea71672d0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nl-NL.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9432,
+      "sha256": "45a7a8eda4427e1c4b77534280c018bb738b5dfa0168e24219bbf13f95a081e7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nl-NL.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 12916,
+      "sha256": "2e25921c0fe226f4828206ef72aee7858fab19edb747012a0b81886bb4990d20"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nl-NL.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4728,
+      "sha256": "a112ddb3bdf0f3693843850c6e29421bdce0ad9b15378fed69af2ea2af788ccc"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nn-NO.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9336,
+      "sha256": "47661feee4db5d1f3f3c2730760f146b23b1ea498c27b36a886a4a068b62865c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nn-NO.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9985,
+      "sha256": "e1cbeae41159f69752ad3353c8d12231fca359a11eed8e65647c9b09ae3bce1d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nn-NO.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 32178,
+      "sha256": "5ed79bb352feb0adfd0d4651a2c3649e70388f9c6f9bbd033367be69f25c0a43"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/nn-NO.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4449,
+      "sha256": "14123bcf8d792b23070dda3b85ac845df0de7d562ba048b7934e727ffee49ab5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pl-PL.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9899,
+      "sha256": "4f98b253e915061a2fbc608abf69c32cbeaaa99aeaec388d9ba0d275c37bd27d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pl-PL.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10880,
+      "sha256": "594b989e6f3e643152052ade5118a772c4fdc0cddf28e660d5768ee6c1988b30"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pl-PL.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 34895,
+      "sha256": "8bc9b4a4824a66f66b29fbad97f0c60e4528f6052bfc4a467e4512bf22251767"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pl-PL.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4678,
+      "sha256": "c625924f0188ed9d9a5a619c374314975da643ce4ecb50091947dc6750bc1055"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-BR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 10019,
+      "sha256": "bda1de392e54933b3f644e769aa072d485e25a89eb289eaa21a42b8e55c03beb"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-BR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10380,
+      "sha256": "eadf44268f66c850c1b42df5387a70c0a3e94713444d1d1647d5c1880894b6f0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-BR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 32309,
+      "sha256": "b3ed481e568df521c75ce7fb02f6cded1bb1d48cae80a3fdc9d5a2fba7ba7a41"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-BR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4804,
+      "sha256": "053bf09a0ffe305e2f35974c1ab98e946346395af894ad6b9da95f8504b906fb"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-PT.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 4770,
+      "sha256": "d1fbb4a11ee4a067bc8a3919c46455e043ccaf32ca4c2c266feb3333a217d5fe"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-PT.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 6901,
+      "sha256": "0bcada760586982194aa18a9c928dc333fd3b5e1d9e636340a900a495599ac0c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-PT.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 11414,
+      "sha256": "7865fa966cec757f66da320288a04fb3f50d05f8c9f8097d69eb902d73d72601"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/pt-PT.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ro-RO.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8292,
+      "sha256": "5382e646b34445d2f5ea00418b004a9f199023c2af9456fdf10185505738f578"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ro-RO.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9350,
+      "sha256": "7153848a73ce04bcf64ac623c1ba68a70b47fb050dc4ba1dd1aa1b645bf773cd"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ro-RO.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 28490,
+      "sha256": "390e0818490d006c3f68c6e2f1c2a8e7bad282698160c8293e9f61ca9e31d432"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ro-RO.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ru-RU.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 12621,
+      "sha256": "4c5529bc7719bd715bbaf2bdc0ccf31596bcc7be624e468171708504b4666f24"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ru-RU.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 13821,
+      "sha256": "5f2ba59307f6232628bd12699f54a9ac8d4c34fbd4b9b2734faf46e6deb21f1d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ru-RU.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 39515,
+      "sha256": "ce68941fb1006a66e7145cad75ae9cd109ab4f8d9906fbbba83b7f6a00403af9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/ru-RU.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 6890,
+      "sha256": "806b0d6fceb5ae6dc29d394325450aee03515600b37e9fc37867848a885e2514"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sk-SK.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 7662,
+      "sha256": "8a5c134f943a3187ec1f2999d4d10e5de82d1b5e1dba288d0fd9318d8d82c0a9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sk-SK.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 8405,
+      "sha256": "74734d2b85b61a5a88648f6d95b598876efee1d1b944679efe061f35b87f87a8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sk-SK.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 17128,
+      "sha256": "aae57e993e11e6f98bb6589c8ea633e1750fd091c1ca329c97969a208fba91eb"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sk-SK.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sl-SI.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9615,
+      "sha256": "c4aeb13aa3b211505fe8bdd171103567ce2a522a85a72c119dd62fe3d886ba4f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sl-SI.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 10486,
+      "sha256": "c99fe2e554017c69814aada9657ce29b50f3ebc1af1ae5215ceceda026ae47b2"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sl-SI.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 33076,
+      "sha256": "803a6f0af08707e22c979ea24fb9f9696b4dec174cff52570a02f520164ba4a7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sl-SI.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4618,
+      "sha256": "d480a3196f6981d4f59a198f032eee59b8f7c3ce3cb7c105787dc463678963f0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sv-SE.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 7078,
+      "sha256": "22906e2c826146a4d906ef1ebffc327eafd73f73e8384e4b1c090e3b072dbfb5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sv-SE.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 8356,
+      "sha256": "4da7131753c165f982f492f37466235b20a01f58b5596a368e173a025d7adb4f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sv-SE.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 19635,
+      "sha256": "5649a9156d870ad1b4e66b43e4ce894a3fc92814f15a597d72d077b9d01d658f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/sv-SE.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3933,
+      "sha256": "fc2a3e60d35ca42ec0d202736476f2891676eef2af49b2b740b01a741fe1a5d7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/th-TH.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 15560,
+      "sha256": "fd3daf40b7268b27fc54dcf67829eadc09ba1ad32bfa49cef1adcfdd358a2ac1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/th-TH.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 16793,
+      "sha256": "29ae189628bd0374ba679bd29b89150d573887d37c39dae610713b13fe451879"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/th-TH.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 50261,
+      "sha256": "8356f494a56b0bac89f245c15119ef52da38e380963c3f2c4cd3bd610ec1c4d7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/th-TH.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 7487,
+      "sha256": "06e3f479c80553e7b62a1b3bffcc41ec5646254434f1385be44d0673a3ee75dc"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/tr-TR.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 7850,
+      "sha256": "b88f9f616b14052402156ff7c0f03f8a5929a09dd13031a1a6226876160707c1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/tr-TR.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 8973,
+      "sha256": "f28648b523c590345411640dd50771e2aa821e36b149ab14f6b5b13168ed8799"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/tr-TR.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 23021,
+      "sha256": "d3c1284de7482a7f309287beeaace7870a3f17f932eb440626510e46834da77d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/tr-TR.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4189,
+      "sha256": "5c5e5591d1f0670f69efc01c4a9078da6c6770231bfd3ae1119fa56faff50bb7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/uk-UA.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 10433,
+      "sha256": "c3be45bf79345fb0cfde728a0fdc4ca20242536b071409a66fbf9c3a1debaba3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/uk-UA.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 12211,
+      "sha256": "a9d7afb7939a4040e2390b612b532987969c23f93cdfd8d71c8606196c9c51cd"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/uk-UA.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 26704,
+      "sha256": "9bf53a9e76890f4a6c0f5c452194f72c33dadc4929cc02850700b937543d04da"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/uk-UA.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 3810,
+      "sha256": "c9a6b15f2de47193547aeadb590d8c0a1637a19333293e8da17b8596ae989b7e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/vi-VN.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 10711,
+      "sha256": "1e705bdfb8537e08179abc136ffe1a2e9a4c0aad155247088ee022ca8fc47cd9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/vi-VN.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 11398,
+      "sha256": "1eb9e457243d781de9c19dc59bee9b211aabba0a33ee40ed0b9f6b0c6712d39d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/vi-VN.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 34802,
+      "sha256": "b8c87106564b6e6d297dc15c06ddd94bbbd7e71272ea80d500d76fb3bc42a436"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/vi-VN.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 5457,
+      "sha256": "c3514aa7c9256def99b80d061f6390c89d1724621cb20eebd6e2e6aea702cff4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hans.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 8674,
+      "sha256": "a775547a4efc2b918d70cb2719a930323bc46b38bb66bf6a9f31dfed20edacd6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hans.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9865,
+      "sha256": "4796458f9a6473ce1e992f6ccb143c30d907e1bfbd96e79f5d66eda6e1f56dd4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hans.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 31178,
+      "sha256": "0fb5f0bf924a81d31bf362120584d83cd5b575ec25798b139686171a54a96069"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hans.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4686,
+      "sha256": "b21dc74e6218cf46dd8055114376a52823cd5da7a93c8a45dc616d98c3e39a57"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hant.lproj/Front.json",
+      "kind": "file",
+      "size_bytes": 9013,
+      "sha256": "3f6815d659b4bc266e69adcf33e1a94d27465553ea58bcfc35d3884dfc1eb403"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hant.lproj/Menu.json",
+      "kind": "file",
+      "size_bytes": 9885,
+      "sha256": "24d3293584e332de7a05869c8bf37aac5e8045e1e8620bef99a2a7efb253ca08"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hant.lproj/Panel.json",
+      "kind": "file",
+      "size_bytes": 31042,
+      "sha256": "e2eb05cff4ca5eedf998113161c869d2e338d6f76ae7ce240ad9a15f52208ff9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/locales/zh-Hant.lproj/Welcome.json",
+      "kind": "file",
+      "size_bytes": 4206,
+      "sha256": "d9d9b50dd250e3596f7715d35a37340e96e1349665eb8fa71fc45f48d240e35c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/asset-manifest.json",
+      "kind": "file",
+      "size_bytes": 3974,
+      "sha256": "c3b3ee5dbe9b3b0c021110f901b97cda743b1b8e04073bfe8a92caa8822a309f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/cocoa.css",
+      "kind": "file",
+      "size_bytes": 3449,
+      "sha256": "d258750c8064222d9bf84a550ff9176a56d32e6af6e7e6185bbf8a59c736e42a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/electron.css",
+      "kind": "file",
+      "size_bytes": 7417,
+      "sha256": "630f13d10814ea9f3cecf928228be81be18d97e9e15365bbc23c3de0f2be19cd"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/index.html",
+      "kind": "file",
+      "size_bytes": 4716,
+      "sha256": "fa7bb2ea0df063ce3c5c88aff9b3163d8cc77edacfd1d54df02204cce0e07984"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/license.html",
+      "kind": "file",
+      "size_bytes": 4536,
+      "sha256": "cfc7fe4ebb96ea1530da9a9d3ee87991bc2ad111b64dc420d67b51768d55e8f5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/local-setting.html",
+      "kind": "file",
+      "size_bytes": 4893,
+      "sha256": "0291b8473cbd8c70f22ddd4b6eb9c21e9bc10a3ad14e3c47e0a7f9479162db37"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/precache-manifest.7d3bc5fd7a709ffbc99286b8038bafeb.js",
+      "kind": "file",
+      "size_bytes": 2724,
+      "sha256": "840ab227f0faf9b267364df02761996cff8a2cda371d327197a5fd478ac08853"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/service-worker.js",
+      "kind": "file",
+      "size_bytes": 1183,
+      "sha256": "9a286e3cf5889c35bda318784f30415a108010d915c46d43262efe10cb828c36"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/setting.html",
+      "kind": "file",
+      "size_bytes": 5214,
+      "sha256": "b15655ed5cee4a604e6c8386b7f59b61dae0651235213bc27381cd278ab1f8b8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/css/LicenseIndex.180dd4c7.c9ec71e6.chunk.css",
+      "kind": "file",
+      "size_bytes": 4381,
+      "sha256": "4bb0a68b4d64bb7445cec1e11c9038f0a1b08c24bf1d4b4a84e4b1007438e6fc"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/css/Preferences.962926a4.661f08b3.chunk.css",
+      "kind": "file",
+      "size_bytes": 32581,
+      "sha256": "b71f579cc928e44a8d8590e409684b59b7f17877befda54c87d880cccae3fcae"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/css/WelcomeIndex.63db304f.db2de154.chunk.css",
+      "kind": "file",
+      "size_bytes": 6310,
+      "sha256": "8361045f247ae71817a95a7ee2bcb304068d2c3e84d616531fc176c653ae056c"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/css/localSettingIndex.a2c75cbd.4f5879ee.chunk.css",
+      "kind": "file",
+      "size_bytes": 25109,
+      "sha256": "728516d8657629b75ffe25598104bce43014e6b61a3d051d4f7e87a48f33cce4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/0.99879679.chunk.js",
+      "kind": "file",
+      "size_bytes": 153616,
+      "sha256": "8318613f8c7f693f9b6e4dcdd4f29fd7c68d3a7eb540dfe880c24ad74b92f320"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/0.99879679.chunk.js.LICENSE.txt",
+      "kind": "file",
+      "size_bytes": 1051,
+      "sha256": "669371ab0a5c8bc1586605683ec414a14274cce3dac1da12a8908b96f591795e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/1.a0005c60.chunk.js",
+      "kind": "file",
+      "size_bytes": 14286,
+      "sha256": "b91d36060437e32f945d72e32979ca1bc9d1ca874736f88c5967005e9648d3c1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/12.41027302.chunk.js",
+      "kind": "file",
+      "size_bytes": 75757,
+      "sha256": "ec6f42a64c12dfb1bbd54280aa2456cc6f858589ceed80a68ad4cc206064474d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/12.41027302.chunk.js.LICENSE.txt",
+      "kind": "file",
+      "size_bytes": 412,
+      "sha256": "45c49d3f80331c3ee17b928f3843158693258ff95e0a129cef6e05525dc5c1f7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/LicenseIndex.180dd4c7.e167f021.chunk.js",
+      "kind": "file",
+      "size_bytes": 48735,
+      "sha256": "91a3595425c67a760835095db89e983220142627cf61411e5a28e9b945c41d16"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/Preferences.962926a4.af9e0c6d.chunk.js",
+      "kind": "file",
+      "size_bytes": 139993,
+      "sha256": "df96ffba9d6ce751a049b54033eb47e773c35d47aeb5d282b17a8e2882aa19a7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/WelcomeIndex.63db304f.5c2fbfd1.chunk.js",
+      "kind": "file",
+      "size_bytes": 53599,
+      "sha256": "a1ac3117fe07b51c1ff599a168d77a562f7ed48ad3dd1ae7cae4ce77b1e5ad50"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/localSettingIndex.a2c75cbd.d48d51c5.chunk.js",
+      "kind": "file",
+      "size_bytes": 43004,
+      "sha256": "c843a62d701653127b958e340155ff215eef22d9bd8fcb177193c91a62449116"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/main.ff8bdafd.chunk.js",
+      "kind": "file",
+      "size_bytes": 183,
+      "sha256": "2ede2e4be5632da84ad4db75a5b163798409e1f7ca8791b2a916a1998352d8ce"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/runtime-LicenseIndex.180dd4c7.f7c007dd.js",
+      "kind": "file",
+      "size_bytes": 1573,
+      "sha256": "c363024ded2d2742d694478bad6c39ec2d4ad0e1bc8e2b5b7090f44ccf6ae123"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/runtime-Preferences.962926a4.285eabb5.js",
+      "kind": "file",
+      "size_bytes": 1572,
+      "sha256": "9ccf78b2f6e2ac6f1d8f32871555d825a0058def3be9d1003b870c4a8308cbc0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/runtime-WelcomeIndex.63db304f.ab2b23b4.js",
+      "kind": "file",
+      "size_bytes": 1573,
+      "sha256": "1df24d526b3316171fdc52dfefa6a00ab98b086eb95901617c3882e52f150da3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/runtime-localSettingIndex.a2c75cbd.6f0fb930.js",
+      "kind": "file",
+      "size_bytes": 1579,
+      "sha256": "e46c781f80084532d9d93db35038262788708de82a60b6d549d623fff60cc398"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/js/runtime-main.97d0b459.js",
+      "kind": "file",
+      "size_bytes": 1557,
+      "sha256": "493069b1376505fc6353d122660777b4c1100f8215e6ddc14e1b9c8364c37dfe"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/media/icon.06a6aa23.png",
+      "kind": "file",
+      "size_bytes": 21810,
+      "sha256": "7105d7d01fc5263d7a3f83025ff6bc2556b3920a30fa8c11f9f1b6df9f0e746b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/media/photon-entypo.1382c29c.ttf",
+      "kind": "file",
+      "size_bytes": 48456,
+      "sha256": "1733aa2b56f9d8a2684228f7d6383c992d8088bf95ab5d505e440c0802632d55"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/media/photon-entypo.2614e058.eot",
+      "kind": "file",
+      "size_bytes": 48644,
+      "sha256": "9431f363419a61693609085356105790cc56d048388c5bb91a315fd677418642"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/static/media/photon-entypo.bf614256.woff",
+      "kind": "file",
+      "size_bytes": 30692,
+      "sha256": "05bcf57599c2bd78b35162d8ab41c1b516b49d295b7f7d046d49834bf68bc60e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/page-dist/welcome.html",
+      "kind": "file",
+      "size_bytes": 4507,
+      "sha256": "0c059b0a8d31b63224c4c7e890ab4a39f9959bb6fe19a236688c43140172c9b6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/Raleway-latin-ext.woff2",
+      "kind": "file",
+      "size_bytes": 9144,
+      "sha256": "b04c8b4854ef524f779d9c35e8cb6aca0237b135872b5ac59b1c797e670395b8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/Raleway-latin.woff2",
+      "kind": "file",
+      "size_bytes": 13128,
+      "sha256": "f37df5fd112825a2d0b8292145bf094083d903e6017d4b60703bad746ecba614"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/base-control.css",
+      "kind": "file",
+      "size_bytes": 77061,
+      "sha256": "d312ca1174216a94a9ce4fd02bf7c816c0c06fff186ec5cb4e4cf955c731fe4e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/base.css",
+      "kind": "file",
+      "size_bytes": 13312,
+      "sha256": "f23cb540424651f580b2ac5266469f42def03bc3f31263a6ef2215e92dd7e0e0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/bg.png",
+      "kind": "file",
+      "size_bytes": 2126,
+      "sha256": "43d63542ab10040e14ddaeb9ee5a49ca3f54b1081892d5926aa22df8ba8227f9"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/codemirror.css",
+      "kind": "file",
+      "size_bytes": 4453,
+      "sha256": "9e5d04376ba01339e359e9d57bd53dab7cfdd7cc0391fde27c7608aaf8981718"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/cubes.png",
+      "kind": "file",
+      "size_bytes": 723,
+      "sha256": "da6faadda2796ba5d6b3ff03de905d3688209175bc7ed0754e4d88e254096701"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/file-icon-big.png",
+      "kind": "file",
+      "size_bytes": 112007,
+      "sha256": "91b1cb4d33f44225379334278201a6b306f8161760ef4a602936a8421897c27f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/font-awesome-4.1.0/css/font-awesome.css",
+      "kind": "file",
+      "size_bytes": 24964,
+      "sha256": "40c15e30c16208542aca35f929fb66c390483cbf9c6cbcea0329773d96dda3c5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/font-awesome-4.1.0/css/font-awesome.min.css",
+      "kind": "file",
+      "size_bytes": 20537,
+      "sha256": "a5204a49ef8af6a09e3113cbf564a5dac001592a6edda6821fc3c45fcac3cfea"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/font-awesome-4.1.0/fonts/fontawesome-webfont.woff",
+      "kind": "file",
+      "size_bytes": 83760,
+      "sha256": "66db52b456efe7e29cec11fa09421d03cb09e37ed1b567307ec0444fd605ce31"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/ionicons-2.0.1/LICENSE",
+      "kind": "file",
+      "size_bytes": 1094,
+      "sha256": "5407c91b6c8b7305f72aec4ee5ffb99b32ed9a5413c19cf3cd1b94354d2645e8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/ionicons-2.0.1/css/ionicons.css",
+      "kind": "file",
+      "size_bytes": 47799,
+      "sha256": "bab1d83a05e6be2fb17efb17159aadb2478efd2d7e32690b53c74fe0649a6869"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/ionicons-2.0.1/css/ionicons.min.css",
+      "kind": "file",
+      "size_bytes": 42815,
+      "sha256": "d1ca972ea2b8adf8bc9135c175b5feb721116113aac38a5eab849ffb6f90f097"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/ionicons-2.0.1/fonts/ionicons.woff",
+      "kind": "file",
+      "size_bytes": 57276,
+      "sha256": "c5fd4000901f835054a4e6ed4bf0ddd5800ba2a3aebe5e5e4fc3147497c14636"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/ionicons-2.0.1/readme.md",
+      "kind": "file",
+      "size_bytes": 2492,
+      "sha256": "babf9fbb910867c1e3278a57d972db81ee3c46b9f62bd17278008978b60ed957"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/mac.css",
+      "kind": "file",
+      "size_bytes": 3293,
+      "sha256": "edbe3c7a9ad0053b46fb318f3b978ecf34083f7acdfa7f4d2c56c0577b8a7fb6"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/megamenu.css",
+      "kind": "file",
+      "size_bytes": 8952,
+      "sha256": "96789efd871d1dce7e355e308d8066dfef0b44cc10ca2b87443bb67867dc5cea"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/Readme.md",
+      "kind": "file",
+      "size_bytes": 254,
+      "sha256": "b82039fd5a0a94bf81ff1f529113bacedb126d45f3bfb5c4ac0b6e31a561588e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/github.css",
+      "kind": "file",
+      "size_bytes": 8262,
+      "sha256": "88e1204ddc35cd8587be4861c877205dcf617979dd6c287dc3f6ccd313bbe838"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/github/open-sans-v17-latin-ext_latin-700.woff2",
+      "kind": "file",
+      "size_bytes": 20108,
+      "sha256": "59a3166f7bacce6a65bf901ad20f141b619bca39a1318ea5efbdaa587b48a800"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/github/open-sans-v17-latin-ext_latin-700italic.woff2",
+      "kind": "file",
+      "size_bytes": 18456,
+      "sha256": "a250cc9c90a94d628301cbeaca7d8aa6276cda73c8a32af07d3ede513447931a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/github/open-sans-v17-latin-ext_latin-italic.woff2",
+      "kind": "file",
+      "size_bytes": 18604,
+      "sha256": "8ddc89881ca5f355826d20b2229266c56a2c8d7be69ff9533b1891b55dc15825"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/github/open-sans-v17-latin-ext_latin-regular.woff2",
+      "kind": "file",
+      "size_bytes": 19396,
+      "sha256": "537d46273fe124bbced2f098f26222fa3155741e9d76f906c3c39e7fa09bf6a8"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic.css",
+      "kind": "file",
+      "size_bytes": 7705,
+      "sha256": "8745699e4495f83e6bd1f93487adb8084f32c8b756e9c731035b8bcb47870383"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/GUST e-foundry License.txt",
+      "kind": "file",
+      "size_bytes": 1399,
+      "sha256": "d318fdf9d55ee12be207788b99991b54170efecc633a7e9ec8352ea4a90726bc"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/didact-gothic-c-ext.woff2",
+      "kind": "file",
+      "size_bytes": 4808,
+      "sha256": "4c3ce7d5fb8b7082e11d6ba6972cedd58875573387f32525630a25a78f32507e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/didact-gothic-c.woff2",
+      "kind": "file",
+      "size_bytes": 5368,
+      "sha256": "bba9bd182bb9dc301b7fb8890ba108b38ab17ea94132253b6f344d3a4f4b86f5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/texgyreadventor-bold.woff",
+      "kind": "file",
+      "size_bytes": 15344,
+      "sha256": "66ec1b68a5b9121a11e6e67914084bbba10698257a7efa5a22b4f6dcd29f5882"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/texgyreadventor-bolditalic.woff",
+      "kind": "file",
+      "size_bytes": 15884,
+      "sha256": "95c7d7e03da6219a85e4a3ac1dc9ff327fdb8646fc18b889afacfd49a6947e8d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/texgyreadventor-italic.woff",
+      "kind": "file",
+      "size_bytes": 15612,
+      "sha256": "5f9817cc442fa3a02872c297a074fd713dc7a2194e5d67b424b0dcf3ffb06860"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/gothic/texgyreadventor-regular.woff",
+      "kind": "file",
+      "size_bytes": 15140,
+      "sha256": "a05e1db555ee9870a8a59cd13599d3452fbba2fc2a7ec708c34503067734e410"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/newsprint.css",
+      "kind": "file",
+      "size_bytes": 10576,
+      "sha256": "3438241e8c4e287773d14f6f787cfcbc01b4868a531b0bc3b5fdddf86e3a95e1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/newsprint/pt-serif-v11-latin-700.woff2",
+      "kind": "file",
+      "size_bytes": 29400,
+      "sha256": "e548abcd8734bfcf8b4ebbbca1af98f9e8ae1e0ff884c0971f29498a4fc108f4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/newsprint/pt-serif-v11-latin-700italic.woff2",
+      "kind": "file",
+      "size_bytes": 28388,
+      "sha256": "e1bd3f9f50d4876fc67111ab41b60880f08b2eb89f8a0075c2ad3394a79c4063"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/newsprint/pt-serif-v11-latin-italic.woff2",
+      "kind": "file",
+      "size_bytes": 34732,
+      "sha256": "be5daba1b69c2dad0eed50cc17bea9659ab23d79d8d412dc8e5c6013b41f39c3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/newsprint/pt-serif-v11-latin-regular.woff2",
+      "kind": "file",
+      "size_bytes": 32960,
+      "sha256": "ef391572f9fbb7bab7fef6ce2c4fc92ad68a8c148889a79cb9f9b1452d851fab"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night.css",
+      "kind": "file",
+      "size_bytes": 16818,
+      "sha256": "90106241404fc673da4d3003ca1a8e080823b04a21a74a809d0d04d71730462a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night/codeblock.dark.css",
+      "kind": "file",
+      "size_bytes": 1550,
+      "sha256": "35128e810df10cdb0913f4f094ed0d1fbe86a2ca9859a21ef58fd6cd29f1f9df"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night/credit.html",
+      "kind": "file",
+      "size_bytes": 295,
+      "sha256": "c27e4aee3966fb7fd89f87111605e4566151e74500392e7514f38beca416d6de"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night/cursor.png",
+      "kind": "file",
+      "size_bytes": 372,
+      "sha256": "79baa72e496c066efe279d87def13ef0f5be7cb3eef8ba90969182f9ce2127dd"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night/cursor@2x.png",
+      "kind": "file",
+      "size_bytes": 407,
+      "sha256": "9cf5bdaba44275012a0b3966ad2cd3913d5cc0924b97988162a710ab626a9ad5"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night/mermaid.dark.css",
+      "kind": "file",
+      "size_bytes": 79,
+      "sha256": "6a2571cceda6259f785383910be615ef2e4b05dde21bbe08ca64cc22115afc57"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/night/sourcemode.dark.css",
+      "kind": "file",
+      "size_bytes": 714,
+      "sha256": "506a99d9e092d822da39c674a07216b17c945ac0cd9ab2cddc78834f4c8e6891"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll.css",
+      "kind": "file",
+      "size_bytes": 10559,
+      "sha256": "ff6d12db620ccbde7c2a99cbaa5de21dd90430e36b9287153cf0bd6bbac79949"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/lato-v14-latin-300.woff",
+      "kind": "file",
+      "size_bytes": 29852,
+      "sha256": "8084a57f30a2d3d730b5d25b8d2ccb18369d90d333144231704418d555c20c0f"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/lato-v14-latin-300italic.woff",
+      "kind": "file",
+      "size_bytes": 22312,
+      "sha256": "cca6a06b797908e58ca2f61c3572dcc8c38ad954cfd5c4b28f054b5ab5722ff0"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/lato-v14-latin-900.woff",
+      "kind": "file",
+      "size_bytes": 27260,
+      "sha256": "2a6deb3135f92894e02fc63f6faa395e639fd44bfb3e7664608746715cd21bb7"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/lato-v14-latin-900italic.woff",
+      "kind": "file",
+      "size_bytes": 28688,
+      "sha256": "dc77515a1fa579cc5fd321b71ea6c86b7c87dc131fdff7793c8441cfd1ea96b4"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/merriweather-v19-latin-300.woff",
+      "kind": "file",
+      "size_bytes": 22872,
+      "sha256": "b218f71fe5aed94274e74900d26a23a2d1cb3f4ce996a91f8fcdc12225eec3ad"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/merriweather-v19-latin-300italic.woff",
+      "kind": "file",
+      "size_bytes": 22884,
+      "sha256": "f913b4b7095e46a38b950817327530cb8408c72455d961540b19d56d4c955c5e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/merriweather-v19-latin-700.woff",
+      "kind": "file",
+      "size_bytes": 22696,
+      "sha256": "9f3beb1842e820a05015f6f441dfb98bb81172128d43b2397db83134c75c38f1"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/pixyll/merriweather-v19-latin-700italic.woff",
+      "kind": "file",
+      "size_bytes": 23024,
+      "sha256": "b86cf6cbe82990b92fc7657f24c2a05c9c07be31b97f560d6ea4772d99221f27"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/themes/whitey.css",
+      "kind": "file",
+      "size_bytes": 4651,
+      "sha256": "93b2c21baa15b08f6b355d0d2e422b7d1e75562f9f36dcf90d0796234d1202ab"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon.png",
+      "kind": "file",
+      "size_bytes": 597,
+      "sha256": "02c871bd333cc6918d1928375ac07ff8b14ede75b9fec96c5a414a0119c02795"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon/Read Me.txt",
+      "kind": "file",
+      "size_bytes": 755,
+      "sha256": "766eb502bb52884e56ed034da72954cc2cf6b91388f7bdbd8a374ccb7fc6531a"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon/demo-files/demo.css",
+      "kind": "file",
+      "size_bytes": 1996,
+      "sha256": "9e66886ce305efe4a3c6e1fc0ab810d7235534fe6b3947a8c06a8bd38c91541b"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon/fonts/ty-file.svg",
+      "kind": "file",
+      "size_bytes": 466495,
+      "sha256": "c78e6e7a1c9e2fff4ddc920cb87f1675677f26da3be9d4f32158c392b444140d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon/fonts/ty-file.ttf",
+      "kind": "file",
+      "size_bytes": 127300,
+      "sha256": "0e02a5a2be765e1cb01bbc0e066072715a6e607a4ab2213cc878faa8aead9c86"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon/fonts/ty-file.woff",
+      "kind": "file",
+      "size_bytes": 127376,
+      "sha256": "2ce9c949e7878baee8fa7d3e0f2b9c3c0ab5bdaa1ce9ae94c819e32cec0ed9f3"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon/style.css",
+      "kind": "file",
+      "size_bytes": 68801,
+      "sha256": "df027327e121201f049e621a2490dfb19bc1fc96832f938a472647db3761d512"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-file-icon@2x.png",
+      "kind": "file",
+      "size_bytes": 1142,
+      "sha256": "def831aed30e6110864709c8544201ed46846dc31764dbf3e39bdf390254b28d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-icon/Read Me.txt",
+      "kind": "file",
+      "size_bytes": 748,
+      "sha256": "ef408de5a2bcfc444553ce81ad1da8a31c0c41f95dde8377ae71edf7c86c2900"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-icon/fonts/typora-icon.eot",
+      "kind": "file",
+      "size_bytes": 15620,
+      "sha256": "fb0f002c2a1058855c5e8eabd67602dd1f5cfdbf526e59577320530b331594bc"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-icon/fonts/typora-icon.svg",
+      "kind": "file",
+      "size_bytes": 51854,
+      "sha256": "489958633a9426052ae562a7ac327184e5f11468c549d53b1d650d218c94c10e"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-icon/fonts/typora-icon.ttf",
+      "kind": "file",
+      "size_bytes": 15440,
+      "sha256": "a2f53b393b4af203c9d8865507b0b106b171165b65695aa882d6647ef5ee8164"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-icon/fonts/typora-icon.woff",
+      "kind": "file",
+      "size_bytes": 15516,
+      "sha256": "49a95eea5e45c2dfbb2483cfc64b7f6b5b3f4d5d863dc8d39ad2ea1c00fe659d"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/typora-icon/style.css",
+      "kind": "file",
+      "size_bytes": 4472,
+      "sha256": "6e9b83fd41247999a3fe092451b596bc1c20cc9be01e0bb8060b20dfc7fe1e00"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/window.css",
+      "kind": "file",
+      "size_bytes": 26740,
+      "sha256": "b27227fa2353a19b1cf772e93eb9dbb0120f4761f4ccacc5b7c2be15bc5328fa"
+    },
+    {
+      "path": "Contents/Resources/TypeMark/style/windows-folder-icon.png",
+      "kind": "file",
+      "size_bytes": 993,
+      "sha256": "1d5e7cdd059703db82a3999e931bfcb4a92b9e07ac000ec354bbf0b6edbcde72"
+    },
+    {
+      "path": "Contents/Resources/ar-SA.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 15586,
+      "sha256": "fc0783a2280a158b6deea5157563651e78bf4f057e91acdc3f9840dbc5774f75"
+    },
+    {
+      "path": "Contents/Resources/ar-SA.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 18370,
+      "sha256": "5677ec1fed119f6c9ce97fa43152faa72b52de28dd681d050a00dfc1f9d9b2b2"
+    },
+    {
+      "path": "Contents/Resources/ar-SA.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 44168,
+      "sha256": "f2f44dc9451cac2c4d3d473c7210d0796e45bff97ee8417b16080df5dae960fe"
+    },
+    {
+      "path": "Contents/Resources/ar-SA.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8012,
+      "sha256": "56650fe06dfb3b8c980c0a477d713bf2f3f3616dcac088ae5a268049786686c0"
+    },
+    {
+      "path": "Contents/Resources/ca-ES.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 10066,
+      "sha256": "e2b2de31b06e016d5f1c2d1fff21895d31ba6f8a818e474710f1abac36244f79"
+    },
+    {
+      "path": "Contents/Resources/ca-ES.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 21928,
+      "sha256": "61c4c730c0f41e44abb90b32e6314427e27be973a1137fee6739175978ab0d37"
+    },
+    {
+      "path": "Contents/Resources/ca-ES.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 24936,
+      "sha256": "6d697d62bcd6c719c6b06b3a4cceb12b37f8408857568af86a6d4e31a1961882"
+    },
+    {
+      "path": "Contents/Resources/ca-ES.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9090,
+      "sha256": "9e93815295e581c5050fddd05913036c46569f87b42e70c535089165474c372c"
+    },
+    {
+      "path": "Contents/Resources/cs-CZ.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 14940,
+      "sha256": "405ebb3dd675bac57cf43bbce517564d8f92046046ac42568b70ad7c80c8ad30"
+    },
+    {
+      "path": "Contents/Resources/cs-CZ.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 17792,
+      "sha256": "fd630f70d1df7e916cb701063560e7e386abdc75ebb37364f88e6521bb61097c"
+    },
+    {
+      "path": "Contents/Resources/cs-CZ.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 34212,
+      "sha256": "a504837b48e6ff50d94795954428b7b8b9edd7ed56be9772376c0e9c1d346f8a"
+    },
+    {
+      "path": "Contents/Resources/cs-CZ.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8724,
+      "sha256": "d6d5661173281459e2bf651c2f185a835fd8f9096abf1b99e67bf7ecde9478e6"
+    },
+    {
+      "path": "Contents/Resources/da-DK.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 17614,
+      "sha256": "6433fe15b426e39ddf099187a56ec0626b1e5bccc69d82b034123a01516bf1f7"
+    },
+    {
+      "path": "Contents/Resources/da-DK.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 20286,
+      "sha256": "2b78ad56b0f3bf612c697fbb62357340a267d0e3a512f0edb94312bb9d9740e7"
+    },
+    {
+      "path": "Contents/Resources/da-DK.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 51956,
+      "sha256": "ce2ec66bf1e0aa17022e1e054b1d4aa594b2b6db957dc304b76d1275a4dc5182"
+    },
+    {
+      "path": "Contents/Resources/da-DK.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8478,
+      "sha256": "6b10ce2c7bf85b32f9e0730e8bf8c01fba311dcc5f1ec89b7885bfd750552cf3"
+    },
+    {
+      "path": "Contents/Resources/de-CH.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 16124,
+      "sha256": "836990fd8c7dcaab04549c4daac4c7690fa0b29666bc7ac2eef71dfec90216b5"
+    },
+    {
+      "path": "Contents/Resources/de-CH.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 19962,
+      "sha256": "28aa6635a9680acf9023562a9174d08f07f5a2a69cdff15c9a6ca96957b23a6d"
+    },
+    {
+      "path": "Contents/Resources/de-CH.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 43986,
+      "sha256": "c321bebbe490a55a3b65371bd98cc4ef5cd7387d01c3d2bb301fc5a21fa4b74d"
+    },
+    {
+      "path": "Contents/Resources/de-CH.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/de-DE.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 16450,
+      "sha256": "48273a07636825b880a94d767b11f2a38a2f4338f1c7558d6a8bc80df19a51dd"
+    },
+    {
+      "path": "Contents/Resources/de-DE.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 22860,
+      "sha256": "4d816a41b59ba47d37ba2ac2adeeddabdf5db50f514beca452f0ffb763d605b2"
+    },
+    {
+      "path": "Contents/Resources/de-DE.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 45638,
+      "sha256": "f6bde5e18b47fa57093488e8cb7d685cb024180d646dad8472f679df40e45269"
+    },
+    {
+      "path": "Contents/Resources/de-DE.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9446,
+      "sha256": "c088656b03eabfca3056deab340058fcccd46657aa291cacea28090c362b61d4"
+    },
+    {
+      "path": "Contents/Resources/el-GR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 11156,
+      "sha256": "b0d5a3128e8dbc9f60ce736cf0087853ec87642738f14c95cceb20e8200e33f1"
+    },
+    {
+      "path": "Contents/Resources/el-GR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 16160,
+      "sha256": "2d58a005df3fb0988977938aca7e2c0b988089d1fa6efb791ffc5453aa31f3da"
+    },
+    {
+      "path": "Contents/Resources/el-GR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 26374,
+      "sha256": "9376f90c0413fedac5e14e1b84f0e1850a2225da270bca51178dd87baa6b049a"
+    },
+    {
+      "path": "Contents/Resources/el-GR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/en.lproj/Credits.rtf",
+      "kind": "file",
+      "size_bytes": 544,
+      "sha256": "6e94eec6297d3e8ef4ff41721578a52cf17b386aec4e8d110a287f8e46b87d8f"
+    },
+    {
+      "path": "Contents/Resources/en.lproj/InfoPlist.strings",
+      "kind": "file",
+      "size_bytes": 92,
+      "sha256": "39cf2ee07b7b333e7c179d0bf4d798a5b72af6a4e584f51e642703bbfa4fc828"
+    },
+    {
+      "path": "Contents/Resources/es-ES.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 10598,
+      "sha256": "ac86f35541efe1d4ce77cfc460472aaa7fa3c839b64e2724b006dfff76d1c0f3"
+    },
+    {
+      "path": "Contents/Resources/es-ES.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 15932,
+      "sha256": "8bd5a8603e16e9e47a2270c698b950b806210ecf28fe825aadc91032ecf1c57a"
+    },
+    {
+      "path": "Contents/Resources/es-ES.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 25100,
+      "sha256": "f99c2d370a30cf7809851b7351517a64dea3d8542e5ee267dfabc1351d0c9539"
+    },
+    {
+      "path": "Contents/Resources/es-ES.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9122,
+      "sha256": "ad6977f2b50c29b556f86ee49e37780b05b40eff5ccce4172b1ecd31507d3a96"
+    },
+    {
+      "path": "Contents/Resources/fa-IR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19854,
+      "sha256": "e35eaac7b2f02517503e7c0a112772091cf0ac6f6c0280bc34cdf354197943dc"
+    },
+    {
+      "path": "Contents/Resources/fa-IR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 16576,
+      "sha256": "8a1ecf22ba0222fb6f02a2984bff3a449bceaef5cb86dd7e3e4099c81f9c8273"
+    },
+    {
+      "path": "Contents/Resources/fa-IR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 33994,
+      "sha256": "5b5b5fc91095b9a36acc42017a567eb8652d974da4bfee4339c70ae9a8b1f3af"
+    },
+    {
+      "path": "Contents/Resources/fa-IR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8396,
+      "sha256": "ec12b5586625a7bdd3a8f85262174f09057d5e4e8d41e0c7baeff3b476185c5a"
+    },
+    {
+      "path": "Contents/Resources/fr-FR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 21504,
+      "sha256": "3e236604231a8e5425d29226ed83c27eee879bcff3bb9947cd2bc31b330019f4"
+    },
+    {
+      "path": "Contents/Resources/fr-FR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 23226,
+      "sha256": "a01169806a14683de4228e669bb17adfad42a5876a7166eef43836849207940a"
+    },
+    {
+      "path": "Contents/Resources/fr-FR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 66578,
+      "sha256": "5f45b0f62e9ac25302a7ffc3c4b8d45e8ba9c749a9888dc1f2cf14dab1d7ad49"
+    },
+    {
+      "path": "Contents/Resources/fr-FR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10218,
+      "sha256": "5dacf837d3e24b2bfffe66ed15c88b7de14d75fb6bdd6cc8cfdf7eac6a5a960a"
+    },
+    {
+      "path": "Contents/Resources/gl-ES.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 21078,
+      "sha256": "8c8657ba896da6736dc89e7124d268ece701c7061619b3c384376992c5c16317"
+    },
+    {
+      "path": "Contents/Resources/gl-ES.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 23468,
+      "sha256": "151ba429806989af13f65ad693e45655608f67b3c664cb341e301c30c50ed308"
+    },
+    {
+      "path": "Contents/Resources/gl-ES.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 70878,
+      "sha256": "30eb35f77c4a1bb8e6f34734e90d115f78607001b313962b41dd554abc68836d"
+    },
+    {
+      "path": "Contents/Resources/gl-ES.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10000,
+      "sha256": "2682b46ddbb53e116bd38ee0c976dc9a468d4b76bf8ba6707830c9ecede2c662"
+    },
+    {
+      "path": "Contents/Resources/he-IL.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 14820,
+      "sha256": "7eaea39210f8075c944bad3b259eab5c3209175d018ce5fa92f4f91fa13b984b"
+    },
+    {
+      "path": "Contents/Resources/he-IL.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 17998,
+      "sha256": "9ce9e2375d47fa8cf1914cb58f739cc3bda0374f526584248f2169d7553e632e"
+    },
+    {
+      "path": "Contents/Resources/he-IL.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 46804,
+      "sha256": "e52944ed02113b55e268fca4c8d19a3f9c2c291f856313272be808b5ea786bdd"
+    },
+    {
+      "path": "Contents/Resources/he-IL.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/hi-IN.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19064,
+      "sha256": "5b65b139a7b53a962800dfb12b8221fc800f30fcda46debb0a3b3d18ebd17c84"
+    },
+    {
+      "path": "Contents/Resources/hi-IN.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 20330,
+      "sha256": "8eb33dce5dcee9b73d37e668fa2596e57bcc5dc02ad074e08eaa34281f2f8b53"
+    },
+    {
+      "path": "Contents/Resources/hi-IN.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 59198,
+      "sha256": "128a138cf541ebcb7bed9c7c95bc9c3f6916e432b2a6783512f088ec80e8ae6b"
+    },
+    {
+      "path": "Contents/Resources/hi-IN.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9894,
+      "sha256": "266bdaa3669955ebfdb2ea0209a0b590a6b81ca54c43c6062c50f9e92abd10a2"
+    },
+    {
+      "path": "Contents/Resources/hr-HR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 11176,
+      "sha256": "38865b3a392269ba242a5dccbc716166b535d989d25c00760a8d6c9d27a6858a"
+    },
+    {
+      "path": "Contents/Resources/hr-HR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 16578,
+      "sha256": "d9e066ce85cc91af1e8d3c9e165b50247e59b840cc485a18faa9aa31719a4b86"
+    },
+    {
+      "path": "Contents/Resources/hr-HR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 26760,
+      "sha256": "b1b2c9d0b63658c63e6cdd927f324fa80685dfe480a2415ab5f75663a731e5be"
+    },
+    {
+      "path": "Contents/Resources/hr-HR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8398,
+      "sha256": "c0195a545ae2f1c0d98d8619f9ceebb674a6d162a13ee81e84114e0836040bc5"
+    },
+    {
+      "path": "Contents/Resources/hu-HU.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 20584,
+      "sha256": "b3fce306854e65267cb9d7aabe505544e31bd6d75a5754c448cd960b71b0c850"
+    },
+    {
+      "path": "Contents/Resources/hu-HU.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 22770,
+      "sha256": "3f76b176724b05b57f2a5e3be05ce380fce9a053b647429bf7fc75cbbd000624"
+    },
+    {
+      "path": "Contents/Resources/hu-HU.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 64718,
+      "sha256": "fa0e7748d617e3fd11418f95a4de0a7a0971cf0f4cea361915049ec2e8ee0103"
+    },
+    {
+      "path": "Contents/Resources/hu-HU.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9936,
+      "sha256": "4db7a46ec0f6955af7f7b7012bd4ccec164d0ad59cdab388e77abee31654a751"
+    },
+    {
+      "path": "Contents/Resources/id-ID.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 25852,
+      "sha256": "4911c1d5764879f66bd0804698c68aa17078ec7520b51c652e8f542e6b69df3f"
+    },
+    {
+      "path": "Contents/Resources/id-ID.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 29050,
+      "sha256": "ea12432f869854a7d528fe5e5558ec3a4e247466b98b33817d72b706d29fb09e"
+    },
+    {
+      "path": "Contents/Resources/id-ID.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 68102,
+      "sha256": "a0f2070f5148812a1584295e550ec5f286956757a54f8699713aeaa8830e8dec"
+    },
+    {
+      "path": "Contents/Resources/id-ID.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 14822,
+      "sha256": "1f270200e4ad539fa4eae246c33aa4cc0b77b7be784128e8b899a5dd1f211f6f"
+    },
+    {
+      "path": "Contents/Resources/it-IT.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 20622,
+      "sha256": "139598550aaf2132ee7149982a01c556e2dee763b7af4de7a6b0b0735ce61243"
+    },
+    {
+      "path": "Contents/Resources/it-IT.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 22274,
+      "sha256": "713e993e38569117e195f5e51628fd79f62e9030e8f8081303f5429a1485d13f"
+    },
+    {
+      "path": "Contents/Resources/it-IT.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 63740,
+      "sha256": "775aa8f1190389218db2163b974d42cf4b8ee3c0faacdf6ea10606da7b8db982"
+    },
+    {
+      "path": "Contents/Resources/it-IT.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10200,
+      "sha256": "ce40a1834c24c03d51ba62ea952b8eb43b56c1fc4ce4fea7ee73e0036acacf53"
+    },
+    {
+      "path": "Contents/Resources/ja-JP.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 16760,
+      "sha256": "e1b8c77d85102173ced58681b195449b492965ebbe9693bcda3b17c6275da579"
+    },
+    {
+      "path": "Contents/Resources/ja-JP.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 18362,
+      "sha256": "b9152e147e422c9f6f16809fb2a26ca2e5130967d28c63a25a38e6e04faa419c"
+    },
+    {
+      "path": "Contents/Resources/ja-JP.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 53568,
+      "sha256": "590f1ab94b6bf2ace09e2f5b12c05950425e18974aeba3f3481dd9781c6c2ca8"
+    },
+    {
+      "path": "Contents/Resources/ja-JP.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8038,
+      "sha256": "c50447da2d4630b0912ba9d3f1fe335b66795e4529cc5eeb189559f5576a4625"
+    },
+    {
+      "path": "Contents/Resources/ko-KR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 14602,
+      "sha256": "f11368a73485c8fc8fe1ae1564ae1a930c085c93510cbeeb4cfc7580cdbe5ddd"
+    },
+    {
+      "path": "Contents/Resources/ko-KR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 17284,
+      "sha256": "1c0f645bb417a6f5d0cf672d42535ba2d06d8d1e3c24c254aa9442951d84d8f4"
+    },
+    {
+      "path": "Contents/Resources/ko-KR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 51282,
+      "sha256": "f79bc42a572a4d6728952b63824d9fe396f56ddc8c0d94aabcaca616423f22a0"
+    },
+    {
+      "path": "Contents/Resources/ko-KR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 7982,
+      "sha256": "6fb20b45332b22403d9e81cc68ed23ea4763a8b970259746504f5f304b91ce1f"
+    },
+    {
+      "path": "Contents/Resources/ms-MY.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19188,
+      "sha256": "54d31469a7363ee1ae3fb0d6a1ebf97e8134d06ade80e5d6ff3adee60bd925f3"
+    },
+    {
+      "path": "Contents/Resources/ms-MY.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 20768,
+      "sha256": "3da95e8b74207568b8aee67c13bbe4f6ab4dbcc0381a94e5f401a27d8096d5a8"
+    },
+    {
+      "path": "Contents/Resources/ms-MY.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 59868,
+      "sha256": "17f6d2793e0e952b2574fefb530d3a13ff9d34e39fab983235058a7af293fc0d"
+    },
+    {
+      "path": "Contents/Resources/ms-MY.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10082,
+      "sha256": "66c0e4d7af223de05007aee848d726e2f335a46e86bc8f25eb34e8d170be16f8"
+    },
+    {
+      "path": "Contents/Resources/nb-NO.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19852,
+      "sha256": "51a35120b153be7ce249572fc1d60d38d743681f383da25a64bfdf00fb1eea17"
+    },
+    {
+      "path": "Contents/Resources/nb-NO.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 20914,
+      "sha256": "8f499e39f9e2a5d0006af3c54bbad7c006eb84da2ecaa8bff53973b1c76198e5"
+    },
+    {
+      "path": "Contents/Resources/nb-NO.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 60670,
+      "sha256": "88e7c8e7f3be25713c5d2b048fd2d9dae7ab53c6ff4e47359137cdae643fdea9"
+    },
+    {
+      "path": "Contents/Resources/nb-NO.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9470,
+      "sha256": "ce07905ab332ec5c1e4b124b22ee3b4bed0239fc0bddd340c9d2f2cef3d6d766"
+    },
+    {
+      "path": "Contents/Resources/nl-NL.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19554,
+      "sha256": "57c9fdcf7bca1e4fd83d12dfbd8f021ec0ccc4362ed52ca0add1902e6330e941"
+    },
+    {
+      "path": "Contents/Resources/nl-NL.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 21424,
+      "sha256": "4dd07fc87ba75055e915147a5bd26f400d17111878dc935bc50b6cc0143ca76f"
+    },
+    {
+      "path": "Contents/Resources/nl-NL.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 28048,
+      "sha256": "0d01276f30f5e179daf56e3d7fcc539055353410331b58caf04602544a0e5607"
+    },
+    {
+      "path": "Contents/Resources/nl-NL.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10312,
+      "sha256": "a361675d06463fcc017fe4bfcf5b3d885b0275afddc89318162df627e72acd80"
+    },
+    {
+      "path": "Contents/Resources/nn-NO.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 20468,
+      "sha256": "c137dea292fbdd9feeaf65792e141f8c7a40b07a69c6fbcda7c123f08929f9c7"
+    },
+    {
+      "path": "Contents/Resources/nn-NO.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 22464,
+      "sha256": "ea56f61027b3c106eca877b26292f4edc306be35ec5c0858fb56a55849606918"
+    },
+    {
+      "path": "Contents/Resources/nn-NO.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 68272,
+      "sha256": "70c8ed2b5590e1581b4ebf28ea66f2d2f53e664c42c3d3594a210163013b4811"
+    },
+    {
+      "path": "Contents/Resources/nn-NO.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9588,
+      "sha256": "07c044b04bab83214f6ac8e5a13fdf585448855f9684266d84d5e8a360af36a7"
+    },
+    {
+      "path": "Contents/Resources/pl-PL.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 20900,
+      "sha256": "619e0e5fa575730498ce88fd4d06543a6f0298edffefc179782c0a836e8e9ef3"
+    },
+    {
+      "path": "Contents/Resources/pl-PL.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 23934,
+      "sha256": "6afeb119105809508d8575f9354579cfdaff2788e75ce4e9ba25c888853f9ea1"
+    },
+    {
+      "path": "Contents/Resources/pl-PL.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 72646,
+      "sha256": "1aaf44069e48f8e056bbf680760c5145334a6c263a284842eb60d8b7b02aec2f"
+    },
+    {
+      "path": "Contents/Resources/pl-PL.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9732,
+      "sha256": "38fd511aebe1de7d1c57fd467d717dc441e2c29104b63d955ed3b6c34e7c155f"
+    },
+    {
+      "path": "Contents/Resources/pt-BR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 21754,
+      "sha256": "3d275bf80795ce673543b288b1db78e3704d48c8881b49f3e97317a72ae771ef"
+    },
+    {
+      "path": "Contents/Resources/pt-BR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 23122,
+      "sha256": "c333ffdc240413ef745b15bcedd977643ba0105a6cdbfc116e6a6b0352404637"
+    },
+    {
+      "path": "Contents/Resources/pt-BR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 68110,
+      "sha256": "ba3c1650a00da76f52ecd57bbbafc3edacf2efb9ee7320ee0a4fe7eafca423b8"
+    },
+    {
+      "path": "Contents/Resources/pt-BR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10170,
+      "sha256": "5691abac480bfdd2af107e16d1827c0094e32b0895284caf1d2644d2b793031f"
+    },
+    {
+      "path": "Contents/Resources/pt-PT.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 11272,
+      "sha256": "e50ea7b9002d4df8ebf7c10faef8579719e940a1bc6896526d11d6b1a71e5ff3"
+    },
+    {
+      "path": "Contents/Resources/pt-PT.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 15770,
+      "sha256": "f6ce60ead62fdb6148f862a175ad66ba95522c3a7802112ff5ea698fa87792e9"
+    },
+    {
+      "path": "Contents/Resources/pt-PT.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 24818,
+      "sha256": "c4f8ab2b47136ac5d07506e62543432279d2a2d5d5f385f7b8017b07d0409059"
+    },
+    {
+      "path": "Contents/Resources/pt-PT.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/ro-RO.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 17936,
+      "sha256": "69e7fc810bda4058c5066a0f1262de8296d44961281d8aacedf59afe93ed515f"
+    },
+    {
+      "path": "Contents/Resources/ro-RO.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 20586,
+      "sha256": "46138828be73a131b8325ac42421e24996daf8bd2ab469a65be4f4132855688f"
+    },
+    {
+      "path": "Contents/Resources/ro-RO.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 59348,
+      "sha256": "0cfb3f18bf9278c2c8e0cb94168826fb21c2b1831bb8c68cf4295e12437f2bb6"
+    },
+    {
+      "path": "Contents/Resources/ro-RO.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/ru-RU.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19786,
+      "sha256": "dad513ab3b437a4a97d189c214d957b3589193e92567232f8eed10f56bfa4510"
+    },
+    {
+      "path": "Contents/Resources/ru-RU.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 21886,
+      "sha256": "ef0c53a9890c27548a17752e834178030483b081df077e69461079768ba0a4e3"
+    },
+    {
+      "path": "Contents/Resources/ru-RU.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 61176,
+      "sha256": "66863d5cf853c658e549397ccc766c3b8b105efc2370a9667c0711318f87869a"
+    },
+    {
+      "path": "Contents/Resources/ru-RU.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10618,
+      "sha256": "d6b8abd573ccb7fd7059176fc508e0482e5b9985c0fda558f9a52058f740a17d"
+    },
+    {
+      "path": "Contents/Resources/sk-SK.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 16158,
+      "sha256": "4760098d1cbd8b961c18ab3e9a18182875b73a8d567c41e7e94ff992c41618dd"
+    },
+    {
+      "path": "Contents/Resources/sk-SK.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 18156,
+      "sha256": "573baa782713d6467d7e2462d30e954e025c10665f0a487f212b9a8d248444aa"
+    },
+    {
+      "path": "Contents/Resources/sk-SK.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 35298,
+      "sha256": "e27114648f82a62bba8f7d918fde2bef4bbcd7d4a7eccc4c1d64351c33d8f751"
+    },
+    {
+      "path": "Contents/Resources/sk-SK.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/sl-SI.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 20678,
+      "sha256": "fb6230ab1b7f789d3791a53e02f2d3bfb44a84d8b4674d400e40c0c89b5d7b76"
+    },
+    {
+      "path": "Contents/Resources/sl-SI.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 23498,
+      "sha256": "2befcc2caf643de6b74a51743381653dbcb3b2b120c26720827c7e56f05cde7e"
+    },
+    {
+      "path": "Contents/Resources/sl-SI.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 70010,
+      "sha256": "da4cd7fe79845c221b7a9b3acd6895885850f80f601b542f893142a675e3e90e"
+    },
+    {
+      "path": "Contents/Resources/sl-SI.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9788,
+      "sha256": "1c49102ee3e4dede6bb4f2fdb12c75d91609f75ea476d005d5c7d4dd23c40bf2"
+    },
+    {
+      "path": "Contents/Resources/sv-SE.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 15292,
+      "sha256": "c4025d29a9bfd4ef35e859fed9df4140e1c24b6ef26a4e91c0fd8a469a0da94d"
+    },
+    {
+      "path": "Contents/Resources/sv-SE.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 18794,
+      "sha256": "8fbc31d4ded865edcfe2e5ec89d31ba647f3adda2db401494fcf43edddfc04f3"
+    },
+    {
+      "path": "Contents/Resources/sv-SE.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 41390,
+      "sha256": "f339e1bc5d452a7066fb9437baa29d4a02d004e15ae2e0b4a779a317353516f6"
+    },
+    {
+      "path": "Contents/Resources/sv-SE.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8432,
+      "sha256": "5d6cfe926d634de6187bfa15ad7b0a9e257cba6aca017e8482b151b266a373c5"
+    },
+    {
+      "path": "Contents/Resources/th-TH.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 19666,
+      "sha256": "35eb62d427451de161130f07a7b910432ce85d5b852c80d0365b9c524a833229"
+    },
+    {
+      "path": "Contents/Resources/th-TH.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 21518,
+      "sha256": "c3236a0b83b37ccae1cbef2660e95a6ae9fa7bbd83b9bb1b5fb879f15965cc98"
+    },
+    {
+      "path": "Contents/Resources/th-TH.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 61282,
+      "sha256": "5443224554c1a8109ac15283d7b1e01874bd7327f9f92bcf1b982814d998afb6"
+    },
+    {
+      "path": "Contents/Resources/th-TH.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 9278,
+      "sha256": "711f1222a44aa1e2372f4bcc8143958ad0f4ccdcaf170400e28fbba9e0016237"
+    },
+    {
+      "path": "Contents/Resources/tr-TR.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 16838,
+      "sha256": "aafb563cfc04cc89e7fc7e948cb83972648c88e61a0b02cb08b6c9b7a4852732"
+    },
+    {
+      "path": "Contents/Resources/tr-TR.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 19518,
+      "sha256": "350e33190fcdd367aecafe7d39fed9743f72d2823a1493440870ef2a18be1890"
+    },
+    {
+      "path": "Contents/Resources/tr-TR.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 47058,
+      "sha256": "639509187ecdf5e1f909658b1b58390f934c87186fd36f7c56d51f3ee5472bd6"
+    },
+    {
+      "path": "Contents/Resources/tr-TR.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8716,
+      "sha256": "c35f02b400700641d66d39c22f4004ae1048d8aca91846fad504e1d62d8ed245"
+    },
+    {
+      "path": "Contents/Resources/uk-UA.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 16426,
+      "sha256": "8900c71bba740a395dad4b540bad428575257699e7f0da3eefe9cff1bb919c08"
+    },
+    {
+      "path": "Contents/Resources/uk-UA.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 19540,
+      "sha256": "c184668b35cfd812c74cf04a29b0b4223cac72fa02c5685b68273911583b06ba"
+    },
+    {
+      "path": "Contents/Resources/uk-UA.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 41428,
+      "sha256": "9509a009ea7500969fbcec113c4a9984eab32f4525802e3ae6cb0476614d79a4"
+    },
+    {
+      "path": "Contents/Resources/uk-UA.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 8290,
+      "sha256": "7e888ed2ca6d0e12be40171edec84ca41f4b807136ab455c345fd0f1735b448d"
+    },
+    {
+      "path": "Contents/Resources/vi-VN.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 21040,
+      "sha256": "6f0db5c0983baecdf00dd73c8e72a3934e77aab1297f45f2ef0cf2ed27b97474"
+    },
+    {
+      "path": "Contents/Resources/vi-VN.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 22324,
+      "sha256": "ac152885291f4427ade808f6bce583fc453a05a63ea3c77ce0bdeb11f1259151"
+    },
+    {
+      "path": "Contents/Resources/vi-VN.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 64184,
+      "sha256": "888824e2a1a7e596df64891dd670b51c2ac3d49f3021983154ca3bde5637f7d9"
+    },
+    {
+      "path": "Contents/Resources/vi-VN.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 10200,
+      "sha256": "a1ee330abaf8c22ae2710c0a140bacb4baa892e84a92f122335981ba6a6919a2"
+    },
+    {
+      "path": "Contents/Resources/zh-Hans.lproj/Credits.rtf",
+      "kind": "file",
+      "size_bytes": 721,
+      "sha256": "581fe42ed9d3b12b1b162772a83c8fd3e9674bccb9160ee80d24f9a680dd0f2b"
+    },
+    {
+      "path": "Contents/Resources/zh-Hans.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 15046,
+      "sha256": "14eeaf9867e3db22cad613a97f3a30735460334428a8352d9da3d24bbc185725"
+    },
+    {
+      "path": "Contents/Resources/zh-Hans.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 17168,
+      "sha256": "39921255234d48fee2d27225c7a3f950aff4823e4e5968f470181e5d2ddea595"
+    },
+    {
+      "path": "Contents/Resources/zh-Hans.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 51328,
+      "sha256": "591df4dab4ab6b7db22202c0131a2d4c3897f614062caded73e29aaa23517611"
+    },
+    {
+      "path": "Contents/Resources/zh-Hans.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 7690,
+      "sha256": "432055f0ad7728e9fece7d5312bf5f3f507e148e9189c796b5648656d2df8681"
+    },
+    {
+      "path": "Contents/Resources/zh-Hant.lproj/Front.strings",
+      "kind": "file",
+      "size_bytes": 15446,
+      "sha256": "add77bb2d4c85705ea3d3f49770af03205f494ca434cb097807e014037c41b7f"
+    },
+    {
+      "path": "Contents/Resources/zh-Hant.lproj/Menu.strings",
+      "kind": "file",
+      "size_bytes": 17122,
+      "sha256": "fe17b36d2f02e8a6ef5b1ea3e2d791bfae6f50ee0629cdcab1d9c74044f8fb23"
+    },
+    {
+      "path": "Contents/Resources/zh-Hant.lproj/Panel.strings",
+      "kind": "file",
+      "size_bytes": 50578,
+      "sha256": "4df0a6e9f546b803ececd3c34c702498e8e7945c3b59772bfba783d379aa21c5"
+    },
+    {
+      "path": "Contents/Resources/zh-Hant.lproj/Welcome.strings",
+      "kind": "file",
+      "size_bytes": 7104,
+      "sha256": "4d1107189db147d30af8d12d9bad98bc032c9c880f8fec2804783a2c93a015a9"
+    },
+    {
+      "path": "Contents/_CodeSignature/CodeResources",
+      "kind": "file",
+      "size_bytes": 180197,
+      "sha256": "6044e492595981b96144450503991cd356dc60e8287b67c49a446f26565ca5ec"
+    }
+  ],
+  "coverage": "All regular files and symlinks under the app; symlinks are recorded without traversal."
+}

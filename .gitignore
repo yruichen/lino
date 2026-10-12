@@ -1,0 +1,14 @@
+.local/
+node_modules/
+.DS_Store
+*.log
+*.zip
+*.app/
+*.dmg
+*.hop
+*.hopdb
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
