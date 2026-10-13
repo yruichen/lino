@@ -8,11 +8,11 @@
 
 macOS 原生外壳、Rust 共享核心的开源 Markdown 编辑器。写一篇笔记，讲清一个想法，让代码、公式和图表与文字放在同一份文档里。
 
-[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases)
+[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.2)
 [![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**构建当前版本**](#从源码构建) · [发行版本](https://github.com/yruichen/lino/releases) · [English](README.md)
+[**下载 macOS 版本**](https://github.com/yruichen/lino/releases/tag/v0.0.2) · [从源码构建](#从源码构建) · [English](README.md)
 
 </div>
 
@@ -46,9 +46,11 @@ macOS 原生外壳、Rust 共享核心的开源 Markdown 编辑器。写一篇�
 
 ## 获取 Lino
 
-体验当前 v0.0.2 功能，请按下方步骤从源码构建。[已发布下载包](https://github.com/yruichen/lino/releases)目前仍是较早的 **v0.0.1 Beta**，应用名为 **OpenTypora.app**，早于本页展示的功能与截图。
+1. [下载 Lino v0.0.2](https://github.com/yruichen/lino/releases/download/v0.0.2/Lino-v0.0.2-macos-arm64.zip)，需要 **Apple Silicon 芯片与 macOS 14 或更新版本**。
+2. 解压，将 **Lino.app** 移到**应用程序**目录。
+3. 打开一个 Markdown 文件，开始写作。
 
-下载应用包后，解压并移到**应用程序**目录。当前支持 **Apple Silicon 芯片与 macOS 14 或更新版本**。
+校验值与发行说明见 [v0.0.2 发布页](https://github.com/yruichen/lino/releases/tag/v0.0.2)。Lino 原名 Open Typora，已有恢复数据仍保留原来的存放位置。
 
 当前 Beta 采用临时签名，**尚未经过 Apple 公证**；macOS 可能要求明确的安全许可才能打开。
 
