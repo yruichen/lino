@@ -8,11 +8,11 @@
 
 An open-source Markdown editor with a native Mac shell and a shared Rust core. Write a note, explain an idea, or bring code, equations and diagrams into the same document.
 
-[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases)
+[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.2)
 [![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**Build the current version**](#build-it-yourself) · [Releases](https://github.com/yruichen/lino/releases) · [简体中文](README.zh-CN.md)
+[**Download for macOS**](https://github.com/yruichen/lino/releases/tag/v0.0.2) · [Build from source](#build-it-yourself) · [简体中文](README.zh-CN.md)
 
 </div>
 
@@ -46,9 +46,11 @@ The interface is available in **English and Simplified Chinese**. macOS PDF and 
 
 ## Get Lino
 
-Build from source below for the current v0.0.2 features. [Published downloads](https://github.com/yruichen/lino/releases) currently contain the earlier **v0.0.1 Beta**, named **OpenTypora.app**, which predates the features and screenshots on this page.
+1. [Download Lino v0.0.2](https://github.com/yruichen/lino/releases/download/v0.0.2/Lino-v0.0.2-macos-arm64.zip) for **Apple Silicon and macOS 14 or later**.
+2. Unzip the archive and move **Lino.app** to **Applications**.
+3. Open a Markdown file and start writing.
 
-For a downloaded build, unzip the archive and move the app to **Applications**. Lino currently targets **Apple Silicon and macOS 14 or later**.
+Checksums and release notes are on the [v0.0.2 release page](https://github.com/yruichen/lino/releases/tag/v0.0.2). Lino was previously named Open Typora; existing recovery data keeps its original location.
 
 The Beta is ad-hoc signed and **not notarized**; macOS may require an explicit security approval before opening it.
 
