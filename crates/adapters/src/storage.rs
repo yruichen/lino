@@ -212,6 +212,9 @@ impl StoragePort for FileStorage {
         if self.inspect(request.target)? != request.expected {
             return Err(StorageError::ChangedExternally);
         }
+        // Release our destination handle before Windows' MoveFileEx replacement;
+        // metadata preservation and the final conflict check are complete now.
+        drop(original);
         let persisted = if request.expected.is_none() {
             temp.persist_noclobber(&path).map_err(|error| {
                 if error.error.kind() == io::ErrorKind::AlreadyExists {

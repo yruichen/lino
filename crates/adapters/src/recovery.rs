@@ -262,14 +262,12 @@ impl RecoveryPort for FileRecovery {
                     .prefix("draft-")
                     .suffix(".recovery")
                     .tempfile_in(&self.root)
-                    .map_err(io)?;
-                let key = reserved
-                    .path()
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy()
-                    .into_owned();
-                temp.persist(reserved.path()).map_err(|e| io(e.error))?;
+                    .map_err(io)?
+                    .into_temp_path();
+                // Close the destination handle before replacement on Windows;
+                // TempPath still cleans up the reservation if persistence fails.
+                let key = reserved.file_name().unwrap().to_string_lossy().into_owned();
+                temp.persist(&reserved).map_err(|e| io(e.error))?;
                 // Keep the destination path; dropping TempPath would delete the new record.
                 reserved.keep().map_err(|e| io(e.error))?;
                 key
