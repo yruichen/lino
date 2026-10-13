@@ -1,14 +1,48 @@
+# Local plans, logs, evidence, and generated files
 .local/
-node_modules/
-.DS_Store
 *.log
-*.zip
+/docs/
+/contracts/
+/research/
+/data/
+
+# Publish the product overview; keep development documentation local.
+README.md
+README.zh-CN.md
+!/README.md
+!/README.zh-CN.md
+/CONTRIBUTING.md
+/index.html
+/.nojekyll
+
+# Local agent instructions and state
+AGENTS.md
+CLAUDE.md
+CODEX.md
+GEMINI.md
+.agents/
+.codex/
+.claude/
+.gemini/
+
+# Dependencies and build outputs
+node_modules/
+/target/
+dist/
+.build/
+DerivedData/
 *.app/
 *.dmg
+*.zip
+*.xcuserstate
+xcuserdata/
+
+# Local analysis and system files
 *.hop
 *.hopdb
 __pycache__/
 *.pyc
+.DS_Store
 .env
 .env.*
 !.env.example

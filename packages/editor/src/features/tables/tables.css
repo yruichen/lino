@@ -1,0 +1,10 @@
+.ot-table-tools { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; font: 12px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; }
+.ot-table-tools button, .ot-table-tools select, .ot-table-insert button { border: 1px solid var(--ot-border); border-radius: 5px; background: var(--ot-button); color: inherit; padding: 4px 9px; font: inherit; }
+.ot-table-tools button:disabled, .ot-table-tools select:disabled, .ot-table-insert :disabled { opacity: .45; }
+.ot-table-tools output { color: var(--ot-error); }
+.ot-table-insert { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; padding: 12px 18px; background: var(--ot-panel); font: 12px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; }
+.ot-table-insert label { display: flex; flex-direction: column; gap: 3px; }
+.ot-table-insert label::before { content: attr(data-label); }
+.ot-table-insert input { box-sizing: border-box; width: 80px; border: 1px solid var(--ot-border); border-radius: 5px; padding: 5px 8px; font: inherit; color: inherit; background: var(--ot-input); }
+.ot-table-insert output { flex-basis: 100%; color: var(--ot-error); }
+.ot-table-insert :focus-visible, .ot-table-tools :focus-visible { outline: 2px solid var(--ot-focus); outline-offset: 1px; }

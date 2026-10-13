@@ -1,0 +1,123 @@
+{
+  "rust": {
+    "open-typora-document": {
+      "path": "crates/document",
+      "allow": [],
+      "platform_dependencies": false,
+      "forbid": [
+        "tokio",
+        "async-std",
+        "smol",
+        "reqwest",
+        "sqlx",
+        "rusqlite",
+        "notify",
+        "serde",
+        "serde_json"
+      ]
+    },
+    "open-typora-markdown": {
+      "path": "crates/markdown",
+      "allow": [
+        "open-typora-document"
+      ],
+      "platform_dependencies": false,
+      "forbid": [
+        "tokio",
+        "async-std",
+        "smol",
+        "reqwest",
+        "sqlx",
+        "rusqlite",
+        "notify"
+      ]
+    },
+    "open-typora-application": {
+      "path": "crates/application",
+      "allow": [
+        "open-typora-document",
+        "open-typora-markdown"
+      ],
+      "platform_dependencies": false,
+      "forbid": [
+        "tokio",
+        "async-std",
+        "smol",
+        "reqwest",
+        "sqlx",
+        "rusqlite",
+        "notify",
+        "serde",
+        "serde_json"
+      ]
+    },
+    "open-typora-adapters": {
+      "path": "crates/adapters",
+      "allow": [
+        "open-typora-document",
+        "open-typora-application"
+      ],
+      "platform_dependencies": true
+    },
+    "open-typora-protocol": {
+      "path": "crates/protocol",
+      "allow": [
+        "open-typora-document"
+      ],
+      "platform_dependencies": false,
+      "forbid": [
+        "tokio",
+        "async-std",
+        "smol",
+        "reqwest",
+        "sqlx",
+        "rusqlite",
+        "notify"
+      ]
+    },
+    "open-typora-runtime": {
+      "path": "crates/runtime",
+      "allow": [
+        "open-typora-document",
+        "open-typora-application",
+        "open-typora-adapters",
+        "open-typora-protocol"
+      ],
+      "platform_dependencies": false
+    },
+    "open-typora-ffi": {
+      "path": "crates/ffi",
+      "allow": [
+        "open-typora-runtime",
+        "open-typora-protocol"
+      ],
+      "platform_dependencies": false
+    }
+  },
+  "frontend": {
+    "@open-typora/editor": {
+      "path": "packages/editor",
+      "allow": [
+        "@open-typora/protocol"
+      ]
+    },
+    "@open-typora/protocol": {
+      "path": "packages/protocol",
+      "allow": []
+    }
+  },
+  "platform_packages": [
+    "tauri",
+    "wry",
+    "gtk",
+    "gtk4",
+    "webkit2gtk",
+    "webkit6",
+    "windows",
+    "windows-sys",
+    "objc2",
+    "objc2-app-kit",
+    "objc2-web-kit",
+    "cocoa"
+  ]
+}

@@ -1,0 +1,6 @@
+.ot-goto-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px; font: 13px -apple-system, BlinkMacSystemFont, sans-serif; }
+.ot-goto-line label { display: flex; align-items: center; gap: 8px; }
+.ot-goto-line input { width: 6em; }
+.ot-goto-line input[aria-invalid="true"] { outline: 1px solid var(--ot-error); }
+.ot-goto-line output { flex-basis: 100%; color: var(--ot-error); }
+.ot-goto-line output:empty { display: none; }

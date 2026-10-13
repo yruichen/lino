@@ -1,0 +1,13 @@
+{
+  "name": "@open-typora/protocol",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Generated Rust document protocol, request client and platform transports",
+  "exports": {
+    "./editor-host": "./src/client/editor-host.ts",
+    "./webkit": "./src/transports/webkit.ts",
+    "./documents": "./src/client/documents.ts",
+    "./generated/*": "./src/generated/*.ts"
+  }
+}

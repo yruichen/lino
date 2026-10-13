@@ -1,17 +1,27 @@
 {
   "name": "open-typora",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
-  "description": "An evidence-backed map of Typora's editor and macOS native bridges.",
+  "description": "A macOS-first Markdown editor with a native shell, shared editor, and Rust services.",
   "license": "MIT",
-  "engines": { "node": ">=24.11.0" },
+  "engines": {
+    "node": ">=24.11.0"
+  },
   "scripts": {
-    "build": "node tools/build-report.cjs",
-    "check": "node tools/check.cjs",
-    "analyze:editor": "node tools/analyze-editor.cjs"
+    "build": "npm run build --workspace @open-typora/editor",
+    "check": "npm run check:architecture && npm run editor:check",
+    "check:architecture": "node tools/check-architecture.cjs",
+    "editor:check": "npm run typecheck --workspace @open-typora/editor && node --test tests/editor/*.test.mts",
+    "app:build": "node tools/macos/build.cjs",
+    "app:verify": "node tools/macos/verify.cjs",
+    "protocol:generate": "node tools/protocol/types.cjs",
+    "protocol:check": "node tools/protocol/types.cjs --check"
   },
   "devDependencies": {
-    "@babel/parser": "8.0.4",
-    "markdown-it": "14.1.0"
-  }
+    "@types/node": "26.6.5"
+  },
+  "workspaces": [
+    "packages/editor",
+    "packages/protocol"
+  ]
 }
