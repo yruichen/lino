@@ -1,12 +1,10 @@
 use crate::DocumentRuntime;
-use open_typora_application::{
+use lino_application::{
     documents::{self, DocumentError, DocumentInfo},
     ports::{DiskVersion, StorageError},
 };
-use open_typora_document::{
-    EditorEpoch, FileRef, ModelError, SessionId, TextChange, MAX_DOCUMENT_BYTES,
-};
-use open_typora_protocol::{
+use lino_document::{EditorEpoch, FileRef, ModelError, SessionId, TextChange, MAX_DOCUMENT_BYTES};
+use lino_protocol::{
     self as wire, ErrorCode, Request, RequestEnvelope, Response, ResponseEnvelope, WireError,
     CAPABILITIES, PROTOCOL_VERSION, RESOURCE_VERSION,
 };
@@ -109,8 +107,9 @@ pub(crate) fn close_intent(value: wire::CloseIntent) -> Result<documents::CloseI
         discard: value.discard,
     })
 }
-fn status(info: DocumentInfo) -> wire::DocumentStatus {
+pub(crate) fn status(info: DocumentInfo) -> wire::DocumentStatus {
     wire::DocumentStatus {
+        read_only: info.read_only.then_some(true),
         session_id: info.id.0.to_string(),
         epoch: info.epoch.0.to_string(),
         revision: info.snapshot.revision().value().to_string(),
@@ -234,8 +233,13 @@ impl DocumentRuntime {
                 revision,
                 target,
             } => {
+                let _gate = self
+                    .file_gate
+                    .lock()
+                    .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
                 let target = target
                     .map(|value| {
+                        self.validate_target(&value)?;
                         Ok(documents::SaveTarget {
                             file: FileRef(number(&value.file_ref)?),
                             expected: value.expected_version.map(DiskVersion),

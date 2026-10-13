@@ -1,8 +1,8 @@
 # Attribution and licensing
 
-Copyright (c) 2026 open-typora contributors.
+Copyright (c) 2026 lino contributors.
 
-open-typora is an independent Markdown editor implementation. It is not affiliated with or endorsed by Typora or its developers. Typora and the names of third-party components belong to their respective owners.
+Lino (formerly open-typora) is an independent editor implementation. It is not affiliated with or endorsed by Typora or its developers. Typora and the names of third-party components belong to their respective owners.
 
 The [MIT license](LICENSE) applies to original code and accompanying materials authored for this project. It does not grant rights to Typora, its binaries, bundled code, icons, themes or other proprietary materials. Those materials are not part of this source distribution.
 

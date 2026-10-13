@@ -11,16 +11,16 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 license = "MIT"
 publish = false
 
 [workspace.dependencies]
-open-typora-document = { path = "crates/document" }
-open-typora-markdown = { path = "crates/markdown" }
-open-typora-application = { path = "crates/application" }
-open-typora-adapters = { path = "crates/adapters" }
-open-typora-protocol = { path = "crates/protocol" }
-open-typora-runtime = { path = "crates/runtime" }
-open-typora-ffi = { path = "crates/ffi" }
+lino-document = { path = "crates/document" }
+lino-markdown = { path = "crates/markdown" }
+lino-application = { path = "crates/application" }
+lino-adapters = { path = "crates/adapters" }
+lino-protocol = { path = "crates/protocol" }
+lino-runtime = { path = "crates/runtime" }
+lino-ffi = { path = "crates/ffi" }

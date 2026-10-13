@@ -20,16 +20,24 @@ function mapped(state: EditorState, changes: ChangeSpec[]): TransactionSpec {
 }
 function headings(state: EditorState, level: number): TransactionSpec {
   const lines = selectedLines(state);
+  const setext: { from: number; to: number; insert: string; first: number; last: number }[] = [];
   selectionTree(state).iterate({ from: lines[0].from, to: lines.at(-1)!.to, enter(node) {
-    if (node.name.startsWith('SetextHeading')) throw localizeError(new Error(), 'format.setext');
+    if (!node.name.startsWith('SetextHeading')) return;
+    const marker = node.node.getChild('HeaderMark'); if (!marker) return;
+    const first = state.doc.lineAt(node.from), underline = state.doc.lineAt(marker.from);
+    const body = Array.from({ length: underline.number - first.number }, (_, index) => {
+      const line = state.doc.line(first.number + index); return line.text.slice(prefix(line.text).content).trim();
+    }).join(' ');
+    setext.push({ from: first.from, to: underline.to, insert: first.text.slice(0, prefix(first.text).content) + '#'.repeat(level) + ' ' + body, first: first.number, last: underline.number });
+    return false;
   } });
-  const entries = lines.filter(line => line.text.trim() || lines.length === 1).map(line => {
+  const entries = lines.filter(line => !setext.some(node => line.number >= node.first && line.number <= node.last) && (line.text.trim() || lines.length === 1)).map(line => {
     const start = prefix(line.text).content;
     const heading = /^(#{1,6})(?:[ \t]+|$)/.exec(line.text.slice(start));
     return { line, start, heading };
   });
-  const remove = entries.every(entry => entry.heading?.[1].length === level);
-  const changes: ChangeSpec[] = [];
+  const remove = !setext.length && entries.every(entry => entry.heading?.[1].length === level);
+  const changes: ChangeSpec[] = setext.map(({ from, to, insert }) => ({ from, to, insert }));
   for (const { line, start, heading } of entries) {
     changes.push({ from: line.from + start, to: line.from + start + (heading?.[0].length ?? 0), insert: remove ? '' : '#'.repeat(level) + ' ' });
     const closing = remove ? /[ \t]+#+[ \t]*$/.exec(line.text.slice(start + (heading?.[0].length ?? 0))) : null;
@@ -39,16 +47,34 @@ function headings(state: EditorState, level: number): TransactionSpec {
 }
 function lists(state: EditorState, command: BlockFormat): TransactionSpec {
   const lines = selectedLines(state), selectedNumbers = new Set(lines.map(line => line.number));
+  const items = new Map<number, number>();
   selectionTree(state).iterate({ from: lines[0].from, to: lines.at(-1)!.to, enter(node) {
-    if (node.name === 'ListItem' && selectedNumbers.has(state.doc.lineAt(node.from).number) && state.doc.lineAt(node.from).number !== state.doc.lineAt(node.to).number) {
-      throw localizeError(new Error(), 'format.nestedList');
+    const first = state.doc.lineAt(node.from).number;
+    if (node.name === 'ListItem' && selectedNumbers.has(first)) {
+      items.set(first, state.doc.lineAt(node.to).number); return false;
     }
   } });
-  const entries = lines.filter(line => line.text.trim() || lines.length === 1).map(line => ({ line, ...prefix(line.text) }));
+  const entries = lines.filter(line => !Array.from(items).some(([first, last]) => line.number > first && line.number <= last) && (line.text.trim() || lines.length === 1)).map(line => ({ line, ...prefix(line.text) }));
   const matches = (entry: typeof entries[number]) => command === 'task-list' ? !!entry.list?.[3] : command === 'ordered-list' ? !!entry.list?.[2] && !entry.list?.[3] : !!entry.list?.[1] && !entry.list?.[3];
   const remove = entries.every(matches);
-  return mapped(state, entries.map((entry, index) => ({ from: entry.line.from + entry.start, to: entry.line.from + entry.content,
-    insert: remove ? '' : command === 'task-list' ? '- ' + (entry.list?.[3] ?? '[ ] ') : command === 'ordered-list' ? `${index + 1}. ` : '- ' })));
+  const changes: ChangeSpec[] = [];
+  for (const [index, entry] of entries.entries()) {
+    const insert = remove ? '' : command === 'task-list' ? '- ' + (entry.list?.[3] ?? '[ ] ') : command === 'ordered-list' ? `${index + 1}. ` : '- ';
+    changes.push({ from: entry.line.from + entry.start, to: entry.line.from + entry.content, insert });
+    // List continuation indentation belongs to the list marker, not to task
+    // checkbox text. Shift the existing subtree by that marker-width delta.
+    const oldWidth = (entry.list?.[0].length ?? 0) - (entry.list?.[3]?.length ?? 0);
+    const newWidth = /^(?:[-+*]|\d+[.)])[ \t]+/.exec(insert)?.[0].length ?? 0;
+    const delta = newWidth - oldWidth, base = entry.start - entry.outer.length;
+    if (!delta) continue;
+    for (let number = entry.line.number + 1; number <= (items.get(entry.line.number) ?? entry.line.number); number++) {
+      const line = state.doc.line(number), child = prefix(line.text), indent = child.start - child.outer.length;
+      if (indent < base + oldWidth || !line.text.trim()) continue;
+      const from = line.from + child.outer.length + base;
+      changes.push(delta > 0 ? { from, insert: ' '.repeat(delta) } : { from, to: from + Math.min(-delta, indent - base) });
+    }
+  }
+  return mapped(state, changes);
 }
 function quote(state: EditorState): TransactionSpec {
   let lines = selectedLines(state), first = lines[0].from, last = lines.at(-1)!.to;

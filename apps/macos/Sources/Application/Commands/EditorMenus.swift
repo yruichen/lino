@@ -17,7 +17,7 @@ func installEditorMenus(target: AnyObject) {
     func command(_ parent: NSMenu, _ title: String, _ name: String, _ key: String = "", _ modifiers: NSEvent.ModifierFlags = .command) {
         action(parent, title, #selector(EditorApplication.editorCommand(_:)), key, modifiers).representedObject = name
     }
-    let application = section("Open Typora")
+    let application = section("Lino")
     application.addItem(withTitle: localized("menu.about"), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
     application.addItem(.separator())
     application.addItem(withTitle: localized("menu.hide"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
@@ -28,10 +28,26 @@ func installEditorMenus(target: AnyObject) {
     let file = section(localized("menu.file"))
     _ = action(file, localized("menu.new"), #selector(EditorApplication.newDocument), "n")
     _ = action(file, localized("menu.open"), #selector(EditorApplication.openDocument), "o")
+    _ = action(file, localized("workspace.openFolder"), #selector(EditorApplication.openFolder), "o", [.command, .shift])
+    let recent = NSMenu(title: localized("workspace.recentFiles"))
+    let recentItem = NSMenuItem(); recentItem.submenu = recent; file.addItem(recentItem)
+    if let app = target as? EditorApplication { app.recentMenu = recent; recent.delegate = app }
+    _ = action(file, localized("workspace.reopen"), #selector(EditorApplication.reopenClosed), "t", [.command, .shift])
+    _ = action(file, localized("workspace.quick"), #selector(EditorApplication.quickOpen), "p")
+    _ = action(file, localized("workspace.search"), #selector(EditorApplication.searchWorkspace), "f", [.command, .shift])
     file.addItem(.separator())
     _ = action(file, localized("menu.save"), #selector(EditorApplication.saveDocument), "s")
     _ = action(file, localized("menu.saveAs"), #selector(EditorApplication.saveDocumentAs), "s", [.command, .shift])
+    _ = action(file, localized("workspace.saveAll"), #selector(EditorApplication.saveAll), "s", [.command, .option])
     _ = action(file, localized("menu.autosave"), #selector(EditorApplication.toggleAutosave))
+    _ = action(file, localized("menu.reload"), #selector(EditorApplication.reloadDocument))
+    _ = action(file, localized("menu.readOnly"), #selector(EditorApplication.toggleReadOnly))
+    file.addItem(.separator())
+    _ = action(file, localized("export.html"), #selector(EditorApplication.exportHTML))
+    _ = action(file, localized("export.pdf"), #selector(EditorApplication.exportPDF))
+    _ = action(file, localized("export.pageSetup"), #selector(EditorApplication.pageSetup), "p", [.command, .shift])
+    _ = action(file, localized("export.print"), #selector(EditorApplication.printDocument), "p", [.command, .option])
+    _ = action(file, localized("export.cancel"), #selector(EditorApplication.cancelExport))
     file.addItem(.separator())
     _ = action(file, localized("menu.recovery"), #selector(EditorApplication.restoreDocument))
     _ = action(file, localized("menu.retry"), #selector(EditorApplication.retryPersistence))
@@ -58,7 +74,23 @@ func installEditorMenus(target: AnyObject) {
     command(view, localized("menu.visual"), "visual", "1")
     command(view, localized("menu.source"), "source", "2")
     command(view, localized("menu.toggleSource"), "toggle-source", "/")
+    command(view, localized("writing.outline"), "toggle-outline", "o", [.command, .option])
+    command(view, localized("writing.statistics"), "toggle-statistics")
+    command(view, localized("writing.focus"), "focus-mode")
+    command(view, localized("writing.typewriter"), "typewriter-mode")
+    command(view, localized("writing.zoomIn"), "zoom-in", "+")
+    command(view, localized("writing.zoomOut"), "zoom-out", "-")
+    command(view, localized("writing.zoomReset"), "zoom-reset", "0")
+    _ = action(view, localized("workspace.sidebar"), #selector(EditorApplication.toggleWorkspace))
+    _ = action(view, localized("workspace.cancelSearch"), #selector(EditorApplication.cancelWorkspaceSearch))
+    view.addItem(withTitle: localized("writing.fullscreen"), action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f").keyEquivalentModifierMask = [.command, .control]
     view.addItem(.separator())
     _ = action(view, localized("menu.reconnect"), #selector(EditorApplication.reconnectEditor))
+    let windows = section(localized("workspace.windows"))
+    windows.addItem(withTitle: localized("workspace.nextTab"), action: #selector(NSWindow.selectNextTab(_:)), keyEquivalent: "}").keyEquivalentModifierMask = [.command, .shift]
+    windows.addItem(withTitle: localized("workspace.previousTab"), action: #selector(NSWindow.selectPreviousTab(_:)), keyEquivalent: "{").keyEquivalentModifierMask = [.command, .shift]
+    windows.addItem(withTitle: localized("workspace.mergeWindows"), action: #selector(NSWindow.mergeAllWindows(_:)), keyEquivalent: "")
+    windows.addItem(withTitle: localized("workspace.tabBar"), action: #selector(NSWindow.toggleTabBar(_:)), keyEquivalent: "")
+    NSApp.windowsMenu = windows
     NSApp.mainMenu = menu
 }

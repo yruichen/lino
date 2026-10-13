@@ -1,15 +1,15 @@
 import { localizeError, t } from '../localization/index.ts';
 import { formatError, localizeFailure } from '../localization/errors.ts';
-import { DocumentClient, ProtocolError, TransportError } from '@open-typora/protocol/documents';
-import type { OpenedDocument } from '@open-typora/protocol/generated/OpenedDocument';
-import type { DocumentStatus } from '@open-typora/protocol/generated/DocumentStatus';
-import type { Request } from '@open-typora/protocol/generated/Request';
-import type { CloseIntent } from '@open-typora/protocol/generated/CloseIntent';
-import type { SaveTarget } from '@open-typora/protocol/generated/SaveTarget';
-import type { SaveTicket } from '@open-typora/protocol/generated/SaveTicket';
+import { DocumentClient, ProtocolError, TransportError } from '@lino/protocol/documents';
+import type { OpenedDocument } from '@lino/protocol/generated/OpenedDocument';
+import type { DocumentStatus } from '@lino/protocol/generated/DocumentStatus';
+import type { Request } from '@lino/protocol/generated/Request';
+import type { CloseIntent } from '@lino/protocol/generated/CloseIntent';
+import type { SaveTarget } from '@lino/protocol/generated/SaveTarget';
+import type { SaveTicket } from '@lino/protocol/generated/SaveTicket';
 import { sourceChanges } from './changes.ts';
 import { PersistenceDeferred, SessionPersistence } from './persistence.ts';
-interface Source { read(): string; composing(): boolean }
+interface Source { read(): string; composing(): boolean; copySaveImages?(ticket: SaveTicket, target: SaveTarget, raw: string): Promise<void> }
 interface Batch { operation: Extract<Request, {kind: 'apply_changes'}>; text: string }
 export class DocumentSession {
   status: DocumentStatus;
@@ -18,6 +18,7 @@ export class DocumentSession {
   private batch: Batch | undefined;
   private applying: Promise<void> | undefined;
   private ticket: SaveTicket | undefined;
+  private resourcesPrepared = false;
   private preparation: Extract<Request, {kind: 'prepare_save'}> | undefined;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private paused = false;
@@ -26,6 +27,7 @@ export class DocumentSession {
   private pending = false;
   private saving = false;
   private replacing = false;
+  private exportCapture = false;
   readonly persistence: SessionPersistence;
   private readonly client: DocumentClient;
   private readonly source: Source;
@@ -53,13 +55,14 @@ export class DocumentSession {
     catch (error) { throw localizeFailure(error); }
   }
   get isSaving(): boolean { return this.saving || this.status.saving; }
+  acceptReadOnly(status: DocumentStatus): void { this.merge(status); this.publish(); }
   changed(docChanged: boolean): void {
     if (this.disposed) return;
     this.pending ||= docChanged;
     this.persistence.changed(); this.schedule();
   }
   private schedule(): void {
-    if (this.timer || this.paused || this.replacing || this.blocked || this.disposed || this.source.composing() || !this.pending) return;
+    if (this.timer || this.paused || this.replacing || this.exportCapture || this.blocked || this.disposed || this.source.composing() || !this.pending) return;
     this.timer = setTimeout(() => {
       this.timer = undefined;
       void this.pump().catch(error => { if (!this.disposed) { this.blocked = true; this.report(formatError(error)); this.publish(); } });
@@ -124,6 +127,7 @@ export class DocumentSession {
     this.pending = false; this.publish();
   }
   async save(target: SaveTarget | null): Promise<void> {
+    if (this.exportCapture) throw localizeError(new Error(), 'document.saving');
     if (this.disposed) throw localizeError(new TransportError(), 'document.closed');
     if (this.saving) throw localizeError(new Error(), 'document.saving');
     if (target && this.preparation && target.file_ref !== (this.preparation.target?.file_ref ?? this.status.file_ref)) {
@@ -145,15 +149,26 @@ export class DocumentSession {
         // A later Save As must not silently replay a ticket for another file.
         this.ticket = prepared.ticket;
       }
+      if (!this.resourcesPrepared && this.preparation?.target && this.status.file_ref && this.source.copySaveImages) {
+        try { await this.source.copySaveImages(this.ticket, this.preparation.target, this.accepted); }
+        catch (error) {
+          // Resource copying never starts the document commit. Retire this ticket
+          // before accepting a new snapshot/target, while preserving copied files.
+          const aborted = await this.request({ kind: 'abort_save', session_id: this.status.session_id, epoch: this.status.epoch, ticket_id: this.ticket.ticket_id });
+          if (aborted.kind === 'aborted') { this.ticket = undefined; this.preparation = undefined; }
+          throw error;
+        }
+      }
+      this.resourcesPrepared = true;
       this.paused = false; this.schedule();
       const reply = await this.request({ kind: 'commit_save', session_id: this.status.session_id, epoch: this.status.epoch, ticket_id: this.ticket.ticket_id });
       if (this.disposed) throw localizeError(new TransportError(), 'document.closed');
       if (reply.kind !== 'saved' || reply.receipt.ticket_id !== this.ticket.ticket_id) throw localizeError(new TransportError(), 'document.saveMismatch');
-      this.merge(reply.status, true); this.ticket = undefined; this.preparation = undefined;
+      this.merge(reply.status, true); this.ticket = undefined; this.preparation = undefined; this.resourcesPrepared = false;
       this.persistence.saved();
       if (!reply.receipt.durable) this.report(t('document.saveNotDurable'));
     } catch (error) {
-      if (error instanceof ProtocolError && error.detail.code !== 'busy') { this.ticket = undefined; this.preparation = undefined; }
+      if (error instanceof ProtocolError && error.detail.code !== 'busy') { this.ticket = undefined; this.preparation = undefined; this.resourcesPrepared = false; }
       this.persistence.saveFailed(error);
       throw error;
     } finally { this.saving = false; this.status = {...this.status, saving: false}; this.paused = false; this.schedule(); this.persistence.changed(); }
@@ -164,6 +179,7 @@ export class DocumentSession {
     await this.flush(); await this.persistence.retry();
   }
   async suspend(): Promise<void> {
+    if (this.exportCapture) throw localizeError(new Error(), 'document.saving');
     this.replacing = true;
     if (this.timer) { clearTimeout(this.timer); this.timer = undefined; }
     await this.persistence.suspend();
@@ -171,7 +187,15 @@ export class DocumentSession {
     // uncertain one. A failed edit can still be explicitly discarded.
     if (this.applying) await this.applying.catch(() => {});
   }
-  resume(): void { this.replacing = false; this.persistence.resume(); this.schedule(); }
+  resume(): void { this.replacing = false; if (!this.exportCapture) this.persistence.resume(); this.schedule(); }
+  async captureExport(): Promise<void> {
+    if (this.replacing || this.exportCapture || this.disposed) throw localizeError(new Error(), 'document.saving');
+    this.exportCapture = true;
+    if (this.timer) { clearTimeout(this.timer); this.timer = undefined; }
+    await this.persistence.suspend();
+    if (this.applying) await this.applying;
+  }
+  endExportCapture(): void { this.exportCapture = false; if (!this.replacing) this.persistence.resume(); this.schedule(); }
   async closeIntent(discard: boolean): Promise<CloseIntent> {
     if (this.source.composing()) throw localizeError(new Error(), 'editor.finishComposition');
     if (discard) {

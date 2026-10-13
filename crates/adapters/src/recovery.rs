@@ -1,10 +1,10 @@
 //! Versioned, bounded recovery records: small JSON header + exact UTF-8 body.
 //! Atomic replacement keeps the preceding complete copy on a failed write.
-use open_typora_application::{
+use lino_application::{
     ports::StorageError,
     recovery::{RecoveredText, RecoveryEntry, RecoveryPort, RecoverySnapshot},
 };
-use open_typora_document::{TextFormat, MAX_DOCUMENT_BYTES};
+use lino_document::{TextFormat, MAX_DOCUMENT_BYTES};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File},
@@ -289,7 +289,7 @@ impl RecoveryPort for FileRecovery {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use open_typora_document::Snapshot;
+    use lino_document::Snapshot;
     fn draft(text: &str) -> RecoverySnapshot {
         RecoverySnapshot {
             snapshot: Snapshot::new(text.into()).unwrap(),

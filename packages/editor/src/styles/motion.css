@@ -1,0 +1,9 @@
+@media (prefers-reduced-motion: no-preference) {
+  .cm-panel.ot-search { animation: ot-reveal 160ms ease-out; }
+  .ot-contextual-controls { animation: ot-reveal 120ms ease-out; }
+  .ot-search-result[data-current=true] { animation: ot-arrival 180ms ease-out; }
+  .ot-preview-image img { transition: box-shadow 160ms ease-out; }
+  button { transition: background-color 120ms ease-out, border-color 120ms ease-out; }
+}
+@keyframes ot-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ot-arrival { from { opacity: .4; } to { opacity: 1; } }

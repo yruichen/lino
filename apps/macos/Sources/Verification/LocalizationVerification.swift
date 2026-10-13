@@ -31,7 +31,7 @@ func verifyLocalizationFlow(_ controller: EditorWindowController, settings: Sett
         && LanguagePreferences.resolve(.system, preferredLanguages: ["de-DE", "en-GB"]) == "en"
         && LanguagePreferences.resolve(.english, preferredLanguages: ["zh-CN"]) == "en")
 
-    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("open-typora-language-verify-\(UUID().uuidString)", isDirectory: true)
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("lino-language-verify-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: folder) }
     let filename = "中文名称.md"
@@ -56,7 +56,7 @@ func verifyLocalizationFlow(_ controller: EditorWindowController, settings: Sett
     try await select(.simplifiedChinese)
     let chinese = try await snapshot()
     try check("native-language-chinese-menus", NSApp.mainMenu?.items.contains { $0.submenu?.title == "文件" } == true
-        && controller.modeControl.label(forSegment: 1) == "源码")
+        && controller.searchControls.item.label == "查找")
     try check("native-language-chinese-web", chinese["locale"] as? String == "zh-Hans")
     try check("native-language-keeps-filename", controller.window?.title == filename && (chinese["document"] as? [String: Any])?["label"] as? String == filename)
     try check("native-language-switch-is-not-edit", try stableState(chinese) == beforeState)
@@ -88,7 +88,7 @@ func verifyLocalizationFlow(_ controller: EditorWindowController, settings: Sett
     if let reconnectError { throw reconnectError }
     try check("native-language-reconnect-ready", ready)
     let reconnected = try await snapshot()
-    let injected = try await controller.webView.callAsyncJavaScript("return window.__openTyporaLocale", arguments: [:], in: nil, contentWorld: .page)
+    let injected = try await controller.webView.callAsyncJavaScript("return window.__linoLocale", arguments: [:], in: nil, contentWorld: .page)
     try check("native-language-reconnect-retains-choice", reconnected["locale"] as? String == "zh-Hans" && injected as? String == "zh-Hans"
         && LanguagePreferences.shared.preference == .simplifiedChinese)
     try check("native-language-reconnect-retains-source", reconnected["text"] as? String == accepted["text"] as? String

@@ -1,5 +1,5 @@
-import { ProtocolError, TransportError } from '@open-typora/protocol/documents';
-import type { ErrorCode } from '@open-typora/protocol/generated/ErrorCode';
+import { ProtocolError, TransportError } from '@lino/protocol/documents';
+import type { ErrorCode } from '@lino/protocol/generated/ErrorCode';
 import { isLocalizedError, localizeError, localizeMessage, t } from './index.ts';
 
 const protocolMessages = {

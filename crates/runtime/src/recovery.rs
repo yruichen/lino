@@ -5,23 +5,24 @@ use crate::{
     dispatch::{close_intent, document_error, error, number, storage_error, to_opened},
     DocumentRuntime,
 };
-use open_typora_application::{
+use lino_application::{
     documents::{CloseIntent, DocumentInfo, Documents},
     recovery::{RecoveryPort, RecoverySnapshot},
 };
-use open_typora_document::{EditorEpoch, Revision, SessionId};
-use open_typora_protocol::{ErrorCode, OpenedDocument, RecoveryEntry, WireError};
+use lino_document::{EditorEpoch, Revision, SessionId};
+use lino_protocol::{ErrorCode, OpenedDocument, RecoveryEntry, WireError};
 use std::{collections::HashMap, path::Path, sync::MutexGuard};
 
 struct Draft {
     key: String,
     durable_revision: Option<Revision>,
     label: Option<String>,
-    format: open_typora_document::TextFormat,
+    format: lino_document::TextFormat,
 }
 #[derive(Default)]
 pub(crate) struct RecoveryState {
     store: Option<Box<dyn RecoveryPort>>,
+    configured_path: Option<std::path::PathBuf>,
     drafts: HashMap<SessionId, Draft>,
 }
 impl RecoveryState {
@@ -86,12 +87,16 @@ impl DocumentRuntime {
     }
     pub fn configure_recovery(&self, path: &Path) -> Result<(), WireError> {
         let mut recovery = self.recovery_lock()?;
+        if recovery.configured_path.as_deref() == Some(path) {
+            return Ok(());
+        }
         if recovery.store.is_some() {
             return Err(error(ErrorCode::Busy, "恢复存储已初始化。", false));
         }
         recovery.store = Some(Box::new(
-            open_typora_adapters::recovery::FileRecovery::open(path).map_err(storage_error)?,
+            lino_adapters::recovery::FileRecovery::open(path).map_err(storage_error)?,
         ));
+        recovery.configured_path = Some(path.to_path_buf());
         Ok(())
     }
     /// Injection point for deterministic storage failure/concurrency tests.
@@ -152,7 +157,7 @@ impl DocumentRuntime {
         action: impl FnOnce(
             &mut Documents,
             Option<CloseIntent>,
-        ) -> Result<T, open_typora_application::documents::DocumentError>,
+        ) -> Result<T, lino_application::documents::DocumentError>,
     ) -> Result<T, WireError> {
         let mut keep_copy = None;
         if let Some(intent) = &replace {
@@ -205,14 +210,14 @@ impl DocumentRuntime {
         action: impl FnOnce(
             &mut Documents,
             Option<CloseIntent>,
-        ) -> Result<T, open_typora_application::documents::DocumentError>,
+        ) -> Result<T, lino_application::documents::DocumentError>,
     ) -> Result<T, WireError> {
         self.transition_in(&mut *self.recovery_lock()?, replace, action)
     }
     pub fn restore_recovery(
         &self,
         key: &str,
-        replace: Option<open_typora_protocol::CloseIntent>,
+        replace: Option<lino_protocol::CloseIntent>,
     ) -> Result<OpenedDocument, WireError> {
         let replace = replace.map(close_intent).transpose()?;
         let previous = self.previous_file(&replace)?;
@@ -237,9 +242,13 @@ impl DocumentRuntime {
         self.release_unused(previous);
         Ok(to_opened(info))
     }
-    pub fn reattach_document(&self) -> Result<OpenedDocument, WireError> {
-        let _recovery = self.recovery_lock()?;
-        let (info, abandoned) = self.lock()?.reattach().map_err(document_error)?;
+    pub fn reattach_document(&self, session_id: &str) -> Result<OpenedDocument, WireError> {
+        let recovery = self.recovery_lock()?;
+        let (info, abandoned) = self
+            .lock()?
+            .reattach(SessionId(number(session_id)?))
+            .map_err(document_error)?;
+        drop(recovery);
         self.release_unused(abandoned);
         Ok(to_opened(info))
     }
@@ -268,6 +277,21 @@ impl DocumentRuntime {
             )
         })?;
         self.release_unused(file);
+        Ok(())
+    }
+}
+
+impl DocumentRuntime {
+    pub fn abandon_document(&self, session_id: &str) -> Result<(), WireError> {
+        let id = SessionId(number(session_id)?);
+        let mut recovery = self.recovery_lock()?;
+        let files = self.lock()?.abandon(id).map_err(document_error)?;
+        // Keep the on-disk draft, making it selectable on the next recovery.
+        recovery.drafts.remove(&id);
+        drop(recovery);
+        for file in files {
+            self.release_unused(Some(file));
+        }
         Ok(())
     }
 }

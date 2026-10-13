@@ -7,12 +7,14 @@ import { DocumentClient, TransportError } from '../../packages/protocol/src/clie
 import type { RequestEnvelope } from '../../packages/protocol/src/generated/RequestEnvelope.ts';
 import type { Response } from '../../packages/protocol/src/generated/Response.ts';
 import type { DocumentStatus } from '../../packages/protocol/src/generated/DocumentStatus.ts';
+import type { SaveTicket } from '../../packages/protocol/src/generated/SaveTicket.ts';
+import type { SaveTarget } from '../../packages/protocol/src/generated/SaveTarget.ts';
 import { DocumentSession } from '../../packages/editor/src/session/document.ts';
 import { sourceChanges } from '../../packages/editor/src/session/changes.ts';
 import { PersistenceDeferred } from '../../packages/editor/src/session/persistence.ts';
 
 const base: DocumentStatus = { session_id: '1', epoch: '1', revision: '0', saved_revision: null, file_ref: null, label: null, dirty: false, saving: false };
-function harness(timeout = 1000, status: Partial<DocumentStatus> = {}) {
+function harness(timeout = 1000, status: Partial<DocumentStatus> = {}, copySaveImages?: (ticket: SaveTicket, target: SaveTarget, raw: string) => Promise<void>) {
   let text = '', composing = false;
   const queue: RequestEnvelope[] = [];
   const reports: string[] = [];
@@ -22,7 +24,7 @@ function harness(timeout = 1000, status: Partial<DocumentStatus> = {}) {
     const waiter = waiters.shift(); if (waiter) waiter(request); else queue.push(request);
   }, timeout);
   const session = new DocumentSession(client, { protocol_version: 1, resource_version: '0.1.0', text: '', utf8_bom: false, status: {...base, ...status} },
-    { read: () => text, composing: () => composing }, () => {}, message => reports.push(message));
+    { read: () => text, composing: () => composing, copySaveImages }, () => {}, message => reports.push(message));
   return {
     client, session, queued: queue, reports,
     setText(value: string) { text = value; session.changed(true); },
@@ -49,6 +51,43 @@ test('UTF-8 range diff preserves Unicode, CRLF and exact bytes', () => {
     }
   }
   assert.throws(() => sourceChanges('', '\ud800'));
+});
+test('export capture pauses acceptance only, rejects overlapping lifecycle actions, and resumes pending input', async () => {
+  const h = harness();
+  try {
+    await h.session.captureExport(); h.setText('typed during capture');
+    await new Promise(resolve => setTimeout(resolve, 100)); assert.equal(h.queued.length, 0); assert(h.session.dirty);
+    await assert.rejects(h.session.save(null)); await assert.rejects(h.session.suspend());
+    h.session.endExportCapture(); const flushing = h.session.flush(), request = await h.request();
+    h.reply(request, applied('1', '1')); await flushing; assert.equal(h.session.status.revision, '1');
+  } finally { h.dispose(); }
+});
+test('Save As copies resources for R once and safely replays an uncertain commit while R+1 remains pending', async () => {
+  const copies: string[] = [], h = harness(40, { file_ref: '8', label: 'old.md' }, async (_ticket, _target, raw) => { copies.push(raw); });
+  try {
+    h.setText('R'); const saving = assert.rejects(h.session.save({ file_ref: '9', expected_version: null, label: 'new.md' }));
+    const apply = await h.request(); h.reply(apply, applied('1', '1', { file_ref: '8' }));
+    const prepared = await h.request(); h.reply(prepared, { kind: 'prepared', ticket: { ticket_id: '1', revision: '1' } });
+    const firstCommit = await h.request(); assert.equal(firstCommit.operation.kind, 'commit_save'); await saving;
+    assert.deepEqual(copies, ['R']);
+    h.setText('R+1');
+    const retry = h.session.save(null), commit = await h.request();
+    h.reply(commit, { kind: 'saved', receipt: { ticket_id: '1', revision: '1', durable: true }, status: { ...base, revision: '1', saved_revision: '1', file_ref: '9', label: 'new.md' } });
+    await retry; assert.deepEqual(copies, ['R']); assert.equal(h.session.status.file_ref, '9'); assert(h.session.dirty);
+  } finally { h.dispose(); }
+});
+test('failed resource copying aborts the unstarted ticket, preserving input and allowing a fresh Save As', async () => {
+  const h = harness(1000, { file_ref: '8' }, async () => { throw new Error('image conflict'); });
+  try {
+    h.setText('R'); const saving = assert.rejects(h.session.save({ file_ref: '9', expected_version: null, label: 'new.md' }), /image conflict/);
+    const apply = await h.request(); h.reply(apply, applied('1', '1'));
+    const prepared = await h.request(); h.reply(prepared, { kind: 'prepared', ticket: { ticket_id: '1', revision: '1' } });
+    const aborted = await h.request(); assert.equal(aborted.operation.kind, 'abort_save'); h.reply(aborted, { kind: 'aborted' }); await saving;
+    assert(h.session.dirty);
+    const retry = assert.rejects(h.session.save({ file_ref: '10', expected_version: null, label: 'different.md' }), /image conflict/);
+    const newPrepared = await h.request(); assert.equal(newPrepared.operation.kind, 'prepare_save'); h.reply(newPrepared, { kind: 'prepared', ticket: { ticket_id: '2', revision: '1' } });
+    const newAbort = await h.request(); h.reply(newAbort, { kind: 'aborted' }); await retry;
+  } finally { h.dispose(); }
 });
 test('one in-flight batch retains later edits and bases them on its acknowledgement', async () => {
   const h = harness();

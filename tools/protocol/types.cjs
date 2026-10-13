@@ -6,7 +6,7 @@ const check = process.argv.includes('--check');
 const target = path.join(root, 'packages/protocol/src/generated');
 fs.mkdirSync(path.join(root, '.local'), { recursive: true });
 const output = check ? fs.mkdtempSync(path.join(root, '.local/protocol-check-')) : target;
-const result = spawnSync('cargo', ['run', '--locked', '-p', 'open-typora-protocol', '--bin', 'generate-protocol', '--', output], { cwd: root, stdio: 'inherit' });
+const result = spawnSync('cargo', ['run', '--locked', '-p', 'lino-protocol', '--bin', 'generate-protocol', '--', output], { cwd: root, stdio: 'inherit' });
 if (result.error) throw result.error;
 if (result.status !== 0) process.exit(result.status ?? 1);
 for (const name of fs.readdirSync(output).filter(name => name.endsWith('.ts'))) {

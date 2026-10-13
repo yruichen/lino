@@ -1,22 +1,34 @@
-use open_typora_runtime::DocumentRuntime;
+use lino_runtime::DocumentRuntime;
 use std::{fmt, path::Path, sync::Arc};
 
 #[derive(Debug, uniffi::Error)]
 pub enum BridgeError {
-    Failed { message: String },
+    Failed {
+        message: String,
+    },
+    Wire {
+        code: String,
+        message: String,
+        retryable: bool,
+    },
 }
 impl fmt::Display for BridgeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Failed { message } => write!(f, "{message}"),
+            Self::Failed { message } | Self::Wire { message, .. } => write!(f, "{message}"),
         }
     }
 }
 impl std::error::Error for BridgeError {}
 
-fn wire_error(error: open_typora_protocol::WireError) -> BridgeError {
-    BridgeError::Failed {
+pub(crate) fn wire_error(error: lino_protocol::WireError) -> BridgeError {
+    BridgeError::Wire {
+        code: serde_json::to_string(&error.code)
+            .unwrap_or_else(|_| "\"internal\"".into())
+            .trim_matches('"')
+            .into(),
         message: error.message,
+        retryable: error.retryable,
     }
 }
 fn json_error(error: serde_json::Error) -> BridgeError {
@@ -24,7 +36,24 @@ fn json_error(error: serde_json::Error) -> BridgeError {
         message: format!("协议编码失败：{error}"),
     }
 }
-fn intent(json: Option<String>) -> Result<Option<open_typora_protocol::CloseIntent>, BridgeError> {
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn wire_failure_keeps_reason_and_diagnostic_separate_from_localized_display() {
+        let error = wire_error(lino_protocol::WireError {
+            code: lino_protocol::ErrorCode::NotSaved,
+            retryable: false,
+            message: "fixture diagnostic".into(),
+        });
+        assert!(
+            matches!(error, BridgeError::Wire { ref code, ref message, retryable: false }
+            if code == "not_saved" && message == "fixture diagnostic")
+        );
+    }
+}
+fn intent(json: Option<String>) -> Result<Option<lino_protocol::CloseIntent>, BridgeError> {
     json.map(|value| serde_json::from_str(&value))
         .transpose()
         .map_err(json_error)
@@ -32,7 +61,7 @@ fn intent(json: Option<String>) -> Result<Option<open_typora_protocol::CloseInte
 
 #[derive(uniffi::Object)]
 pub struct DocumentService {
-    runtime: DocumentRuntime,
+    pub(crate) runtime: Arc<DocumentRuntime>,
 }
 
 #[uniffi::export]
@@ -40,7 +69,7 @@ impl DocumentService {
     #[uniffi::constructor]
     pub fn new() -> Arc<Self> {
         Arc::new(Self {
-            runtime: DocumentRuntime::default(),
+            runtime: Arc::new(DocumentRuntime::default()),
         })
     }
     pub fn configure_recovery(&self, path: String) -> Result<(), BridgeError> {
@@ -68,9 +97,19 @@ impl DocumentService {
     pub fn discard_recovery(&self, key: String) -> Result<(), BridgeError> {
         self.runtime.discard_recovery(&key).map_err(wire_error)
     }
-    pub fn reattach_document(&self) -> Result<String, BridgeError> {
-        serde_json::to_string(&self.runtime.reattach_document().map_err(wire_error)?)
-            .map_err(json_error)
+    pub fn abandon_document(&self, session_id: String) -> Result<(), BridgeError> {
+        self.runtime
+            .abandon_document(&session_id)
+            .map_err(wire_error)
+    }
+    pub fn reattach_document(&self, session_id: String) -> Result<String, BridgeError> {
+        serde_json::to_string(
+            &self
+                .runtime
+                .reattach_document(&session_id)
+                .map_err(wire_error)?,
+        )
+        .map_err(json_error)
     }
     pub fn new_document(&self, replace_json: Option<String>) -> Result<String, BridgeError> {
         let document = self

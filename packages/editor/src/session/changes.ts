@@ -1,5 +1,5 @@
 import { localizeError } from '../localization/index.ts';
-import type { WireChange } from '@open-typora/protocol/generated/WireChange';
+import type { WireChange } from '@lino/protocol/generated/WireChange';
 const encoder = new TextEncoder();
 function boundary(text: string, at: number): boolean {
   if (at <= 0 || at >= text.length) return true;

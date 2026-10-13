@@ -15,7 +15,7 @@ const chinesePhrases: Record<string, string> = {
 };
 export function localeConfiguration(locale: Locale): Extension {
   return [localeFacet.of(locale), EditorState.phrases.of(locale === 'zh-Hans' ? chinesePhrases : {}),
-    EditorView.contentAttributes.of({ 'aria-label': tFor(locale, 'editor.label'), spellcheck: 'false' })];
+    EditorView.contentAttributes.of({ 'aria-label': tFor(locale, 'editor.label') })];
 }
 export function editorLocalization(): Extension {
   const compartment = new Compartment();
@@ -41,9 +41,23 @@ export function editorLocalization(): Extension {
         this.queued = false;
         if (this.disposed || this.composing || this.view.composing || this.view.state.field(compositionState, false)) return;
         const locale = currentLocale();
-        if (this.view.state.facet(localeFacet) !== locale) this.view.dispatch({
-          effects: compartment.reconfigure(localeConfiguration(locale)), annotations: Transaction.addToHistory.of(false),
-        });
+        if (this.view.state.facet(localeFacet) !== locale) {
+          // CodeMirror may recreate panels when phrases change. Preserve the
+          // focused control here for every feature, instead of per-panel copies.
+          const active = this.view.dom.ownerDocument.activeElement;
+          const control = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement ? active : undefined;
+          const focused = control && this.view.dom.contains(control) ? control : undefined;
+          const selection = focused && 'selectionStart' in focused ? [focused.selectionStart, focused.selectionEnd, focused.selectionDirection] as const : undefined;
+          this.view.dispatch({ effects: compartment.reconfigure(localeConfiguration(locale)), annotations: Transaction.addToHistory.of(false) });
+          if (focused && !focused.isConnected && focused.name) {
+            const replacement = Array.from(this.view.dom.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select'))
+              .find(node => node.tagName === focused.tagName && node.name === focused.name);
+            if (replacement && !replacement.disabled) {
+              replacement.focus();
+              if (selection && selection[0] !== null && selection[1] !== null && 'setSelectionRange' in replacement) replacement.setSelectionRange(selection[0], selection[1], selection[2] ?? undefined);
+            }
+          }
+        }
       });
     }
     update(update: ViewUpdate): void {

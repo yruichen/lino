@@ -34,7 +34,7 @@ export function enclosingNode(state: EditorState, names: readonly string[]): Mar
 export function guardTextBlocks(state: EditorState, allowFences = false): void {
   const lines = selectedLines(state);
   selectionTree(state).iterate({ from: lines[0].from, to: lines.at(-1)!.to, enter(node) {
-    if (['Table', 'HTMLBlock', 'CodeBlock'].includes(node.name) || (!allowFences && node.name === 'FencedCode')) {
+    if (['Table', 'HTMLBlock', 'CodeBlock', 'MathBlock', 'FrontMatter'].includes(node.name) || (!allowFences && node.name === 'FencedCode')) {
       throw localizeError(new Error(), 'format.textOnly');
     }
   } });

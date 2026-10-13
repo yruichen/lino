@@ -1,10 +1,12 @@
 {
-  "name": "@open-typora/protocol",
-  "version": "0.0.1",
+  "name": "@lino/protocol",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "description": "Generated Rust document protocol, request client and platform transports",
   "exports": {
+    "./assets": "./src/client/assets.ts",
+    "./clipboard": "./src/client/clipboard.ts",
     "./editor-host": "./src/client/editor-host.ts",
     "./webkit": "./src/transports/webkit.ts",
     "./documents": "./src/client/documents.ts",

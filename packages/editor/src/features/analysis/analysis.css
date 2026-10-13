@@ -1,0 +1,15 @@
+.ot-document-outline { position: absolute; inset: 0 auto 0 0; width: 220px; box-sizing: border-box; padding: 14px 10px; overflow: auto; background: var(--ot-panel); color: var(--ot-text); border-right: 1px solid var(--ot-border); z-index: 5; font: 12px system-ui; }
+.ot-document-outline[hidden] { display: none; }
+.ot-document-outline > strong { display: inline-block; margin-bottom: 12px; }
+.ot-document-outline > button { float: right; }
+.ot-document-outline input { width: 100%; box-sizing: border-box; margin-bottom: 12px; }
+.ot-document-outline input, .ot-document-outline button { background: var(--ot-background); color: var(--ot-text); border: 1px solid var(--ot-border); border-radius: 4px; padding: 4px; }
+.ot-outline-row { display: flex; gap: 3px; margin: 3px 0; }
+.ot-outline-row button:last-child { flex: 1; text-align: start; overflow-wrap: anywhere; }
+.ot-outline-row button[aria-current=true] { color: var(--ot-link); background: var(--ot-selection); }
+.ot-document-outline output { color: var(--ot-muted); }
+.ot-outline-open > .cm-scroller, .ot-outline-open > .cm-panels { margin-inline-start: 220px; }
+.ot-statistics { padding: 5px 12px; font: 11px system-ui; color: var(--ot-muted); }
+.cm-content { font-size: calc(16px * var(--ot-editor-scale, 1)); }
+.ot-unfocused { opacity: .4; }
+.cm-editor[data-typewriter=true] .cm-content { padding-block: 40vh; }

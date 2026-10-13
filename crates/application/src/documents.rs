@@ -1,5 +1,5 @@
 use crate::ports::{DiskVersion, LoadedFile, StorageCommit, StorageError};
-use open_typora_document::{
+use lino_document::{
     EditorEpoch, FileRef, ModelError, Revision, SessionId, Snapshot, TextChange, TextFormat,
 };
 use std::collections::HashMap;
@@ -31,6 +31,7 @@ pub struct DocumentInfo {
     pub dirty: bool,
     pub saving: bool,
     pub format: TextFormat,
+    pub read_only: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -78,6 +79,7 @@ pub struct CloseIntent {
 }
 
 struct Session {
+    read_only: bool,
     snapshot: Snapshot,
     epoch: EditorEpoch,
     format: TextFormat,
@@ -118,7 +120,12 @@ impl Documents {
         if let Some(target) = &binding {
             if self.sessions.iter().any(|(id, session)| {
                 Some(*id) != replaced
-                    && session.binding.as_ref().map(|t| t.file) == Some(target.file)
+                    && (session.binding.as_ref().map(|t| t.file) == Some(target.file)
+                        || session
+                            .pending_save
+                            .as_ref()
+                            .map(|(ticket, _)| ticket.request.target)
+                            == Some(target.file))
             }) {
                 return Err(DocumentError::Busy);
             }
@@ -132,6 +139,7 @@ impl Documents {
         self.sessions.insert(
             id,
             Session {
+                read_only: false,
                 snapshot,
                 epoch: EditorEpoch(1),
                 format,
@@ -174,6 +182,17 @@ impl Documents {
             replace,
         )
     }
+    pub fn reload(
+        &mut self,
+        file: FileRef,
+        loaded: LoadedFile,
+        intent: CloseIntent,
+    ) -> Result<DocumentInfo, DocumentError> {
+        let read_only = self.session(intent.session)?.read_only;
+        let info = self.open(file, loaded, Some(intent))?;
+        self.sessions.get_mut(&info.id).unwrap().read_only = read_only;
+        self.info(info.id)
+    }
     fn session(&self, id: SessionId) -> Result<&Session, DocumentError> {
         self.sessions.get(&id).ok_or(DocumentError::UnknownSession)
     }
@@ -197,6 +216,7 @@ impl Documents {
                 .unwrap_or(session.recovered || !session.snapshot.text().is_empty()),
             saving: session.pending_save.is_some(),
             format: session.format,
+            read_only: session.read_only,
         })
     }
     pub fn apply(&mut self, id: SessionId, batch: ApplyBatch) -> Result<ApplyAck, DocumentError> {
@@ -218,6 +238,9 @@ impl Documents {
                     Err(DocumentError::DuplicateMismatch)
                 };
             }
+        }
+        if session.read_only {
+            return Err(DocumentError::Storage(StorageError::Denied));
         }
         let expected = session
             .last_batch
@@ -304,6 +327,17 @@ impl Documents {
         };
         session.pending_save = Some((ticket.clone(), false));
         Ok(ticket)
+    }
+    pub fn save_resources(
+        &self,
+        id: SessionId,
+        ticket_id: u64,
+    ) -> Result<SaveTicket, DocumentError> {
+        let session = self.session(id)?;
+        match &session.pending_save {
+            Some((ticket, false)) if ticket.id == ticket_id => Ok(ticket.clone()),
+            _ => Err(DocumentError::InvalidTicket),
+        }
     }
     pub fn claim_save(
         &mut self,
@@ -453,12 +487,29 @@ impl Documents {
         session.recovered = true;
         self.info(info.id)
     }
-    pub fn reattach(&mut self) -> Result<(DocumentInfo, Option<FileRef>), DocumentError> {
-        if self.sessions.len() != 1 {
-            return Err(DocumentError::UnknownSession);
-        }
-        let id = *self.sessions.keys().next().unwrap();
-        let session = self.sessions.get_mut(&id).unwrap();
+    pub fn file_session(&self, file: FileRef) -> Option<SessionId> {
+        self.sessions
+            .iter()
+            .find(|(_, session)| {
+                session
+                    .binding
+                    .as_ref()
+                    .is_some_and(|binding| binding.file == file)
+                    || session
+                        .pending_save
+                        .as_ref()
+                        .is_some_and(|(ticket, _)| ticket.request.target == file)
+            })
+            .map(|(id, _)| *id)
+    }
+    pub fn reattach(
+        &mut self,
+        id: SessionId,
+    ) -> Result<(DocumentInfo, Option<FileRef>), DocumentError> {
+        let session = self
+            .sessions
+            .get_mut(&id)
+            .ok_or(DocumentError::UnknownSession)?;
         if session.transitioning
             || session
                 .pending_save
@@ -482,11 +533,62 @@ impl Documents {
         session.last_receipt = None;
         Ok((self.info(id)?, abandoned))
     }
+    pub fn abandon(&mut self, id: SessionId) -> Result<Vec<FileRef>, DocumentError> {
+        let session = self
+            .sessions
+            .get(&id)
+            .ok_or(DocumentError::UnknownSession)?;
+        if session.transitioning
+            || session
+                .pending_save
+                .as_ref()
+                .is_some_and(|(_, started)| *started)
+        {
+            return Err(DocumentError::Busy);
+        }
+        let session = self.sessions.remove(&id).unwrap();
+        Ok(session
+            .binding
+            .map(|t| t.file)
+            .into_iter()
+            .chain(session.pending_save.map(|(t, _)| t.request.target))
+            .collect())
+    }
     pub fn references(&self, file: FileRef) -> bool {
         self.sessions.values().any(|session| {
             session.binding.as_ref().map(|t| t.file) == Some(file)
                 || session.pending_save.as_ref().map(|(t, _)| t.request.target) == Some(file)
         })
+    }
+    pub fn disk_version(&self, id: SessionId) -> Result<Option<DiskVersion>, DocumentError> {
+        Ok(self
+            .session(id)?
+            .binding
+            .as_ref()
+            .and_then(|target| target.expected.clone()))
+    }
+    pub fn set_read_only(
+        &mut self,
+        id: SessionId,
+        epoch: EditorEpoch,
+        revision: u64,
+        value: bool,
+    ) -> Result<DocumentInfo, DocumentError> {
+        let session = self
+            .sessions
+            .get_mut(&id)
+            .ok_or(DocumentError::UnknownSession)?;
+        if session.epoch != epoch {
+            return Err(DocumentError::OldEpoch);
+        }
+        if session.snapshot.revision().value() != revision {
+            return Err(DocumentError::StaleRevision);
+        }
+        if session.pending_save.is_some() || session.transitioning {
+            return Err(DocumentError::Busy);
+        }
+        session.read_only = value;
+        self.info(id)
     }
 }
 
