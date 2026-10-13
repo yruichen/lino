@@ -4,7 +4,7 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 const { version } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const buildRoot = path.join(root, '.local/build');
-const app = path.join(buildRoot, 'OpenTypora.app');
+const app = path.join(buildRoot, 'Lino.app');
 if (process.platform !== 'darwin') throw new Error('The AppKit host must be built on macOS.');
 const currentApp = fs.existsSync(app) ? fs.realpathSync(app) : null;
 function requireClosedApp() {
@@ -14,15 +14,15 @@ function requireClosedApp() {
   const processes = spawnSync('ps', ['-axo', 'args='], { encoding: 'utf8' });
   if (processes.error) throw processes.error;
   if (processes.status !== 0) throw new Error('Could not check whether the current application is running.');
-  const executables = [app, currentApp].map(bundle => path.join(bundle, 'Contents/MacOS/OpenTypora'));
+  const executables = [app, currentApp].map(bundle => path.join(bundle, 'Contents/MacOS/Lino'));
   if (processes.stdout.split('\n').some(line => executables.some(executable => line.trim() === executable || line.trim().startsWith(executable + ' ')))) {
-    throw new Error('Quit Open Typora before rebuilding. The current application has been kept.');
+    throw new Error('Quit Lino before rebuilding. The current application has been kept.');
   }
 }
 requireClosedApp();
 fs.mkdirSync(buildRoot, { recursive: true });
 const staging = fs.mkdtempSync(path.join(buildRoot, '.staging-'));
-const stagedApp = path.join(staging, 'OpenTypora.app');
+const stagedApp = path.join(staging, 'Lino.app');
 let preserveStaging = false;
 process.on('exit', () => { if (!preserveStaging) fs.rmSync(staging, { recursive: true, force: true }); });
 process.env.MACOSX_DEPLOYMENT_TARGET = '14.0';
@@ -34,11 +34,11 @@ function run(command, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 run('npm', ['run', 'protocol:generate']);
-run('cargo', ['build', '--target-dir', rustBuild, '--release', '--locked', '-p', 'open-typora-ffi']);
+run('cargo', ['build', '--target-dir', rustBuild, '--release', '--locked', '-p', 'lino-ffi']);
 const generated = path.join(root, '.local/generated/swift');
-run('cargo', ['run', '--locked', '-p', 'open-typora-ffi', '--features', 'bindgen', '--bin', 'generate-swift', '--', 'generate', '--library', path.join(rustBuild, 'release/libopen_typora_ffi.dylib'), '--language', 'swift', '--out-dir', generated]);
-run('npm', ['run', 'typecheck', '--workspace', '@open-typora/editor']);
-run('npm', ['run', 'build', '--workspace', '@open-typora/editor']);
+run('cargo', ['run', '--locked', '-p', 'lino-ffi', '--features', 'bindgen', '--bin', 'generate-swift', '--', 'generate', '--library', path.join(rustBuild, 'release/liblino_ffi.dylib'), '--language', 'swift', '--out-dir', generated]);
+run('npm', ['run', 'typecheck', '--workspace', '@lino/editor']);
+run('npm', ['run', 'build', '--workspace', '@lino/editor']);
 const contents = path.join(stagedApp, 'Contents');
 const resources = path.join(contents, 'Resources/Editor');
 fs.mkdirSync(path.join(contents, 'MacOS'), { recursive: true });
@@ -50,15 +50,17 @@ const nativeResources = path.join(root, 'apps/macos/Resources');
 for (const entry of fs.readdirSync(nativeResources)) {
   fs.cpSync(path.join(nativeResources, entry), path.join(contents, 'Resources', entry), { recursive: true });
 }
+require('./icon.cjs').writeAppIcon(path.join(root, 'assets/brand/lino.png'), path.join(contents, 'Resources/AppIcon.icns'));
 require('./licenses.cjs').writeLicenses(root, path.join(contents, 'Resources/Licenses'));
 const sources = fs.readdirSync(path.join(root, 'apps/macos/Sources'), { recursive: true }).filter(file => file.endsWith('.swift')).sort().map(file => path.join(root, 'apps/macos/Sources', file));
-run('xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', '-O', '-target', `${process.arch === 'arm64' ? 'arm64' : 'x86_64'}-apple-macosx14.0`, '-framework', 'AppKit', '-framework', 'WebKit', '-I', generated, '-Xcc', `-fmodule-map-file=${path.join(generated, 'open_typora_ffiFFI.modulemap')}`, path.join(generated, 'open_typora_ffi.swift'), path.join(rustBuild, 'release/libopen_typora_ffi.a'), ...sources, '-o', path.join(contents, 'MacOS/OpenTypora')]);
+run('xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', '-O', '-target', `${process.arch === 'arm64' ? 'arm64' : 'x86_64'}-apple-macosx14.0`, '-framework', 'AppKit', '-framework', 'WebKit', '-I', generated, '-Xcc', `-fmodule-map-file=${path.join(generated, 'lino_ffiFFI.modulemap')}`, path.join(generated, 'lino_ffi.swift'), path.join(rustBuild, 'release/liblino_ffi.a'), ...sources, '-o', path.join(contents, 'MacOS/Lino')]);
 fs.writeFileSync(path.join(contents, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleExecutable</key><string>OpenTypora</string>
+<key>CFBundleExecutable</key><string>Lino</string>
 <key>CFBundleIdentifier</key><string>dev.open-typora.editor</string>
-<key>CFBundleName</key><string>Open Typora</string>
+<key>CFBundleName</key><string>Lino</string>
+<key>CFBundleIconFile</key><string>AppIcon.icns</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
 <key>CFBundleLocalizations</key><array><string>en</string><string>zh-Hans</string></array>
 <key>CFBundlePackageType</key><string>APPL</string>

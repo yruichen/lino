@@ -1,7 +1,7 @@
 //! Recovery copies are independent of original-file saves. Restoring creates a
 //! new, unsaved document; it never grants permission to overwrite the old file.
 use crate::ports::StorageError;
-use open_typora_document::{Snapshot, TextFormat};
+use lino_document::{Snapshot, TextFormat};
 
 #[derive(Clone, Debug)]
 pub struct RecoverySnapshot {

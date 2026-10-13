@@ -10,16 +10,15 @@ final class LanguagePreferences {
     private(set) var preference: InterfaceLanguage = .system
     private(set) var locale = "en"
     private var preferredLanguages: [String] = ["en"]
-    private var persistsPreference = false
+    private var usesSystemLanguages = true
     private var bundle = Bundle.main
 
     private init() {}
 
     func configure(verifying: Bool) {
-        persistsPreference = !verifying
+        usesSystemLanguages = !verifying
         preferredLanguages = verifying ? ["en"] : Locale.preferredLanguages
-        let stored = verifying ? nil : UserDefaults.standard.string(forKey: "interfaceLanguage")
-        update(InterfaceLanguage(rawValue: stored ?? "") ?? .system, persist: false)
+        update(.system)
     }
 
     static func resolve(_ preference: InterfaceLanguage, preferredLanguages: [String]) -> String {
@@ -32,15 +31,14 @@ final class LanguagePreferences {
     }
 
     func select(_ preference: InterfaceLanguage) {
-        if persistsPreference { preferredLanguages = Locale.preferredLanguages }
-        update(preference, persist: persistsPreference)
+        if usesSystemLanguages { preferredLanguages = Locale.preferredLanguages }
+        update(preference)
     }
 
-    private func update(_ preference: InterfaceLanguage, persist: Bool) {
+    private func update(_ preference: InterfaceLanguage) {
         self.preference = preference
         locale = Self.resolve(preference, preferredLanguages: preferredLanguages)
         bundle = Bundle.main.path(forResource: locale, ofType: "lproj").flatMap(Bundle.init(path:)) ?? Bundle.main
-        if persist { UserDefaults.standard.set(preference.rawValue, forKey: "interfaceLanguage") }
     }
 
     func string(_ key: String, arguments: [CVarArg]) -> String {

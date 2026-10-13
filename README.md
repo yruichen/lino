@@ -1,45 +1,54 @@
 <div align="center">
 
-# open-typora
+<img src="assets/brand/lino.png" alt="Lino folded-paper L logo" width="96">
 
-**Write in Markdown. Stay in the flow.**
+# Lino
 
-An open-source Markdown editor built around your files, a native Mac shell, and a shared Rust core.
+**A quiet place for your words.**
 
-[![Version](https://img.shields.io/badge/v0.0.1-Beta-ef9f43)](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)
-[![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)
+An open-source Markdown editor with a native Mac shell and a shared Rust core. Write a note, explain an idea, or bring code, equations and diagrams into the same document.
+
+[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases)
+[![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**Download for macOS**](https://github.com/yruichen/open-typora/releases/tag/v0.0.1) · [Report an issue](https://github.com/yruichen/open-typora/issues) · [简体中文](README.zh-CN.md)
+[**Build the current version**](#build-it-yourself) · [Releases](https://github.com/yruichen/lino/releases) · [简体中文](README.zh-CN.md)
 
 </div>
 
-## A familiar place for your words
+<p align="center">
+  <img src="assets/screenshots/writing.png" alt="Lino on macOS showing an English writing sample and a local illustration" width="48%">
+  <img src="assets/screenshots/code-and-math.png" alt="Rust syntax highlighting, inline mathematics and a rendered equation in Lino" width="48%">
+</p>
 
-Inspired by Typora’s writing experience, open-typora is working toward a focused, lightweight editor that feels at home on macOS.
+## Make room for the thought
 
-- **Your files stay Markdown.** Open a `.md` file, write, and save it back to disk. No proprietary document format.
-- **The Mac handles the window.** AppKit provides the windows, menus, toolbar and file dialogs. CodeMirror 6 handles editing inside the system’s WKWebView.
-- **Rust handles the shared core.** Document models, file operations and application services live behind explicit platform boundaries. macOS comes first; Windows and Linux hosts are future work.
+Start with a sentence, then give the idea room to grow. Lino keeps your writing in ordinary Markdown files, with a focused editing surface and the windows, menus and shortcuts you expect on a Mac.
 
-Lightweight operation is a design goal. We have not yet published performance benchmarks.
+- **Keep the file yours.** Open a `.md` file, write, and save it back to disk. Your work stays portable.
+- **Stay with the paragraph.** Visual editing, readable code blocks, editable tables and rendered mathematics sit alongside your words. **⌘/** brings up the original source with the same undo history.
+- **Feel at home on macOS.** Native window tabs, menus, file dialogs and search controls surround an editor that uses the WebKit engine supplied by macOS.
 
-## What you can do today
+Try the [English showcase document](examples/showcase/Lino-Showcase.md) with its accompanying image folder. It contains original writing, a Rust example, a table, equations and a Mermaid diagram.
 
-| Write | Navigate | Keep your work |
+## In v0.0.2
+
+| For your words | For your ideas | For your files |
 | --- | --- | --- |
-| Source and visual editing modes | Find and replace within a document | Open and save UTF-8 Markdown |
-| Shared undo and redo history | Jump to a line | Local recovery copies |
-| Basic Markdown formatting and editable tables | Native menus and keyboard shortcuts | Optional autosave for named files |
-| English and Simplified Chinese interface | Switch modes with **⌘/** | External-change detection |
+| Visual and source editing with shared undo | Syntax-highlighted code with language selection | Open, save and Save As |
+| Headings, lists, tasks and editable tables | Local images and reference links | Native document windows and tabs |
+| Find and replace, including regular expressions | Inline and block equations with KaTeX | Optional autosave and local recovery copies |
+| Outline, focus mode and reading statistics | Mermaid diagrams and standalone HTML export | External-change detection and read-only handling |
 
-> **v0.0.1 is an early Beta.** This is not yet a complete Typora alternative. Full Markdown presentation, images, math, diagrams and advanced export remain unfinished. Native interaction, accessibility and platform compatibility need broader validation.
+The interface is available in **English and Simplified Chinese**. macOS PDF and printing are also available for testing.
 
-## Try the Beta
+**v0.0.2 is a usable Markdown foundation, still in Beta.** Broader Markdown compatibility, accessibility, native interaction and print layout need more testing. Responsiveness and a small runtime are design priorities; performance comparisons have not yet been published. Windows, Linux and broader document formats are future work.
 
-1. [Download the macOS release](https://github.com/yruichen/open-typora/releases/tag/v0.0.1) for **Apple Silicon, macOS 14 or later**.
-2. Unzip the archive and move **OpenTypora.app** to **Applications**.
-3. Open a Markdown file and start writing.
+## Get Lino
+
+Build from source below for the current v0.0.2 features. [Published downloads](https://github.com/yruichen/lino/releases) currently contain the earlier **v0.0.1 Beta**, named **OpenTypora.app**, which predates the features and screenshots on this page.
+
+For a downloaded build, unzip the archive and move the app to **Applications**. Lino currently targets **Apple Silicon and macOS 14 or later**.
 
 The Beta is ad-hoc signed and **not notarized**; macOS may require an explicit security approval before opening it.
 
@@ -47,9 +56,11 @@ The Beta is ad-hoc signed and **not notarized**; macOS may require an explicit s
 | --- | --- |
 | Open a file | ⌘O |
 | Save / Save As | ⌘S / ⇧⌘S |
+| Find / Find next | ⌘F / ⌘G |
 | Switch editing modes | ⌘/ |
+| Zoom in / out / reset | ⌘+ / ⌘− / ⌘0 |
 
-Change the interface language in **Open Typora → Settings… → General → Language**.
+Change the interface language in **Lino → Settings… → General → Language** (**⌘,**).
 
 Current file support covers ordinary UTF-8 files up to 64 MiB, preserving BOM and mixed line endings. Recovery opens an unsaved copy; input that was never persisted cannot be recovered.
 
@@ -58,11 +69,11 @@ Current file support covers ordinary UTF-8 files up to 64 MiB, preserving BOM an
 Requirements: an Apple Silicon Mac with macOS 14 or later, Xcode with Swift 6, Rust/Cargo, and Node.js 24.11 or later with npm.
 
 ```bash
-git clone https://github.com/yruichen/open-typora.git
-cd open-typora
+git clone https://github.com/yruichen/lino.git
+cd lino
 npm ci
 npm run app:build
-open .local/build/OpenTypora.app
+open .local/build/Lino.app
 ```
 
 The build generates the Swift bindings and bundles the editor into the app. The built app needs neither Node.js nor a development server. Quit the app before rebuilding; successful builds replace the previous app at the same path.
@@ -77,8 +88,9 @@ The build generates the Swift bindings and bundles the editor into the app. The 
 | `crates/` | Rust document model, use cases, I/O, runtime and Swift bindings |
 | `tests/` | Shared test fixtures and integration checks |
 | `tools/` | Build tools, code generation and checks |
+| `assets/` | Shared brand artwork and product screenshots |
 
-Try the Beta, [share a reproducible bug](https://github.com/yruichen/open-typora/issues), or contribute a focused fix. Include your macOS version and a small sample document when reporting editing problems. If this is an editor you’d like to see grow, a star helps others discover it.
+Try the Beta, [share a reproducible bug](https://github.com/yruichen/lino/issues), or contribute a focused fix. Include your macOS version and a small sample document when reporting editing problems. If this is an editor you’d like to see grow, a star helps others discover it.
 
 ## License and acknowledgements
 

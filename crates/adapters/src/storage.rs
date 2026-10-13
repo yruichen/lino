@@ -1,7 +1,5 @@
-use open_typora_application::ports::{
-    DiskVersion, LoadedFile, StorageCommit, StorageError, StoragePort,
-};
-use open_typora_document::{FileRef, TextFormat, MAX_DOCUMENT_BYTES};
+use lino_application::ports::{DiskVersion, LoadedFile, StorageCommit, StorageError, StoragePort};
+use lino_document::{FileRef, TextFormat, MAX_DOCUMENT_BYTES};
 use std::{
     collections::HashMap,
     fs::{self, File, Metadata, OpenOptions},
@@ -39,12 +37,36 @@ impl FileStorage {
             .map_err(io_error)?;
         let name = path.file_name().ok_or(StorageError::UnsupportedFile)?;
         let path = parent.join(name);
+        // Use the real spelling of ordinary files on case-insensitive disks.
+        // File symlinks retain their original path and are rejected by load.
+        let metadata = fs::symlink_metadata(&path)
+            .ok()
+            .filter(|meta| meta.is_file());
+        let path = if metadata.is_some() {
+            path.canonicalize().map_err(io_error)?
+        } else {
+            path
+        };
         let label = name.to_string_lossy().into_owned();
         let mut registry = self
             .registry
             .lock()
             .map_err(|_| StorageError::Io("Storage lock poisoned".into()))?;
-        if let Some((id, _)) = registry.paths.iter().find(|(_, old)| **old == path) {
+        if let Some((id, _)) = registry.paths.iter().find(|(_, old)| {
+            if **old == path {
+                return true;
+            }
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::MetadataExt;
+                if let Some(meta) = &metadata {
+                    return fs::symlink_metadata(old).ok().is_some_and(|other| {
+                        other.is_file() && other.dev() == meta.dev() && other.ino() == meta.ino()
+                    });
+                }
+            }
+            false
+        }) {
             return Ok((*id, label));
         }
         if registry.paths.len() >= 256 {
@@ -63,7 +85,37 @@ impl FileStorage {
             registry.paths.remove(&file);
         }
     }
-    fn path(&self, file: FileRef) -> Result<PathBuf, StorageError> {
+    pub fn registered_paths(&self) -> Result<Vec<(FileRef, PathBuf)>, StorageError> {
+        Ok(self
+            .registry
+            .lock()
+            .map_err(|_| StorageError::Io("Storage lock poisoned".into()))?
+            .paths
+            .iter()
+            .map(|(file, path)| (*file, path.clone()))
+            .collect())
+    }
+    pub fn is_registered_below(&self, path: &Path) -> Result<bool, StorageError> {
+        let metadata = fs::symlink_metadata(path).ok();
+        Ok(self.registered_paths()?.iter().any(|(_, candidate)| {
+            if candidate.starts_with(path) {
+                return true;
+            }
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::MetadataExt;
+                if let Some(meta) = metadata.as_ref().filter(|meta| meta.is_file()) {
+                    return fs::symlink_metadata(candidate).ok().is_some_and(|other| {
+                        other.is_file() && other.dev() == meta.dev() && other.ino() == meta.ino()
+                    });
+                }
+            }
+            #[cfg(not(unix))]
+            let _ = &metadata;
+            false
+        }))
+    }
+    pub fn path(&self, file: FileRef) -> Result<PathBuf, StorageError> {
         self.registry
             .lock()
             .map_err(|_| StorageError::Io("Storage lock poisoned".into()))?
@@ -157,11 +209,30 @@ impl StoragePort for FileStorage {
         }
     }
     fn commit(&self, request: &StorageCommit) -> Result<(DiskVersion, bool), StorageError> {
-        let path = self.path(request.target)?;
+        let mut bytes = Vec::with_capacity(request.snapshot.text().len() + 3);
+        if request.format.utf8_bom {
+            bytes.extend_from_slice(&[0xef, 0xbb, 0xbf]);
+        }
+        bytes.extend_from_slice(request.snapshot.text().as_bytes());
+        self.commit_bytes(request.target, request.expected.clone(), &bytes)
+    }
+}
+impl FileStorage {
+    /// Shared atomic output path for document text and binary exports.
+    pub fn commit_bytes(
+        &self,
+        target: FileRef,
+        expected: Option<DiskVersion>,
+        bytes: &[u8],
+    ) -> Result<(DiskVersion, bool), StorageError> {
+        if bytes.len() > MAX_DOCUMENT_BYTES {
+            return Err(StorageError::LimitExceeded);
+        }
+        let path = self.path(target)?;
         let parent = path.parent().ok_or(StorageError::UnsupportedFile)?;
         let original = match read_file(&path) {
-            Ok((file, _, version)) if Some(&version) == request.expected.as_ref() => Some(file),
-            Err(StorageError::NotFound) if request.expected.is_none() => None,
+            Ok((file, _, version)) if Some(&version) == expected.as_ref() => Some(file),
+            Err(StorageError::NotFound) if expected.is_none() => None,
             Ok(_) | Err(StorageError::NotFound) => return Err(StorageError::ChangedExternally),
             Err(error) => return Err(error),
         };
@@ -197,25 +268,17 @@ impl StoragePort for FileStorage {
         if let Some(original) = &original {
             crate::platform::preserve_metadata(original, temp.as_file()).map_err(io_error)?;
         }
-        let mut bytes = Vec::with_capacity(request.snapshot.text().len() + 3);
-        if request.format.utf8_bom {
-            bytes.extend_from_slice(&[0xef, 0xbb, 0xbf]);
-        }
-        bytes.extend_from_slice(request.snapshot.text().as_bytes());
-        if bytes.len() > MAX_DOCUMENT_BYTES {
-            return Err(StorageError::LimitExceeded);
-        }
-        temp.write_all(&bytes).map_err(io_error)?;
+        temp.write_all(bytes).map_err(io_error)?;
         temp.as_file().sync_all().map_err(io_error)?;
         // Recheck after preparation. This is optimistic conflict detection,
         // not a cross-process compare-and-swap with arbitrary outside writers.
-        if self.inspect(request.target)? != request.expected {
+        if self.inspect(target)? != expected {
             return Err(StorageError::ChangedExternally);
         }
         // Release our destination handle before Windows' MoveFileEx replacement;
         // metadata preservation and the final conflict check are complete now.
         drop(original);
-        let persisted = if request.expected.is_none() {
+        let persisted = if expected.is_none() {
             temp.persist_noclobber(&path).map_err(|error| {
                 if error.error.kind() == io::ErrorKind::AlreadyExists {
                     StorageError::ChangedExternally
@@ -226,8 +289,8 @@ impl StoragePort for FileStorage {
         } else {
             temp.persist(&path).map_err(|error| io_error(error.error))?
         };
-        let version = signature(&bytes, &persisted.metadata().map_err(io_error)?);
-        if self.inspect(request.target)? != Some(version.clone()) {
+        let version = signature(bytes, &persisted.metadata().map_err(io_error)?);
+        if self.inspect(target)? != Some(version.clone()) {
             return Err(StorageError::ChangedExternally);
         }
         drop(persisted);
@@ -242,7 +305,7 @@ impl StoragePort for FileStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use open_typora_document::Snapshot;
+    use lino_document::Snapshot;
     #[test]
     fn bom_and_mixed_line_endings_survive_atomic_save() {
         let directory = tempfile::tempdir().unwrap();
@@ -319,7 +382,7 @@ mod tests {
                 .commit(&StorageCommit {
                     target: file,
                     expected,
-                    snapshot: open_typora_document::Snapshot::new("changed".into()).unwrap(),
+                    snapshot: lino_document::Snapshot::new("changed".into()).unwrap(),
                     format: loaded.format
                 })
                 .unwrap_err(),
@@ -344,7 +407,7 @@ mod tests {
         fs::write(&path, "original").unwrap();
         fs::set_permissions(&path, fs::Permissions::from_mode(0o640)).unwrap();
         let original = File::open(&path).unwrap();
-        let name = c"com.open-typora.fixture";
+        let name = c"com.lino.fixture";
         let value = b"attribute-preserved";
         // Owned fd/name/value buffers live through each synchronous libc call.
         assert_eq!(
@@ -367,7 +430,7 @@ mod tests {
             .commit(&StorageCommit {
                 target: file,
                 expected: Some(loaded.version),
-                snapshot: open_typora_document::Snapshot::new("changed".into()).unwrap(),
+                snapshot: lino_document::Snapshot::new("changed".into()).unwrap(),
                 format: loaded.format,
             })
             .unwrap();

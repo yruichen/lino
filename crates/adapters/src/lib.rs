@@ -1,10 +1,12 @@
 //! Platform I/O implementing application ports.
 
-mod assets;
+pub mod assets;
 mod export;
 mod platform;
 pub mod recovery;
 mod search;
-mod settings;
+pub mod settings;
 pub mod storage;
-mod watcher;
+pub mod watcher;
+
+pub mod workspace;

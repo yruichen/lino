@@ -1,4 +1,4 @@
-import { Compartment, type Extension } from '@codemirror/state';
+import { Compartment, Facet, type Extension } from '@codemirror/state';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
@@ -22,7 +22,15 @@ export function themeConfiguration(dark: boolean): Extension {
     EditorView.editorAttributes.of({ 'data-appearance': dark ? 'dark' : 'light' }),
     EditorView.theme({
       '&': { color: 'var(--ot-text)', backgroundColor: 'var(--ot-background)' },
-      '.cm-content': { caretColor: 'var(--ot-caret)' },
+      // Layout belongs to the editor theme, which has precedence over CM's
+      // base theme. A bare .cm-content stylesheet rule loses to .ͼ1 .cm-content.
+      '.cm-scroller': { fontFamily: 'inherit', lineHeight: 'inherit', justifyContent: 'center' },
+      '.cm-content': {
+        caretColor: 'var(--ot-caret)', width: '100%', maxWidth: 'var(--ot-reading-width)',
+        minWidth: '0', flexGrow: '0', flexShrink: '1', margin: '0 auto',
+        padding: '32px clamp(24px, 4vw, 56px) 120px', boxSizing: 'border-box',
+      },
+      '.cm-line': { padding: '0' },
       '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--ot-caret)' },
       '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': { backgroundColor: 'var(--ot-selection)' },
       '.cm-panels': { color: 'var(--ot-text)', backgroundColor: 'var(--ot-panel)' },
@@ -30,15 +38,28 @@ export function themeConfiguration(dark: boolean): Extension {
     highlighting,
   ];
 }
+export const preferredAppearance = Facet.define<string, string>({ combine: values => values[0] ?? 'system' });
 
 export function editorTheme(): Extension {
   const appearance = new Compartment();
   const system = matchMedia('(prefers-color-scheme: dark)');
+  const dark = (view: EditorView) => view.state.facet(preferredAppearance) === 'dark' || (view.state.facet(preferredAppearance) === 'system' && system.matches);
   return [appearance.of(themeConfiguration(system.matches)), ViewPlugin.fromClass(class {
-    private readonly changed = (event: MediaQueryListEvent) => {
-      this.view.dispatch({ effects: appearance.reconfigure(themeConfiguration(event.matches)) });
-    };
-    constructor(private readonly view: EditorView) { system.addEventListener('change', this.changed); }
-    destroy() { system.removeEventListener('change', this.changed); }
+    private disposed = false;
+    private queued = false;
+    private readonly changed = () => this.schedule();
+    private readonly view: EditorView;
+    constructor(view: EditorView) { this.view = view; system.addEventListener('change', this.changed); }
+    update() { this.schedule(); }
+    private schedule() {
+      if (this.queued || this.disposed) return;
+      this.queued = true;
+      queueMicrotask(() => {
+        this.queued = false;
+        if (!this.disposed && this.view.state.facet(EditorView.darkTheme) !== dark(this.view))
+          this.view.dispatch({ effects: appearance.reconfigure(themeConfiguration(dark(this.view))) });
+      });
+    }
+    destroy() { this.disposed = true; system.removeEventListener('change', this.changed); }
   })];
 }

@@ -12,13 +12,18 @@ enum DocumentDialogs {
         let response = await panel.beginSheetModal(for: window)
         return response == .OK ? panel.url : nil
     }
-    static func save(in window: NSWindow, label: String?) async -> URL? {
+    static func save(in window: NSWindow, label: String?, resourceNote: Bool = false) async -> URL? {
         let panel = NSSavePanel()
         panel.title = localized("dialog.saveTitle"); panel.prompt = localized("button.save")
         panel.nameFieldLabel = localized("dialog.saveName")
         panel.nameFieldStringValue = label ?? localized("document.defaultFilename")
         panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
         panel.allowsOtherFileTypes = true
+        if resourceNote {
+            let note = NSTextField(wrappingLabelWithString: localized("media.saveLocationNote"))
+            note.frame = NSRect(x: 0, y: 0, width: 380, height: 44)
+            note.textColor = .secondaryLabelColor; panel.accessoryView = note
+        }
         let response = await panel.beginSheetModal(for: window)
         return response == .OK ? panel.url : nil
     }

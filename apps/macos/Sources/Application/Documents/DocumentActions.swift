@@ -1,12 +1,18 @@
 import AppKit
 
 @MainActor
-final class DocumentActions {
+final class DocumentActions: DocumentCloseParticipant {
     private let bridge: EditorBridge
     private let recovery: RecoveryCoordinator
     private let verifying: Bool
     private weak var window: NSWindow?
     private var initialized = false
+    private let initialPath: String?
+    var openingPath: String? { initialized ? nil : initialPath }
+    private let offerRecovery: Bool
+    private(set) var sessionId: String?
+    private var closeIntent: String?
+    private var abandonOnClose = false
     private(set) var ready = false { didSet { onAvailabilityChanged?() } }
     private(set) var busy = false { didSet { onAvailabilityChanged?() } }
     private(set) var closed = false
@@ -16,11 +22,14 @@ final class DocumentActions {
     var onReattached: (() -> Void)?
     var hasFile = false
     var label: String?
+    var fileRef: String?
+    var readOnly = false
 
-    init(bridge: EditorBridge, window: NSWindow, verifying: Bool) {
+    init(bridge: EditorBridge, window: NSWindow, verifying: Bool, initialPath: String? = nil, offerRecovery: Bool = true) {
+        self.initialPath = initialPath; self.offerRecovery = offerRecovery
         self.bridge = bridge; self.window = window; self.verifying = verifying
         recovery = RecoveryCoordinator(backend: bridge.backend, verifying: verifying)
-        autosave = verifying ? false : UserDefaults.standard.bool(forKey: "automaticallySaveDocuments")
+        autosave = false
     }
 
     func initialize() async throws {
@@ -34,17 +43,21 @@ final class DocumentActions {
         let reattaching = initialized
         let json: String
         if reattaching {
-            json = try await bridge.backend.perform { try $0.reattachDocument() }
+            guard let sessionId else { throw unavailable(localized("error.replacementContext")) }
+            json = try await bridge.backend.perform { try $0.reattachDocument(sessionId: sessionId) }
         } else {
-            let selected = !verifying && window != nil ? try await recovery.choose(in: window!, announceEmpty: false) : nil
-            if let selected { json = try await bridge.backend.perform { try $0.restoreRecovery(key: selected, replaceJson: nil) } }
+            let selected = offerRecovery && initialPath == nil && !verifying && window != nil ? try await recovery.choose(in: window!, announceEmpty: false) : nil
+            if let initialPath { json = try await bridge.backend.perform { try $0.openFile(path: initialPath, replaceJson: nil) } }
+            else if let selected { json = try await bridge.backend.perform { try $0.restoreRecovery(key: selected, replaceJson: nil) } }
             else { json = try await bridge.backend.perform { try $0.newDocument(replaceJson: nil) } }
             // A failed view attachment must reconnect this session, not create another.
-            initialized = true
+            rememberSession(json)
         }
         try requireGeneration(generation)
         _ = try await bridge.call("attachDocument", arguments: [json])
-        _ = try await bridge.call("setAutosave", arguments: [autosave])
+        let preferences = try await bridge.backend.perform { try $0.preferences() }
+        try requireGeneration(generation)
+        try await applyPreferences(preferences)
         _ = try await bridge.call("setLocale", arguments: [LanguagePreferences.shared.locale])
         ready = true
         if reattaching { onReattached?() }
@@ -55,7 +68,7 @@ final class DocumentActions {
     func cleanupVerificationFiles() { recovery.cleanupVerificationFiles() }
     private func show(_ error: Error) { bridge.onError?(error.localizedDescription) }
     private func unavailable(_ message: String) -> NSError {
-        NSError(domain: "OpenTypora", code: 3, userInfo: [NSLocalizedDescriptionKey: message])
+        NSError(domain: "Lino", code: 3, userInfo: [NSLocalizedDescriptionKey: message])
     }
     private func requireGeneration(_ generation: Int) throws {
         guard bridge.generation == generation else { throw unavailable(localized("error.viewChanged")) }
@@ -65,10 +78,18 @@ final class DocumentActions {
         guard ready && !busy && !closed else { return }
         let enabled = !autosave
         do {
-            _ = try await bridge.call("setAutosave", arguments: [enabled])
-            autosave = enabled
-            if !verifying { UserDefaults.standard.set(enabled, forKey: "automaticallySaveDocuments") }
+            try await applyAutosave(enabled)
         } catch { show(error) }
+    }
+    func applyAutosave(_ enabled: Bool) async throws {
+        guard ready && !closed else { throw unavailable(localized("error.busy")) }
+        _ = try await bridge.call("setAutosave", arguments: [enabled])
+        autosave = enabled
+    }
+    func applyPreferences(_ json: String) async throws {
+        let value = try PreferencesCoordinator.decode(json)
+        _ = try await bridge.call("applyPreferences", arguments: [json])
+        autosave = value.values.auto_save
     }
 
     func retryPersistence() async {
@@ -81,7 +102,8 @@ final class DocumentActions {
         let generation = bridge.generation
         var target: String?
         if asNew || !hasFile {
-            guard let window, let path = await DocumentDialogs.save(in: window, label: label)?.path else { return false }
+            let resourceNote = (try await bridge.call("hasLocalImages")) as? Bool == true
+            guard let window, let path = await DocumentDialogs.save(in: window, label: label, resourceNote: resourceNote)?.path else { return false }
             target = try await bridge.backend.perform { try $0.saveTarget(path: path) }
         }
         do {
@@ -95,17 +117,18 @@ final class DocumentActions {
         if let target { try? await bridge.backend.perform { try $0.releaseSaveTarget(targetJson: target) } }
         return true
     }
-    func save(asNew: Bool = false) async {
-        guard ready && !busy && !closed else { return }
+    @discardableResult
+    func save(asNew: Bool = false) async -> Bool {
+        guard ready && !busy && !closed else { return false }
         busy = true; defer { busy = false }
         onOperationStarted?()
-        do { _ = try await saveCurrent(asNew: asNew) } catch { show(error) }
+        do { return try await saveCurrent(asNew: asNew) } catch { show(error); return false }
     }
 
     private func replacementIntent() async throws -> String? {
         let value = try await bridge.call("prepareReplacement")
         guard let context = value as? [String: Any], let original = context["intentJson"] as? String else {
-            throw NSError(domain: "OpenTypora", code: 3, userInfo: [NSLocalizedDescriptionKey: localized("error.replacementContext")])
+            throw NSError(domain: "Lino", code: 3, userInfo: [NSLocalizedDescriptionKey: localized("error.replacementContext")])
         }
         guard context["dirty"] as? Bool == true else { return original }
         guard let window else { return nil }
@@ -152,8 +175,42 @@ final class DocumentActions {
         } catch { show(error) }
         _ = try? await bridge.call("cancelReplacement")
     }
+    func reloadFile() async {
+        guard ready && !busy && !closed, let file = fileRef else { return }
+        busy = true; defer { busy = false }
+        onOperationStarted?()
+        do {
+            if let intent = try await replacementIntent() {
+                let generation = bridge.generation
+                let json = try await bridge.backend.perform { try $0.reloadDocument(intentJson: intent, fileRef: file) }
+                try await attachReplacement(json, generation: generation)
+            }
+        } catch { show(error) }
+        _ = try? await bridge.call("cancelReplacement")
+    }
+    func toggleReadOnly() async {
+        guard ready && !busy && !closed else { return }
+        busy = true; defer { busy = false }
+        var committed = false
+        do {
+            guard let intent = try await bridge.call("prepareDocumentReadOnly") as? [String: Any],
+                  let id = intent["session_id"] as? String, let epoch = intent["epoch"] as? String, let revision = intent["revision"] as? String else { throw unavailable(localized("error.replacementContext")) }
+            let value = !readOnly
+            let updated = try await bridge.backend.perform { try $0.setDocumentReadOnly(sessionId: id, epoch: epoch, revision: revision, value: value) }
+            committed = true
+            _ = try await bridge.call("applyDocumentReadOnly", arguments: [updated])
+        } catch { if committed { ready = false }; show(error) }
+        _ = try? await bridge.call("cancelReplacement")
+    }
 
+    private func rememberSession(_ json: String) {
+        let opened = (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any]
+        sessionId = (opened?["status"] as? [String: Any])?["session_id"] as? String
+        bridge.sessionId = sessionId
+        initialized = sessionId != nil
+    }
     private func attachReplacement(_ json: String, generation: Int) async throws {
+        rememberSession(json)
         do {
             try requireGeneration(generation)
             _ = try await bridge.call("attachDocument", arguments: [json])
@@ -166,24 +223,40 @@ final class DocumentActions {
         }
     }
 
-    func close() async -> Bool {
+    func prepareClose() async -> Bool {
         if closed { return true }
         guard !busy else { return false }
+        busy = true
         if !ready {
-            guard let window else { return false }
-            busy = true; defer { busy = false }
-            guard await DocumentDialogs.closeUnavailable(in: window) else { return false }
-            closed = true
+            guard let window, await DocumentDialogs.closeUnavailable(in: window) else { busy = false; return false }
+            abandonOnClose = true
             return true
         }
-        busy = true; defer { busy = false }
         do {
-            guard let intent = try await replacementIntent() else {
-                _ = try? await bridge.call("cancelReplacement"); return false
+            guard let intent = try await replacementIntent() else { await cancelClose(); return false }
+            closeIntent = intent
+            return true
+        } catch { show(error); await cancelClose(); return false }
+    }
+    func cancelClose() async {
+        closeIntent = nil; abandonOnClose = false
+        if ready { _ = try? await bridge.call("cancelReplacement") }
+        busy = false
+    }
+    func commitClose() async -> Bool {
+        if closed { return true }
+        do {
+            if abandonOnClose {
+                if let sessionId { try await bridge.backend.perform { try $0.abandonDocument(sessionId: sessionId) } }
+            } else {
+                guard let closeIntent else { await cancelClose(); return false }
+                _ = try await bridge.call("closeDocument", arguments: [closeIntent])
             }
-            _ = try await bridge.call("closeDocument", arguments: [intent]); closed = true; return true
-        } catch {
-            show(error); _ = try? await bridge.call("cancelReplacement"); return false
-        }
+            closed = true; busy = false; return true
+        } catch { show(error); await cancelClose(); return false }
+    }
+    func close() async -> Bool {
+        guard await prepareClose() else { return false }
+        return await commitClose()
     }
 }

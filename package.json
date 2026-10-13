@@ -1,24 +1,27 @@
 {
-  "name": "open-typora",
-  "version": "0.0.1",
+  "name": "lino",
+  "version": "0.0.2",
   "private": true,
-  "description": "A macOS-first Markdown editor with a native shell, shared editor, and Rust services.",
+  "description": "A file-first editor with a native shell and shared Rust services, starting with Markdown.",
   "license": "MIT",
   "engines": {
     "node": ">=24.11.0"
   },
   "scripts": {
-    "build": "npm run build --workspace @open-typora/editor",
+    "build": "npm run build --workspace @lino/editor",
     "check": "npm run check:architecture && npm run editor:check",
     "check:architecture": "node tools/check-architecture.cjs",
-    "editor:check": "npm run typecheck --workspace @open-typora/editor && node --test tests/editor/*.test.mts",
+    "editor:check": "npm run typecheck --workspace @lino/editor && node --test tests/editor/*.test.mts",
     "app:build": "node tools/macos/build.cjs",
     "app:verify": "node tools/macos/verify.cjs",
+    "macos:check": "node tools/macos/check.cjs",
     "protocol:generate": "node tools/protocol/types.cjs",
     "protocol:check": "node tools/protocol/types.cjs --check"
   },
   "devDependencies": {
-    "@types/node": "26.6.5"
+    "@types/jsdom": "30.0.0",
+    "@types/node": "26.6.5",
+    "jsdom": "30.1.2"
   },
   "workspaces": [
     "packages/editor",

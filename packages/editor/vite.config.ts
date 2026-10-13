@@ -5,7 +5,7 @@ export default defineConfig({
     target: 'safari17',
     lib: {
       entry: 'src/main.ts',
-      name: 'OpenTyporaEditor',
+      name: 'LinoEditor',
       formats: ['iife'],
       fileName: () => 'editor.js',
       cssFileName: 'editor',

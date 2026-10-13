@@ -1,13 +1,11 @@
-use open_typora_adapters::storage::FileStorage;
-use open_typora_application::ports::{
-    DiskVersion, LoadedFile, StorageCommit, StorageError, StoragePort,
-};
-use open_typora_document::FileRef;
-use open_typora_protocol::{
+use lino_adapters::storage::FileStorage;
+use lino_application::ports::{DiskVersion, LoadedFile, StorageCommit, StorageError, StoragePort};
+use lino_document::FileRef;
+use lino_protocol::{
     CloseIntent, ErrorCode, OpenedDocument, Request, RequestEnvelope, Response, ResponseEnvelope,
     WireChange, PROTOCOL_VERSION,
 };
-use open_typora_runtime::DocumentRuntime;
+use lino_runtime::DocumentRuntime;
 use std::{
     fs,
     sync::{Arc, Barrier},
@@ -48,7 +46,7 @@ fn prepare(
     runtime: &DocumentRuntime,
     doc: &OpenedDocument,
     revision: u64,
-    target: Option<open_typora_protocol::SaveTarget>,
+    target: Option<lino_protocol::SaveTarget>,
 ) -> String {
     match call(
         runtime,

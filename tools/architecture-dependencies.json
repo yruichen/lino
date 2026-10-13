@@ -1,6 +1,6 @@
 {
   "rust": {
-    "open-typora-document": {
+    "lino-document": {
       "path": "crates/document",
       "allow": [],
       "platform_dependencies": false,
@@ -16,10 +16,10 @@
         "serde_json"
       ]
     },
-    "open-typora-markdown": {
+    "lino-markdown": {
       "path": "crates/markdown",
       "allow": [
-        "open-typora-document"
+        "lino-document"
       ],
       "platform_dependencies": false,
       "forbid": [
@@ -32,11 +32,11 @@
         "notify"
       ]
     },
-    "open-typora-application": {
+    "lino-application": {
       "path": "crates/application",
       "allow": [
-        "open-typora-document",
-        "open-typora-markdown"
+        "lino-document",
+        "lino-markdown"
       ],
       "platform_dependencies": false,
       "forbid": [
@@ -51,18 +51,18 @@
         "serde_json"
       ]
     },
-    "open-typora-adapters": {
+    "lino-adapters": {
       "path": "crates/adapters",
       "allow": [
-        "open-typora-document",
-        "open-typora-application"
+        "lino-document",
+        "lino-application"
       ],
       "platform_dependencies": true
     },
-    "open-typora-protocol": {
+    "lino-protocol": {
       "path": "crates/protocol",
       "allow": [
-        "open-typora-document"
+        "lino-document"
       ],
       "platform_dependencies": false,
       "forbid": [
@@ -75,33 +75,33 @@
         "notify"
       ]
     },
-    "open-typora-runtime": {
+    "lino-runtime": {
       "path": "crates/runtime",
       "allow": [
-        "open-typora-document",
-        "open-typora-application",
-        "open-typora-adapters",
-        "open-typora-protocol"
+        "lino-document",
+        "lino-application",
+        "lino-adapters",
+        "lino-protocol"
       ],
       "platform_dependencies": false
     },
-    "open-typora-ffi": {
+    "lino-ffi": {
       "path": "crates/ffi",
       "allow": [
-        "open-typora-runtime",
-        "open-typora-protocol"
+        "lino-runtime",
+        "lino-protocol"
       ],
       "platform_dependencies": false
     }
   },
   "frontend": {
-    "@open-typora/editor": {
+    "@lino/editor": {
       "path": "packages/editor",
       "allow": [
-        "@open-typora/protocol"
+        "@lino/protocol"
       ]
     },
-    "@open-typora/protocol": {
+    "@lino/protocol": {
       "path": "packages/protocol",
       "allow": []
     }

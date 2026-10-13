@@ -26,14 +26,17 @@ func verifyRecoveryFlow(bridge: EditorBridge) async throws -> [String] {
     try check("rust-wk-checkpoint-durable", durable["recoveryState"] as? String == "saved" && durable["dirty"] as? Bool == true)
     let before = durable["document"] as? [String: Any]
     _ = try await bridge.call("prepareReplacement")
-    let reattached = try await bridge.backend.perform { try $0.reattachDocument() }
+    guard let sessionId = before?["session_id"] as? String else {
+        throw NSError(domain: "RecoveryVerification", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing document session"])
+    }
+    let reattached = try await bridge.backend.perform { try $0.reattachDocument(sessionId: sessionId) }
     _ = try await bridge.call("attachDocument", arguments: [reattached])
     let recovered = try await snapshot()
     let after = recovered["document"] as? [String: Any]
     try check("rust-wk-reattach-accepted-source", recovered["text"] as? String == source && recovered["dirty"] as? Bool == true)
     try check("rust-wk-reattach-new-epoch", before?["epoch"] as? String != after?["epoch"] as? String && recovered["canUndo"] as? Bool == false)
 
-    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("open-typora-autosave-verify-\(UUID().uuidString)", isDirectory: true)
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("lino-autosave-verify-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: folder) }
     let path = folder.appendingPathComponent("自动保存.md").path

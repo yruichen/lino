@@ -15,6 +15,10 @@ pub struct SaveTarget {
     pub file_ref: String,
     pub expected_version: Option<String>,
     pub label: String,
+    /// Optional v1 extension. Distinguishes independently held native targets.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub reservation_id: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
@@ -29,6 +33,9 @@ pub struct CloseIntent {
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
 #[serde(deny_unknown_fields)]
 pub struct DocumentStatus {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub read_only: Option<bool>,
     pub session_id: String,
     pub epoch: String,
     pub revision: String,

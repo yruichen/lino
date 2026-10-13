@@ -35,8 +35,7 @@ func verifyCommandFlow(_ controller: EditorWindowController, settings: SettingsW
         let deadline = ContinuousClock.now.advanced(by: .seconds(1))
         repeat {
             let state = try await snapshot()
-            let visible = window.toolbar?.items.first { $0.itemIdentifier == .editorMode }?.view as? NSSegmentedControl
-            if state["mode"] as? String == expected && visible?.selectedSegment == segment && controller.modeControl.selectedSegment == segment { return true }
+            if state["mode"] as? String == expected && controller.editorMode == expected { return true }
             try await Task.sleep(for: .milliseconds(20))
         } while ContinuousClock.now < deadline
         return false
@@ -60,14 +59,13 @@ func verifyCommandFlow(_ controller: EditorWindowController, settings: SettingsW
         }
         return nil
     }
-    guard let toolbar = window.toolbar?.items.first(where: { $0.itemIdentifier == .editorFormat }) as? NSMenuToolbarItem,
-          let heading = findCommand("heading-3", in: toolbar.menu), let action = heading.action else {
+    guard let mainMenu = NSApp.mainMenu, let heading = findCommand("heading-3", in: mainMenu), let action = heading.action else {
         throw NSError(domain: "CommandVerification", code: 3)
     }
     try check("native-toolbar-heading-dispatched", NSApp.sendAction(action, to: heading.target, from: heading))
     let typed = try await controller.webView.callAsyncJavaScript("""
         const evidence = () => {
-            const state = window.openTypora.snapshot(), selected = document.getSelection(), active = document.activeElement;
+            const state = window.lino.snapshot(), selected = document.getSelection(), active = document.activeElement;
             return {
                 text: state.text, selection: state.selection,
                 focus: { document: document.hasFocus(), tag: active?.tagName ?? null,

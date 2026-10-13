@@ -1,0 +1,21 @@
+.ot-preview { display: inline-flex; flex-direction: column; vertical-align: middle; max-width: 100%; color: var(--ot-text); background: var(--ot-background); padding: .15em .3em; border: 1px solid var(--ot-border); border-radius: 6px; }
+.ot-preview-content { display: block; max-width: 100%; overflow-x: auto; }
+.ot-preview img { max-width: 100%; max-height: 70vh; object-fit: contain; }
+.ot-preview-diagram, .ot-preview-math:has(.katex-display) { display: flex; margin: 0; padding: .6em; }
+.ot-preview svg { display: block; max-width: 100%; height: auto; }
+.ot-preview output { font: 12px system-ui; color: var(--ot-error); white-space: normal; overflow-wrap: anywhere; }
+.ot-preview button, .ot-media-panel button { color: var(--ot-text); background: var(--ot-panel); border: 1px solid var(--ot-border); border-radius: 4px; padding: 3px 7px; }
+.ot-media-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; font: 12px system-ui; }
+.ot-media-panel label { display: flex; align-items: center; gap: 4px; }
+.ot-media-panel input { color: var(--ot-text); background: var(--ot-background); border: 1px solid var(--ot-border); border-radius: 4px; padding: 4px; }
+.ot-media-panel output { color: var(--ot-error); overflow-wrap: anywhere; }
+.ot-preview-math:has(.katex-display), .ot-preview-diagram { background: var(--ot-panel); border-radius: 10px; padding: 18px; }
+.ot-preview-image { border: 0; background: transparent; padding: 0; margin: 16px 0 24px; }
+/* Scroll containment on the common preview surface clips an image's shadow.
+   Images already fit the reading width; only math/diagrams need that scroller. */
+.ot-preview-image .ot-preview-content { overflow: visible; }
+.ot-preview-inline.ot-preview-math { border: 0; border-radius: 0; padding: 0; background: transparent; }
+.ot-preview { cursor: text; }
+.ot-preview:focus-visible { outline: 2px solid var(--ot-focus); outline-offset: 3px; }
+.ot-preview-image img { display: block; border-radius: 8px; box-shadow: 0 2px 5px light-dark(#0003, #0006), 0 12px 28px light-dark(#0003, #0008); }
+.ot-preview output:empty { display: none; }

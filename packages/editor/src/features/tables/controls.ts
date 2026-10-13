@@ -2,7 +2,8 @@ import { EditorSelection, StateEffect, StateField, type EditorState, type Transa
 import { ensureSyntaxTree } from '@codemirror/language';
 import { isolateHistory } from '@codemirror/commands';
 import { changeComposition } from '../source-mode/state.ts';
-import { showPanel, type EditorView, type Panel, type ViewUpdate } from '@codemirror/view';
+import { type EditorView, type Panel, type ViewUpdate } from '@codemirror/view';
+import { contextualControls, focusContext } from '../../controls/contextual.ts';
 import { tFor } from '../../localization/index.ts';
 import { localeFacet } from '../../localization/editor.ts';
 import { tableSource } from './model.ts';
@@ -30,7 +31,6 @@ export function insertionTransaction(state: EditorState, rows: number, columns: 
 }
 class TableInsertionPanel implements Panel {
   readonly dom = document.createElement('form');
-  readonly top = true;
   private readonly view: EditorView;
   private readonly rows = document.createElement('input');
   private readonly columns = document.createElement('input');
@@ -68,7 +68,7 @@ class TableInsertionPanel implements Panel {
     this.dom.addEventListener('keydown', event => { if (event.key === 'Escape' && !event.isComposing) { event.preventDefault(); this.close(); } });
     this.render();
   }
-  private close(): void { if (this.composing) return; this.view.dispatch({ effects: showTableInsertion.of(false) }); this.view.focus(); }
+  private close(): void { if (this.composing) return; this.view.dispatch({ effects: [focusContext.of(null), showTableInsertion.of(false)] }); this.view.focus(); }
   private render(): void {
     const draft = this.view.state.field(insertionPanel);
     if (this.rows.value !== draft.rows) this.rows.value = draft.rows;
@@ -96,6 +96,6 @@ const insertionPanel = StateField.define<InsertionDraft & { visible: boolean }>(
     }
     return draft;
   },
-  provide: field => showPanel.from(field, draft => draft.visible ? createTableInsertionPanel : null),
+  provide: field => contextualControls('table', field, (state, draft) => draft.visible ? state.selection.main.head : null, createTableInsertionPanel),
 });
 export const tableControls = [tableCellFocus, insertionPanel];

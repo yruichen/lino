@@ -1,5 +1,5 @@
 [package]
-name = "open-typora-application"
+name = "lino-application"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,5 +9,5 @@ publish.workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-open-typora-document.workspace = true
-open-typora-markdown.workspace = true
+lino-document.workspace = true
+lino-markdown.workspace = true

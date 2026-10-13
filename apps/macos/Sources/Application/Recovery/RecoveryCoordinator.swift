@@ -22,9 +22,11 @@ final class RecoveryCoordinator {
         guard !configured else { return }
         let directory: URL
         if verifying {
-            directory = FileManager.default.temporaryDirectory.appendingPathComponent("open-typora-recovery-verify-\(UUID().uuidString)", isDirectory: true)
+            directory = FileManager.default.temporaryDirectory.appendingPathComponent("lino-recovery-verify-\(UUID().uuidString)", isDirectory: true)
             temporaryDirectory = directory
         } else {
+            // Keep the published storage location across the Lino rename so
+            // existing protected drafts remain available without relocation.
             directory = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                 .appendingPathComponent("OpenTypora/Recovery", isDirectory: true)
         }

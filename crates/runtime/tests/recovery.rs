@@ -1,15 +1,15 @@
 #[cfg(unix)]
-use open_typora_adapters::recovery::FileRecovery;
+use lino_adapters::recovery::FileRecovery;
 #[cfg(unix)]
-use open_typora_application::{
+use lino_application::{
     ports::StorageError,
     recovery::{RecoveredText, RecoveryEntry, RecoveryPort, RecoverySnapshot},
 };
-use open_typora_protocol::{
+use lino_protocol::{
     ErrorCode, OpenedDocument, Request, RequestEnvelope, Response, ResponseEnvelope, WireChange,
     PROTOCOL_VERSION,
 };
-use open_typora_runtime::DocumentRuntime;
+use lino_runtime::DocumentRuntime;
 use std::path::Path;
 #[cfg(unix)]
 use std::{
@@ -141,7 +141,7 @@ fn webview_renewal_keeps_accepted_text_and_rejects_old_callbacks() {
         edit(&runtime, &doc, 1, 0, "已接收"),
         Response::Applied { .. }
     ));
-    let next = runtime.reattach_document().unwrap();
+    let next = runtime.reattach_document(&doc.status.session_id).unwrap();
     assert_eq!(next.text, "已接收");
     assert_ne!(next.status.epoch, doc.status.epoch);
     assert!(
@@ -265,15 +265,21 @@ fn malformed_recovery_does_not_replace_active_document() {
     assert!(runtime
         .restore_recovery(
             "draft-broken.recovery",
-            Some(open_typora_protocol::CloseIntent {
-                session_id: doc.status.session_id,
+            Some(lino_protocol::CloseIntent {
+                session_id: doc.status.session_id.clone(),
                 epoch: doc.status.epoch,
                 revision: "1".into(),
                 discard: true
             })
         )
         .is_err());
-    assert_eq!(runtime.reattach_document().unwrap().text, "current");
+    assert_eq!(
+        runtime
+            .reattach_document(&doc.status.session_id)
+            .unwrap()
+            .text,
+        "current"
+    );
     assert_eq!(
         std::fs::read(dir.path().join("draft-broken.recovery")).unwrap(),
         b"bad"
@@ -333,9 +339,9 @@ fn failed_directory_sync_after_delete_invalidates_cached_durability() {
 #[cfg(unix)]
 #[test]
 fn unconfirmed_original_directory_sync_keeps_recovery_after_clean_close() {
-    use open_typora_adapters::storage::FileStorage;
-    use open_typora_application::ports::{DiskVersion, LoadedFile, StorageCommit, StoragePort};
-    use open_typora_document::FileRef;
+    use lino_adapters::storage::FileStorage;
+    use lino_application::ports::{DiskVersion, LoadedFile, StorageCommit, StoragePort};
+    use lino_document::FileRef;
     struct UnconfirmedSave(Arc<FileStorage>);
     impl StoragePort for UnconfirmedSave {
         fn load(&self, file: FileRef) -> Result<LoadedFile, StorageError> {
@@ -380,7 +386,7 @@ fn unconfirmed_original_directory_sync_keeps_recovery_after_clean_close() {
         call(
             &runtime,
             Request::Close {
-                session_id: doc.status.session_id,
+                session_id: doc.status.session_id.clone(),
                 epoch: doc.status.epoch,
                 revision: "1".into(),
                 discard: false

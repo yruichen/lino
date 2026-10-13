@@ -3,6 +3,8 @@ import { keymap, type EditorView, type Panel, type ViewUpdate } from '@codemirro
 import { canReplace, closeSearchPanel, MATCH_LIMIT, replacementTransactions, replacementVisible, replaceMatches, runSearchCommand, searchMatches, showReplacement, type SearchMatches } from './commands.ts';
 import { localeFacet } from '../../localization/editor.ts';
 import { formatNumber, tFor, type Locale, type MessageArguments, type MessageKey } from '../../localization/index.ts';
+import { nativeSearchUI, querySummary } from './state.ts';
+import { searchArrival, searchMotion } from './motion.ts';
 
 class SearchPanel implements Panel {
   readonly dom = document.createElement('section');
@@ -21,16 +23,21 @@ class SearchPanel implements Panel {
   private readonly toggle: HTMLButtonElement;
   private readonly close: HTMLButtonElement;
   private readonly help = document.createElement('span');
+  private readonly optionsToggle: HTMLButtonElement;
   private locale: Locale;
   private matches: SearchMatches = { ranges: [], overflow: false };
   private query: SearchQuery;
-  constructor(private readonly view: EditorView) {
+  private readonly view: EditorView;
+  constructor(view: EditorView) {
+    this.view = view;
     this.query = getSearchQuery(view.state);
     this.locale = view.state.facet(localeFacet);
     this.dom.className = 'ot-search';
     const row = this.dom.appendChild(document.createElement('div'));
     row.className = 'ot-search-row';
-    this.find.setAttribute('main-field', 'true');
+    const native = view.state.facet(nativeSearchUI);
+    this.dom.dataset.native = String(native); this.find.hidden = native;
+    if (!native) this.find.setAttribute('main-field', 'true');
     this.toggle = this.button('toggle-replace', () => view.dispatch({ effects: showReplacement.of(!view.state.field(replacementVisible)) }));
     this.previous = this.button('previous', () => this.navigate(true));
     this.next = this.button('next', () => this.navigate(false));
@@ -40,6 +47,10 @@ class SearchPanel implements Panel {
     row.append(this.find, this.result, this.previous, this.next, this.toggle, this.close);
     const options = this.dom.appendChild(document.createElement('div'));
     options.className = 'ot-search-options';
+    options.hidden = native;
+    this.optionsToggle = this.button('options', () => { options.hidden = !options.hidden; this.optionsToggle.setAttribute('aria-expanded', String(!options.hidden)); });
+    this.optionsToggle.hidden = !native; this.optionsToggle.setAttribute('aria-expanded', String(!options.hidden));
+    row.insertBefore(this.optionsToggle, this.close);
     options.append(this.matchCase.label, this.wholeWord.label, this.regexp.label);
     options.append(this.help); this.help.className = 'ot-search-help';
     this.replacementRow.className = 'ot-search-row';
@@ -96,6 +107,7 @@ class SearchPanel implements Panel {
       [this.replaceAll, tr('search.replaceAll'), tr('search.replaceAllHelp')],
     ] as const) { button.textContent = text; button.title = title; button.setAttribute('aria-label', title); }
     this.help.textContent = tr('search.help');
+    this.optionsToggle.textContent = tr('search.options'); this.optionsToggle.setAttribute('aria-label', tr('search.options'));
   }
   private commit(): void {
     const query = new SearchQuery({ search: this.find.value, replace: this.replacement.value,
@@ -117,6 +129,7 @@ class SearchPanel implements Panel {
     this.result.textContent = invalid ? tFor(this.locale, 'search.invalid') : !this.query.search ? tFor(this.locale, 'search.empty') :
       selected >= 0 ? tFor(this.locale, 'search.selectedMatch', {index: selected + 1, count}) : tFor(this.locale, 'search.matches', {count});
     this.result.classList.toggle('is-error', invalid);
+    this.result.dataset.current = String(selected >= 0);
     this.find.setAttribute('aria-invalid', String(invalid));
     const visible = this.view.state.field(replacementVisible);
     this.replacementRow.hidden = !visible; this.toggle.setAttribute('aria-pressed', String(visible));
@@ -135,7 +148,7 @@ class SearchPanel implements Panel {
     replaceMatches(this.view, all);
     this.render();
   }
-  mount(): void { this.find.focus(); this.find.select(); }
+  mount(): void { if (!this.view.state.facet(nativeSearchUI)) { this.find.focus(); this.find.select(); } }
   update(update: ViewUpdate): void {
     const locale = update.state.facet(localeFacet);
     if (locale !== this.locale) { this.locale = locale; this.localize(); }
@@ -147,7 +160,7 @@ class SearchPanel implements Panel {
 }
 
 export const documentSearch = [
-  search({ top: true, createPanel: view => new SearchPanel(view) }), replacementVisible, replacementTransactions,
+  search({ top: true, createPanel: view => new SearchPanel(view), scrollToMatch: range => searchArrival.of(range) }), querySummary, searchMotion, replacementVisible, replacementTransactions,
   keymap.of([
     { key: 'Mod-f', run: view => runSearchCommand(view, 'find') },
     { key: 'Mod-Alt-f', run: view => runSearchCommand(view, 'replace') },

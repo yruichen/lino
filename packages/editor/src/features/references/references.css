@@ -1,0 +1,11 @@
+.ot-document-link { color: var(--ot-link); text-decoration: underline; text-underline-offset: .15em; }
+.ot-document-toc { display: grid; gap: .4em; padding: 1em; margin: 0; border: 1px solid var(--ot-border); border-radius: .6em; background: var(--ot-panel); }
+.ot-document-toc button, .ot-footnote-ref button { background: transparent; color: var(--ot-link); border: 0; text-align: start; font: inherit; cursor: pointer; }
+.ot-footnote-ref button { padding: 0 .15em; }
+.ot-reference-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .6em; padding: .8em; color: var(--ot-text); background: var(--ot-panel); border-bottom: 1px solid var(--ot-border); }
+.ot-reference-tools label { display: flex; align-items: center; gap: .4em; }
+.ot-reference-tools label[hidden], .ot-reference-tools button[hidden] { display: none; }
+.ot-reference-tools input { min-width: 10em; padding: .35em; color: var(--ot-text); background: var(--ot-background); caret-color: var(--ot-text); border: 1px solid var(--ot-border); border-radius: .3em; font: inherit; }
+.ot-reference-tools button { padding: .35em .65em; font: inherit; color: var(--ot-text); background: var(--ot-background); border: 1px solid var(--ot-border); border-radius: .3em; }
+.ot-reference-tools p, .ot-reference-tools output { flex-basis: 100%; margin: 0; font-size: .85em; }
+.ot-reference-tools output { color: var(--ot-error); }

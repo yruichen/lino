@@ -26,6 +26,18 @@ export function linePosition(state: EditorState, value: string): number | null {
 function composing(view: EditorView): boolean {
   return view.composing || view.state.field(compositionState, false) === true;
 }
+export function navigateSourcePosition(view: EditorView, position: number): boolean {
+  if (composing(view) || !Number.isInteger(position) || position < 0 || position > view.state.doc.length) return false;
+  let inTable = false;
+  syntaxTree(view.state).iterate({ from: position, to: position, enter(node) {
+    if (node.name === 'Table') { inTable = true; return false; }
+  } });
+  view.dispatch({ selection: EditorSelection.cursor(position), effects: [
+    setLineDraft.of(null), ...(inTable ? [changeMode.of('source')] : []),
+    EditorView.scrollIntoView(position, { y: 'center' }),
+  ] });
+  view.focus(); return true;
+}
 
 function createLinePanel(view: EditorView): Panel {
   const dom = document.createElement('form');
@@ -79,15 +91,7 @@ function createLinePanel(view: EditorView): Panel {
     }
     // A replaced table has no caret for its hidden source rows. Reveal source
     // only when the requested line is inside that block, preserving all text.
-    let inTable = false;
-    syntaxTree(view.state).iterate({ from: position, to: position, enter(node) {
-      if (node.name === 'Table') { inTable = true; return false; }
-    } });
-    view.dispatch({ selection: EditorSelection.cursor(position), effects: [
-      setLineDraft.of(null), ...(inTable ? [changeMode.of('source')] : []),
-      EditorView.scrollIntoView(position, { y: 'center' }),
-    ] });
-    view.focus();
+    navigateSourcePosition(view, position);
   });
   update();
   return { dom, top: true, mount: () => { input.focus(); input.select(); }, update };

@@ -1,4 +1,4 @@
-use open_typora_document::{FileRef, Snapshot, TextFormat};
+use lino_document::{FileRef, Snapshot, TextFormat};
 use std::fmt;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -20,7 +20,7 @@ func verifyDocumentFlow(bridge: EditorBridge) async throws -> [String] {
         _ = try await bridge.call("attachDocument", arguments: [json])
         _ = try await bridge.call("cancelReplacement")
     }
-    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("open-typora-verify-\(UUID().uuidString)", isDirectory: true)
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("lino-verify-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: folder) }
     let path = folder.appendingPathComponent("中文.md").path

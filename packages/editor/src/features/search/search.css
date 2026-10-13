@@ -1,18 +1,23 @@
 .cm-panels-top { border-bottom: 1px solid var(--ot-border); }
-.cm-panel.ot-search { padding: 12px 20px; background: var(--ot-panel); font: 12px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; color: inherit; }
-.ot-search-row { display: flex; align-items: center; gap: 8px; max-width: 880px; margin: 0 auto; }
+.cm-panel.ot-search { padding: 12px 20px; background: var(--ot-panel); font: 13px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; color: inherit; }
+.ot-search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 880px; margin: 0 auto; }
 .ot-search-row[hidden] { display: none; }
-.ot-search-input { flex: 1; min-width: 100px; height: 29px; border: 1px solid var(--ot-border); border-radius: 6px; padding: 0 9px; background: var(--ot-input); color: inherit; font: inherit; }
+.ot-search-input { flex: 1 1 220px; min-width: 0; height: 34px; box-sizing: border-box; border: 1px solid var(--ot-border); border-radius: 10px; padding: 0 12px; background: var(--ot-input); color: inherit; font: inherit; }
 .ot-search-input:focus-visible, .ot-search button:focus-visible { outline: 2px solid var(--ot-focus); outline-offset: 1px; }
 .ot-search-input[aria-invalid=true] { border-color: var(--ot-error); }
-.ot-search button { border: 1px solid var(--ot-border); border-radius: 5px; padding: 4px 10px; white-space: nowrap; font: inherit; color: inherit; background: var(--ot-button); cursor: pointer; }
+.ot-search button { border: 1px solid transparent; border-radius: 7px; padding: 6px 10px; white-space: nowrap; font: inherit; color: inherit; background: var(--ot-button); cursor: pointer; }
 .ot-search button:disabled, .ot-search-input:disabled { opacity: .45; cursor: default; }
 .ot-search button[aria-pressed=true] { border-color: var(--ot-focus); background: var(--ot-active); }
 .ot-search-result { min-width: 74px; text-align: center; white-space: nowrap; color: var(--ot-muted); }
 .ot-search-result.is-error { color: var(--ot-error); }
-.ot-search-options { display: flex; gap: 15px; align-items: center; max-width: 880px; margin: 8px auto; }
+.ot-search-options { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; max-width: 880px; margin: 8px auto; }
 .ot-search-options label { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; cursor: pointer; }
 .ot-search-help { margin-left: auto; color: var(--ot-muted); }
 .cm-searchMatch { background: var(--ot-match) !important; }
 .cm-searchMatch-selected { background: var(--ot-match-selected) !important; }
 @media (max-width: 650px) { .ot-search-help { display: none; } .cm-panel.ot-search { padding: 9px; } .ot-search-row { gap: 5px; } .ot-search button { padding: 4px 7px; } }
+.ot-search-options[hidden], .ot-search button[hidden] { display: none; }
+.ot-search[data-native=true] { padding-block: 6px; }
+.ot-search[data-native=true] .ot-search-row { max-width: none; }
+.ot-search[data-native=true] .ot-search-result { text-align: start; margin-inline-end: auto; }
+.ot-search[hidden], .ot-search-input[hidden] { display: none; }

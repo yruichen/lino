@@ -98,8 +98,6 @@ test('code blocks choose collision-free fences, toggle content and undo exact by
 
 test('unsupported complex structures and invalid ranges are rejected before mutation', () => {
   for (const [raw, command, position] of [
-    ['- parent\n  - child', 'ordered-list', 3],
-    ['a\n===', 'heading-2', 1],
     ['| A |\n| --- |\n| cell |', 'bold', 17],
     ['```\ncode', 'code-block', 5],
     ['> - parent\n>   - child', 'blockquote', 6],
@@ -108,6 +106,19 @@ test('unsupported complex structures and invalid ranges are rejected before muta
   }
   const emoji = fixture('🙂'); emoji.select(1); assert.throws(() => emoji.format('bold')); assert.equal(emoji.read(), '🙂');
   const multiline = fixture('one\ntwo'); multiline.select(0, 7); assert.throws(() => multiline.format('inline-code')); assert.throws(() => multiline.format('link'));
+});
+test('Setext conversion handles multiline headings and preserves the following paragraph in one undo', () => {
+  for (const [raw, expected] of [['a\n===\n\nbody', '## a\n\nbody'], ['first\nsecond\n---\n\nbody', '## first second\n\nbody'], ['> title\n> ---\n\nbody', '> ## title\n\nbody']] as const) {
+    const editor = fixture(raw); editor.select(raw.indexOf('title') >= 0 ? raw.indexOf('title') : 1); assert(editor.format('heading-2'));
+    assert.equal(editor.read(), expected); assert(undo(editor.target)); assert.equal(editor.read(), raw);
+  }
+});
+test('nested list conversion shifts subtree indentation by marker width without rewriting child markers or code text', () => {
+  for (const [raw, command, expected] of [['- parent\n  - child\n    continuation', 'ordered-list', '1. parent\n   - child\n     continuation'], ['10. parent\n    - child', 'bullet-list', '- parent\n  - child'], ['> - parent\n>   - child', 'ordered-list', '> 1. parent\n>    - child']] as const) {
+    const editor = fixture(raw); editor.select(raw.indexOf('parent')); assert(editor.format(command));
+    assert.equal(editor.read(), expected); assert(undo(editor.target)); assert.equal(editor.read(), raw);
+  }
+  const tasks = fixture('- [x] parent\n  - child'); tasks.select(7); tasks.format('ordered-list'); assert.equal(tasks.read(), '1. parent\n   - child');
 });
 
 test('formatting obeys read-only and IME state without adding history', () => {

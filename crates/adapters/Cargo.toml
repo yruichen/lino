@@ -1,5 +1,5 @@
 [package]
-name = "open-typora-adapters"
+name = "lino-adapters"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,9 +9,12 @@ publish.workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-open-typora-document.workspace = true
-open-typora-application.workspace = true
+lino-document.workspace = true
+lino-application.workspace = true
 tempfile = "3.27.0"
+trash = "=5.2.4"
+regex = "=1.12.3"
+notify = "=8.2.0"
 blake3 = "1.8.7"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"

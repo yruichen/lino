@@ -11,7 +11,7 @@ const numberFormats = { en: new Intl.NumberFormat('en'), 'zh-Hans': new Intl.Num
 export function formatNumber(language: Locale, value: number): string { return numberFormats[language].format(value); }
 export function normalizeLocale(value: unknown): Locale { return value === 'zh-Hans' ? value : 'en'; }
 let locale = normalizeLocale(typeof window === 'undefined' ? undefined
-  : (window as Window & { __openTyporaLocale?: unknown }).__openTyporaLocale);
+  : (window as Window & { __linoLocale?: unknown }).__linoLocale);
 export function currentLocale(): Locale { return locale; }
 export function setLocale(value: unknown): Locale {
   const next = normalizeLocale(value);

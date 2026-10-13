@@ -1,14 +1,19 @@
 import { localizeError, t } from '../../localization/index.ts';
 import { EditorSelection, type ChangeSpec, type EditorState, type TransactionSpec } from '@codemirror/state';
 import { markdownLanguage } from '@codemirror/lang-markdown';
+import { language } from '@codemirror/language';
 import { enclosingNode, guardTextBlocks, selectedLines, selectionTree, type MarkdownNode } from './selection.ts';
 
-export type InlineFormat = 'bold' | 'italic' | 'strikethrough' | 'inline-code' | 'link';
-const nodeNames = { bold: 'StrongEmphasis', italic: 'Emphasis', strikethrough: 'Strikethrough', 'inline-code': 'InlineCode' };
+export type InlineFormat = 'bold' | 'italic' | 'strikethrough' | 'inline-code' | 'link' | 'highlight' | 'superscript' | 'subscript';
+export const inlineNodeNames = { bold: 'StrongEmphasis', italic: 'Emphasis', strikethrough: 'Strikethrough', 'inline-code': 'InlineCode', highlight: 'Highlight', superscript: 'Superscript', subscript: 'Subscript' };
+const nodeNames = inlineNodeNames;
 function marks(text: string, command: Exclude<InlineFormat, 'link'>): string[] {
   if (command === 'bold') return ['**', '__'];
   if (command === 'italic') return ['*', '_'];
   if (command === 'strikethrough') return ['~~'];
+  if (command === 'highlight') return ['=='];
+  if (command === 'superscript') return ['^'];
+  if (command === 'subscript') return ['~'];
   let longest = 0;
   for (const match of text.matchAll(/`+/g)) longest = Math.max(longest, match[0].length);
   return ['`'.repeat(longest + 1)];
@@ -54,6 +59,10 @@ function link(state: EditorState): TransactionSpec {
 }
 export function inlineFormat(state: EditorState, command: InlineFormat): TransactionSpec {
   guardTextBlocks(state);
+  const selected = state.selection.main;
+  selectionTree(state).iterate({ from: selected.from, to: selected.to, enter(node) {
+    if (node.name === 'InlineMath' && (selected.from > node.from && selected.from < node.to || selected.to > node.from && selected.to < node.to)) throw localizeError(new Error(), 'format.textOnly');
+  } });
   if (command === 'link') return link(state);
   const existing = unwrap(state, command);
   if (existing) return existing;
@@ -94,7 +103,7 @@ export function inlineFormat(state: EditorState, command: InlineFormat): Transac
       const insert = mark + padding + text + padding + mark;
       const candidate = line.text.slice(0, from - line.from) + insert + line.text.slice(to - line.from);
       const offset = from - line.from;
-      markdownLanguage.parser.parse(candidate).iterate({ enter(node) {
+      (state.facet(language) ?? markdownLanguage).parser.parse(candidate).iterate({ enter(node) {
         if (node.name === nodeNames[command] && node.from === offset && node.to === offset + insert.length) chosen = mark;
       } });
       if (chosen) break;

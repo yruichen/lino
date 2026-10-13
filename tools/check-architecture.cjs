@@ -15,7 +15,7 @@ function validateGraph(nodes, rules, platformPackages = []) {
         assert(rule.allow.includes(dep.name), `Forbidden dependency: ${name} -> ${dep.name}`);
       } else {
         assert(!dep.local, `Unregistered local dependency: ${name} -> ${dep.name}`);
-        assert(!dep.name.startsWith('open-typora-') && !dep.name.startsWith('@open-typora/'), `Unknown internal package: ${dep.name}`);
+        assert(!dep.name.startsWith('lino-') && !dep.name.startsWith('@lino/'), `Unknown internal package: ${dep.name}`);
       }
       if (!rule.platform_dependencies) {
         assert(!platformPackages.includes(dep.name) && !/^(objc2-|webview2-)/.test(dep.name), `Platform dependency in ${name}: ${dep.name}`);

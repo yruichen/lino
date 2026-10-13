@@ -1,0 +1,20 @@
+.cm-line.ot-code-line { position: relative; background: var(--ot-panel); font: 14px/1.7 ui-monospace, Menlo, monospace; padding-inline: 12px; }
+.cm-line.ot-code-nowrap { white-space: pre; }
+.cm-line.ot-code-numbered { padding-inline-start: 4em; }
+.cm-line.ot-code-numbered::before { content: attr(data-code-line); position: absolute; inset-inline-start: 8px; width: 2.8em; text-align: end; color: var(--ot-muted); user-select: none; pointer-events: none; }
+.ot-code-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 9px 16px; font: 12px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: var(--ot-text); background: var(--ot-panel); }
+.ot-code-tools label { display: flex; align-items: center; gap: 7px; }
+.ot-code-tools input { width: 115px; }
+.ot-code-tools input, .ot-code-tools button { border: 1px solid var(--ot-border); border-radius: 5px; color: inherit; background: var(--ot-input); padding: 5px 8px; font: inherit; }
+.ot-code-tools button { background: var(--ot-button); }
+.ot-code-tools :disabled { opacity: .45; }
+.ot-code-tools :focus-visible { outline: 2px solid var(--ot-focus); outline-offset: 1px; }
+.ot-code-tools output { color: var(--ot-muted); }
+.ot-code-tools output[data-error=true] { color: var(--ot-error); }
+.cm-line.ot-code-framed { border-inline: 1px solid var(--ot-border); }
+.cm-editor .cm-line.ot-code-first { border-top: 1px solid var(--ot-border); border-radius: 10px 10px 0 0; padding-top: 8px; padding-inline-end: 7em; }
+.cm-editor .cm-line.ot-code-last { border-bottom: 1px solid var(--ot-border); border-radius: 0 0 10px 10px; padding-bottom: 8px; }
+.cm-line.ot-code-first.ot-code-last { border-radius: 10px; }
+.ot-code-language-anchor { position: relative; height: 0; margin: 0; padding: 0; overflow: visible; }
+.ot-code-language { position: absolute; z-index: 1; top: 6px; right: 10px; max-width: 6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 4px; color: var(--ot-muted); background: var(--ot-panel); border: 0; border-radius: 4px; font: 12px/1.7 system-ui; cursor: pointer; }
+.ot-code-language:hover { background: var(--ot-active); color: var(--ot-text); }
