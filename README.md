@@ -1,109 +1,87 @@
-<p align="center">
-  <img src="docs/assets/overview.svg" alt="open-typora: input, document model, rendered view and native services" width="960">
-</p>
+<div align="center">
 
 # open-typora
 
-**What happens between a keystroke and a saved `.md` file?**
+**Write in Markdown. Stay in the flow.**
 
-An open research notebook on Typora's editor: the document model, live rendering, undo, source mode, and the JavaScript ↔ macOS boundary. Follow the implementation through module identities, byte offsets, native methods, and explicitly stated unknowns.
+An open-source Markdown editor built around your files, a native Mac shell, and a shared Rust core.
 
-[![Validate research](https://github.com/yruichen/open-typora/actions/workflows/check.yml/badge.svg)](https://github.com/yruichen/open-typora/actions/workflows/check.yml)
-[![License: MIT](https://img.shields.io/badge/Original_work-MIT-blue.svg)](LICENSE)
-[![Research](https://img.shields.io/badge/Research-static_analysis-7c5cff.svg)](docs/methodology.md)
+[![Version](https://img.shields.io/badge/v0.0.1-Beta-ef9f43)](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)
+[![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-**[Read the interactive report →](https://yruichen.github.io/open-typora/)** · [中文 README](README.zh-CN.md) · [Evidence indices](data/) · [Reproduce locally](docs/reproduce.md)
+[**Download for macOS**](https://github.com/yruichen/open-typora/releases/tag/v0.0.1) · [Report an issue](https://github.com/yruichen/open-typora/issues) · [简体中文](README.zh-CN.md)
 
-## Five findings worth opening the report for
+</div>
 
-1. **The visual editor keeps a document tree.** Nodes connect Markdown serialization, editable DOM, selection, and undo. Rendering is one part of a larger editing system.
-2. **This Mac sample uses a native Cocoa shell and WebKit.** Shared JavaScript contains Node/Electron branches; those branches do not establish how the Mac app runs.
-3. **“Search” is two different systems.** Quick Open uses `NSMetadataQuery`; folder-content search selects a bundled `rg` executable and handles its process output.
-4. **Export crosses the bridge in both directions.** `export.exportToNative` is a JavaScript handler called by native code. Pandoc, HTML, PDF, and printing have distinct paths.
-5. **Source mode changes the editing machinery.** Markdown comes from CodeMirror in source mode and from the node model in visual mode, with separate undo paths.
+## A familiar place for your words
 
-Each finding links back to a [report section](docs/report.zh-CN.md) and a machine-readable index. Same-name endpoints are static correspondence, not proof of runtime execution.
+Inspired by Typora’s writing experience, open-typora is working toward a focused, lightweight editor that feels at home on macOS.
 
-## The map, in numbers
+- **Your files stay Markdown.** Open a `.md` file, write, and save it back to disk. No proprietary document format.
+- **The Mac handles the window.** AppKit provides the windows, menus, toolbar and file dialogs. CodeMirror 6 handles editing inside the system’s WKWebView.
+- **Rust handles the shared core.** Document models, file operations and application services live behind explicit platform boundaries. macOS comes first; Windows and Linux hosts are future work.
 
-| Indexed scope | Count |
-| --- | ---: |
-| Main editor System modules | **83** |
-| Native defined Objective-C classes | **98** |
-| Native method implementation records | **2,017** |
-| JavaScript literal bridge callsites | **193** |
-| JS callsites with matching opposite-direction native endpoints | **182** |
-| Packaged regular files in the manifest | **693** |
+Lightweight operation is a design goal. We have not yet published performance benchmarks.
 
-Counts describe the analyzed sample. “2,017 methods” is an implementation inventory, not 2,017 independently understood features.
+## What you can do today
 
-## Start with the question you care about
+| Write | Navigate | Keep your work |
+| --- | --- | --- |
+| Source and visual editing modes | Find and replace within a document | Open and save UTF-8 Markdown |
+| Shared undo and redo history | Jump to a line | Local recovery copies |
+| Basic Markdown formatting and editable tables | Native menus and keyboard shortcuts | Optional autosave for named files |
+| English and Simplified Chinese interface | Switch modes with **⌘/** | External-change detection |
 
-| Your question | Read this |
+> **v0.0.1 is an early Beta.** This is not yet a complete Typora alternative. Full Markdown presentation, images, math, diagrams and advanced export remain unfinished. Native interaction, accessibility and platform compatibility need broader validation.
+
+## Try the Beta
+
+1. [Download the macOS release](https://github.com/yruichen/open-typora/releases/tag/v0.0.1) for **Apple Silicon, macOS 14 or later**.
+2. Unzip the archive and move **OpenTypora.app** to **Applications**.
+3. Open a Markdown file and start writing.
+
+The Beta is ad-hoc signed and **not notarized**; macOS may require an explicit security approval before opening it.
+
+| Action | Shortcut |
 | --- | --- |
-| How does live Markdown editing work? | [Editor findings](data/editor-findings.json): parser, node model, Brush, selection, undo |
-| Where is a feature in the bundle? | [83-module map](data/modules.json), with dependencies and offsets |
-| Which side of the bridge owns an operation? | [Bridge endpoint pairs](data/bridges.json) |
-| How do search, saving, and export reach macOS? | [Native findings](data/native-findings.json) and [method registry](data/native-methods.json) |
-| What does this sample actually contain? | [File manifest](data/package-manifest.json) and [sample identity](data/sample.json) |
-| How can I verify or improve a claim? | [Methodology](docs/methodology.md) and [reproduction guide](docs/reproduce.md) |
+| Open a file | ⌘O |
+| Save / Save As | ⌘S / ⇧⌘S |
+| Switch editing modes | ⌘/ |
 
-The detailed report is currently in Chinese. Module names, interfaces, indices, and most evidence annotations are readable in English. English report contributions are welcome.
+Change the interface language in **Open Typora → Settings… → General → Language**.
 
-## Read it locally
+Current file support covers ordinary UTF-8 files up to 64 MiB, preserving BOM and mixed line endings. Recovery opens an unsaved copy; input that was never persisted cannot be recovered.
 
-No Typora installation is needed to read the published report.
+## Build it yourself
+
+Requirements: an Apple Silicon Mac with macOS 14 or later, Xcode with Swift 6, Rust/Cargo, and Node.js 24.11 or later with npm.
 
 ```bash
 git clone https://github.com/yruichen/open-typora.git
 cd open-typora
-python3 -m http.server 8765 --bind 127.0.0.1
-```
-
-Open **http://127.0.0.1:8765/docs/**. The report is static; its table filter runs locally and has no analytics.
-
-To rebuild and validate the report:
-
-```bash
 npm ci
-npm run build
-npm run check
+npm run app:build
+open .local/build/OpenTypora.app
 ```
 
-Use Node.js 24.11 or newer. Analyzing a target is a separate, opt-in procedure documented in [Reproduce](docs/reproduce.md).
+The build generates the Swift bindings and bundles the editor into the app. The built app needs neither Node.js nor a development server. Quit the app before rebuilding; successful builds replace the previous app at the same path.
 
-## Repository layout
+## Inside the project
 
-```text
-open-typora/
-├── docs/                  # Interactive report, Markdown, methodology
-│   └── assets/            # Original architecture visual and report UI
-├── data/                  # Sanitized findings and factual indices
-├── tools/                 # Read-only analyzers, renderer, validation
-├── .github/               # CI and evidence-first issue template
-└── .local/                # Ignored local inputs and generated evidence
-```
+| Path | Responsibility |
+| --- | --- |
+| `apps/macos/` | AppKit windows, menus, dialogs and WebView host |
+| `packages/editor/` | Editing, selection, history and Markdown presentation |
+| `packages/protocol/` | Editor–host protocol client and transports |
+| `crates/` | Rust document model, use cases, I/O, runtime and Swift bindings |
+| `tests/` | Shared test fixtures and integration checks |
+| `tools/` | Build tools, code generation and checks |
 
-## What this project establishes
+Try the Beta, [share a reproducible bug](https://github.com/yruichen/open-typora/issues), or contribute a focused fix. Include your macOS version and a small sample document when reporting editing problems. If this is an editor you’d like to see grow, a star helps others discover it.
 
-The current dataset comes from **Typora 1.9.4, build 7260, on macOS**, with native body inspection focused on **arm64**. The sample failed code-signature verification. Its correspondence to an official release has not been established; conclusions are tied to the recorded hashes.
+## License and acknowledgements
 
-The main bundle's 83 registrations are indexed. Native analysis combines metadata, assembly, and literal argument recovery. Deep Hopper decompilation was blocked by bridge startup, and behavioral equivalence has not been tested. Those gaps stay visible in the report.
+Original work is licensed under [MIT](LICENSE). This project is independent of Typora and its developers; see [NOTICE.md](NOTICE.md) for attribution and licensing scope.
 
-This is an independent architecture study. The repository contains original research prose, original tooling, and derived factual indices. It does not distribute Typora, its complete bundled source, complete disassembly, activation material, or private documents. [Publication boundaries](NOTICE.md) explain the scope of the license.
-
-## Help make the map better
-
-Useful contributions include:
-
-- Corroborating a claim against a known official release and recording its hash.
-- Adding a controlled test for a specific parser, undo, or source-mode behavior.
-- Resolving an unmatched bridge endpoint with a precise location.
-- Comparing a newer version without treating minified names as persistent identity.
-- Translating the report or improving its explanation of an existing evidence chain.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). A good contribution makes a claim easier to verify; an unsupported claim makes the map harder to use.
-
-## Acknowledgements
-
-This investigation was supported by **[REA — Reverse Engineer Anything](https://github.com/morluto/rea)**, which provided local artifact analysis, Mach-O inspection, and structured evidence workflows. Thank you to its contributors for making agent-assisted reverse engineering easier to inspect and reproduce.
+Thanks to [REA — Reverse Engineer Anything](https://github.com/morluto/rea) for its application analysis tools and workflows.

@@ -1,72 +1,87 @@
-<p align="center"><img src="docs/assets/overview.svg" alt="open-typora 编辑器架构概览" width="960"></p>
+<div align="center">
 
 # open-typora
 
-**从敲下一个字符，到保存一份 Markdown，中间发生了什么？**
+**专注落笔，让 Markdown 回归写作。**
 
-这个仓库把 Typora 的编辑器拆成可以查证的结构：文档节点、实时渲染、选区、撤销、源码模式，以及 JavaScript 和 Mac 原生层之间的通信。每个结论尽量附上模块、位置、方法地址和仍未知的部分。
+一个围绕本地文件打造的开源 Markdown 编辑器：macOS 原生外壳，Rust 共享核心。
 
-**[在线阅读报告 →](https://yruichen.github.io/open-typora/)** · [English](README.md) · [证据索引](data/) · [本地复现](docs/reproduce.md)
+[![Version](https://img.shields.io/badge/v0.0.1-Beta-ef9f43)](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)
+[![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-## 最值得看的五个发现
+[**下载 macOS 版本**](https://github.com/yruichen/open-typora/releases/tag/v0.0.1) · [反馈问题](https://github.com/yruichen/open-typora/issues) · [English](README.md)
 
-1. **可视化编辑依赖文档树。** Markdown、DOM、光标和撤销围绕节点模型协作，实时渲染只是其中一环。
-2. **这份 Mac 样本使用 Cocoa 和 WebKit。** 共享代码里的 Node/Electron 分支，不能直接当作 Mac 实现。
-3. **快速打开和全文搜索走不同系统。** 前者使用 `NSMetadataQuery`，后者启动包内 `rg` 并处理输出。
-4. **导出接口的名字不能说明通信方向。** `export.exportToNative` 是原生调用 JavaScript 的处理器；Pandoc、HTML、PDF 和打印各有路径。
-5. **切换源码模式会切换编辑机制。** 源码模式读取 CodeMirror，可视化模式序列化节点树，撤销也分别处理。
+</div>
 
-## 已经画出的地图
+## 给文字一个熟悉的落脚点
 
-| 静态索引范围 | 数量 |
-| --- | ---: |
-| 主编辑器 System 模块 | **83** |
-| 原生定义类 | **98** |
-| 原生方法实现记录 | **2,017** |
-| JavaScript 字面量桥接位置 | **193** |
-| 找到原生相反方向端点的 JS 位置 | **182** |
-| 安装包普通文件清单 | **693** |
+open-typora 受 Typora 的写作体验启发，希望做一个专注、轻量、融入 macOS 的 Markdown 编辑器。
 
-这些数字表示索引范围，不表示全部功能已运行验证。字面量端点配对也不证明实际执行。
+- **文件始终是 Markdown。** 打开 `.md`，写作，保存回磁盘，不引入专有文档格式。
+- **窗口交给 Mac。** AppKit 提供窗口、菜单、工具栏和文件对话框；CodeMirror 6 在系统 WKWebView 中负责编辑。
+- **共同能力交给 Rust。** 文档模型、文件操作与应用服务按明确的平台边界组织。macOS 优先交付，Windows 和 Linux 宿主留待后续实现。
 
-## 怎么读
+轻量化是设计目标，目前尚未发布性能基准。
 
-- 想了解整体：先打开[交互式报告](https://yruichen.github.io/open-typora/)。
-- 想定位代码：[模块表](data/modules.json)和[桥接配对](data/bridges.json)。
-- 想研究编辑器：[编辑器发现](data/editor-findings.json)。
-- 想研究系统集成：[原生发现](data/native-findings.json)与[方法表](data/native-methods.json)。
-- 想验证结论：[研究方法](docs/methodology.md)与[复现指南](docs/reproduce.md)。
+## 现在可以做什么
 
-阅读报告不需要安装 Typora：
+| 写作 | 导航 | 留住你的工作 |
+| --- | --- | --- |
+| 源码与视觉编辑模式 | 文档内查找替换 | 打开与保存 UTF-8 Markdown |
+| 两种模式共用撤销与重做历史 | 跳转到指定行 | 本地恢复副本 |
+| 基础 Markdown 格式操作与表格编辑 | 原生菜单与键盘快捷键 | 可选的已命名文件自动保存 |
+| 英语与简体中文界面 | **⌘/** 切换编辑模式 | 外部修改检测 |
+
+> **v0.0.1 是早期 Beta。** 目前尚不能完整替代 Typora。完整 Markdown 呈现、图片、公式、图表与高级导出仍未完成；原生交互、无障碍和平台兼容性也需要更广泛的验证。
+
+## 试用 Beta
+
+1. [下载 macOS 版本](https://github.com/yruichen/open-typora/releases/tag/v0.0.1)，需要 **Apple Silicon 芯片与 macOS 14 或更新版本**。
+2. 解压，将 **OpenTypora.app** 移到**应用程序**目录。
+3. 打开一个 Markdown 文件，开始写作。
+
+当前 Beta 采用临时签名，**尚未经过 Apple 公证**；macOS 可能要求明确的安全许可才能打开。
+
+| 操作 | 快捷键 |
+| --- | --- |
+| 打开文件 | ⌘O |
+| 保存 / 另存为 | ⌘S / ⇧⌘S |
+| 切换编辑模式 | ⌘/ |
+
+界面语言位于 **Open Typora → 设置… → 通用 → 语言**。
+
+当前支持不超过 64 MiB 的普通 UTF-8 文件，保留 BOM 和混合换行。恢复副本以未保存文档打开，无法恢复尚未持久化的输入。
+
+## 从源码构建
+
+依赖：运行 macOS 14 或更新版本的 Apple Silicon Mac、包含 Swift 6 的 Xcode、Rust/Cargo，以及 Node.js 24.11 或更新版本和 npm。
 
 ```bash
 git clone https://github.com/yruichen/open-typora.git
 cd open-typora
-python3 -m http.server 8765 --bind 127.0.0.1
-```
-
-浏览器打开 **http://127.0.0.1:8765/docs/**。报告是静态文件，筛选在本地运行，没有统计追踪。
-
-修改报告后，用 Node.js 24.11 或更新版本构建与核对：
-
-```bash
 npm ci
-npm run build
-npm run check
+npm run app:build
+open .local/build/OpenTypora.app
 ```
 
-## 样本和边界
+构建会生成 Swift 绑定并将编辑器打包进应用。构建后的应用无需 Node.js 或开发服务器。重新构建前请退出应用；构建成功后会在同一路径替换上一份应用。
 
-当前样本是 **Typora 1.9.4，build 7260，macOS**，原生方法体分析聚焦 **arm64**。该样本代码签名验证失败，未建立与官方发布包的对应关系；结论绑定记录中的哈希。
+## 项目内部
 
-83 个主 bundle 注册模块已完成静态索引。原生结论来自元数据、汇编和字面量关联。Hopper 桥接启动阻塞了深度反编译，运行行为等价仍未验证。报告保留了这些缺口。
+| 目录 | 职责 |
+| --- | --- |
+| `apps/macos/` | AppKit 窗口、菜单、对话框与 WebView 宿主 |
+| `packages/editor/` | 编辑、选区、历史与 Markdown 呈现 |
+| `packages/protocol/` | 编辑器与宿主之间的协议客户端和传输 |
+| `crates/` | Rust 文档模型、用例、I/O、运行时与 Swift 绑定 |
+| `tests/` | 共享测试夹具与集成检查 |
+| `tools/` | 构建工具、代码生成与检查 |
 
-仓库公开原创分析、复现工具和经整理的事实索引。原应用、完整打包源码、整份反汇编、激活材料和个人文档不随仓库发布。项目独立于 Typora 官方；[NOTICE.md](NOTICE.md)说明许可范围。
+欢迎试用 Beta、[提交可复现的问题](https://github.com/yruichen/open-typora/issues)，或贡献一个聚焦的修复。反馈编辑问题时，请附上 macOS 版本与最小示例文档。如果你也期待这样的编辑器，点一颗 Star，让更多人发现它。
 
-## 一起补全地图
+## 许可与致谢
 
-欢迎对照官方样本、补充受控行为测试、解析未匹配接口、比较新版本或翻译报告。请附上样本哈希、准确位置以及观察与推断的区分，详见[贡献指南](CONTRIBUTING.md)。
+原创成果采用 [MIT](LICENSE) 许可。本项目独立于 Typora 及其开发者，署名与许可范围见 [NOTICE.md](NOTICE.md)。
 
-## Acknowledgements
-
-本次调查使用了 **[REA — Reverse Engineer Anything](https://github.com/morluto/rea)** 的本地应用分析、Mach-O 检查和结构化证据工作流。感谢 REA 的贡献者，让借助 agent 的逆向研究更容易检查与复现。
+感谢 [REA — Reverse Engineer Anything](https://github.com/morluto/rea) 提供应用分析工具与工作流。

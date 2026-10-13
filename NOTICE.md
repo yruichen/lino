@@ -1,9 +1,11 @@
-# Publication and attribution
+# Attribution and licensing
 
-open-typora is an independent research project. It is not affiliated with or endorsed by Typora or its developers. Typora and the names of third-party components belong to their respective owners.
+Copyright (c) 2026 open-typora contributors.
 
-The MIT license in this repository applies to original research prose, original diagrams, and original tooling authored for this project. It does not grant rights to Typora, its binary, bundled code, icons, themes, third-party libraries, or any other target material.
+open-typora is an independent Markdown editor implementation. It is not affiliated with or endorsed by Typora or its developers. Typora and the names of third-party components belong to their respective owners.
 
-The public dataset contains factual identities, locations and original analysis annotations. Target binaries, complete bundled source, complete disassembly, activation material, raw process diagnostics and private documents are excluded from publication. Local analyzer output is ignored by Git.
+The [MIT license](LICENSE) applies to original code and accompanying materials authored for this project. It does not grant rights to Typora, its binaries, bundled code, icons, themes or other proprietary materials. Those materials are not part of this source distribution.
 
-The recorded sample failed code-signature verification. Its correspondence to an official release and the source of modifications have not been established. Findings apply to that recorded sample; the project does not assert official-build equivalence.
+Third-party dependencies retain their own copyright notices and licenses. The project's MIT license does not replace those terms.
+
+Acknowledgements: [REA — Reverse Engineer Anything](https://github.com/morluto/rea) provided application analysis tools and workflows used during the project's development.

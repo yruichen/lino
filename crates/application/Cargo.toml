@@ -1,0 +1,13 @@
+[package]
+name = "open-typora-application"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+open-typora-document.workspace = true
+open-typora-markdown.workspace = true

@@ -1,0 +1,23 @@
+[package]
+name = "open-typora-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+bindgen = ["uniffi/cli"]
+
+[[bin]]
+name = "generate-swift"
+path = "../../tools/protocol/generate-swift.rs"
+required-features = ["bindgen"]
+
+[dependencies]
+open-typora-runtime.workspace = true
+open-typora-protocol.workspace = true
+uniffi = "=0.32.2"
+serde_json = "1.0.154"
