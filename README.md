@@ -8,11 +8,11 @@
 
 An open-source Markdown editor with a native Mac shell and a shared Rust core. Write a note, explain an idea, or bring code, equations and diagrams into the same document.
 
-[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.2)
+[![Version](https://img.shields.io/badge/v0.0.3-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.3)
 [![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**Download for macOS**](https://github.com/yruichen/lino/releases/tag/v0.0.2) · [Build from source](#build-it-yourself) · [简体中文](README.zh-CN.md)
+[**Download for macOS**](https://github.com/yruichen/lino/releases/tag/v0.0.3) · [Build from source](#build-it-yourself) · [简体中文](README.zh-CN.md)
 
 </div>
 
@@ -31,7 +31,9 @@ Start with a sentence, then give the idea room to grow. Lino keeps your writing 
 
 Try the [English showcase document](examples/showcase/Lino-Showcase.md) with its accompanying image folder. It contains original writing, a Rust example, a table, equations and a Mermaid diagram.
 
-## In v0.0.2
+## In v0.0.3
+
+New in this release: a native file/outline sidebar, Quick Open with **⌘P**, categorized settings with twelve theme appearances and custom themes, and image insertion that links to the original file by default.
 
 | For your words | For your ideas | For your files |
 | --- | --- | --- |
@@ -42,15 +44,15 @@ Try the [English showcase document](examples/showcase/Lino-Showcase.md) with its
 
 The interface is available in **English and Simplified Chinese**. macOS PDF and printing are also available for testing.
 
-**v0.0.2 is a usable Markdown foundation, still in Beta.** Broader Markdown compatibility, accessibility, native interaction and print layout need more testing. Responsiveness and a small runtime are design priorities; performance comparisons have not yet been published. Windows, Linux and broader document formats are future work.
+**v0.0.3 is a usable Markdown foundation, still in Beta.** Broader Markdown compatibility, accessibility, native interaction and print layout need more testing. Responsiveness and a small runtime are design priorities; performance comparisons have not yet been published. Windows, Linux and broader document formats are future work.
 
 ## Get Lino
 
-1. [Download Lino v0.0.2](https://github.com/yruichen/lino/releases/download/v0.0.2/Lino-v0.0.2-macos-arm64.zip) for **Apple Silicon and macOS 14 or later**.
+1. [Download Lino v0.0.3](https://github.com/yruichen/lino/releases/download/v0.0.3/Lino-v0.0.3-macos-arm64.zip) for **Apple Silicon and macOS 14 or later**.
 2. Unzip the archive and move **Lino.app** to **Applications**.
 3. Open a Markdown file and start writing.
 
-Checksums and release notes are on the [v0.0.2 release page](https://github.com/yruichen/lino/releases/tag/v0.0.2). Lino was previously named Open Typora; existing recovery data keeps its original location.
+Checksums and release notes are on the [v0.0.3 release page](https://github.com/yruichen/lino/releases/tag/v0.0.3). Lino was previously named Open Typora; existing recovery data keeps its original location.
 
 The Beta is ad-hoc signed and **not notarized**; macOS may require an explicit security approval before opening it.
 

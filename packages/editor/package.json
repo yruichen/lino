@@ -1,6 +1,6 @@
 {
   "name": "@lino/editor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "type": "module",
   "description": "Markdown editing and presentation with a shared CodeMirror input and history model.",
@@ -27,7 +27,7 @@
     "@codemirror/view": "6.43.14",
     "@lezer/highlight": "1.2.5",
     "@lezer/markdown": "1.8.0",
-    "@lino/protocol": "0.0.2",
+    "@lino/protocol": "0.0.3",
     "dompurify": "3.4.17",
     "entities": "8.1.0",
     "katex": "0.19.0",
