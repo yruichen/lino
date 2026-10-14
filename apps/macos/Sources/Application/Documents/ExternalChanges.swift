@@ -30,7 +30,7 @@ final class ExternalChanges {
                 let watch = try await bridge.backend.perform { try $0.watchDocument(sessionId: session, fileRef: file, listener: listener) }
                 guard self.generation == generation else { return }
                 self.watch = watch; check()
-            } catch { if self.generation == generation { onError?(error.localizedDescription) } }
+            } catch { if self.generation == generation { onError?(userFacingError(error)) } }
         }
     }
     func check() {
@@ -46,7 +46,7 @@ final class ExternalChanges {
                 do {
                     let state = try await bridge.backend.perform { try $0.externalChange(sessionId: session, fileRef: file) }
                     if self.generation == generation { onChange?(state) }
-                } catch { if self.generation == generation { onError?(error.localizedDescription) } }
+                } catch { if self.generation == generation { onError?(userFacingError(error)) } }
             }
         }
     }

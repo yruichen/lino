@@ -79,3 +79,42 @@ test('workspace-style line navigation reveals table source and focus mode also h
     assert.equal(navigateSourcePosition(editor.view, editor.view.state.doc.length + 1), false);
   } finally { editor.destroy(); mount.remove(); }
 });
+
+test('native outline and statistics project current content without a second panel and reject stale heading coordinates', async () => {
+  const parent = document.createElement('div'); document.body.append(parent);
+  const events: import('../../packages/protocol/src/client/editor-host.ts').EditorHostEvent[] = [];
+  const editor = new MarkdownEditor(parent, '# First\n\n## Child\n\nSome words', event => events.push(event), () => {}, undefined, undefined, { nativeAnalysis: true });
+  try {
+    editor.command('toggle-outline'); await new Promise(resolve => setTimeout(resolve, 120));
+    assert.equal(parent.querySelector('.ot-document-outline'), null);
+    assert.equal(parent.querySelector('.ot-statistics'), null);
+    assert(!editor.view.dom.classList.contains('ot-outline-open'));
+    const projection = events.filter(event => event.kind === 'outline' && event.entries).at(-1);
+    assert(projection && projection.kind === 'outline' && projection.entries);
+    assert.deepEqual(projection.entries.map(heading => heading.title), ['First', 'Child']);
+    assert(editor.acceptsHeading(projection.entries[1].from, projection.token));
+    const before = editor.snapshot().text;
+    editor.view.dispatch({ changes: { from: 0, insert: 'New paragraph\n\n' } });
+    assert(!editor.acceptsHeading(projection.entries[1].from, projection.token));
+    await new Promise(resolve => setTimeout(resolve, 120));
+    const next = events.filter(event => event.kind === 'outline' && event.entries).at(-1);
+    assert(next && next.kind === 'outline' && next.entries); assert.notEqual(next.token, projection.token);
+    assert(editor.acceptsHeading(next.entries[1].from, next.token));
+    assert.deepEqual(next.entries.map(entry => entry.id), projection.entries.map(entry => entry.id));
+    assert.equal(editor.snapshot().text, 'New paragraph\n\n' + before);
+    assert(events.some(event => event.kind === 'statistics' && event.visible && event.counts.words > 0));
+  } finally { editor.destroy(); parent.remove(); }
+});
+
+test('native outline visibility is idempotent and rejects a late toggle while the first heading projection loads', async () => {
+  const mount = fixture.mount(), events: import('../../packages/protocol/src/client/editor-host.ts').EditorHostEvent[] = [];
+  const editor = new MarkdownEditor(mount, '# First\n\n## Child', event => events.push(event), () => {}, undefined, undefined, { nativeAnalysis: true });
+  try {
+    editor.setOutlineVisible(true, '1'); editor.setOutlineVisible(true, '2');
+    await new Promise(resolve => setTimeout(resolve, 120));
+    assert(editor.view.state.field(writingOptions).outline);
+    assert(events.some(event => event.kind === 'outline' && event.entries?.length === 2));
+    editor.setOutlineVisible(false, '3'); editor.setOutlineVisible(true, '2');
+    assert.equal(editor.view.state.field(writingOptions).outline, false);
+  } finally { editor.destroy(); mount.remove(); }
+});

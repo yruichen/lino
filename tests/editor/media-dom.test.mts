@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import { setupDOM, settleDOM } from './dom.mts';
 import { undoDepth } from '@codemirror/commands';
 import { setLocale } from '../../packages/editor/src/localization/index.ts';
-import { importImage } from '../../packages/editor/src/features/media/commands.ts';
+import { importImage, prepareImageDrop, commitImageDrop, cancelImageDrop } from '../../packages/editor/src/features/media/commands.ts';
 import { AssetsClient } from '../../packages/protocol/src/client/assets.ts';
 const fixture = setupDOM();
 const { MarkdownEditor } = await import('../../packages/editor/src/engine/editor.ts');
@@ -115,4 +115,45 @@ test('late preview output cannot replace edited source; cancellation stays obser
     const barrier = importing.settleResources().then(() => { settled = true; }); await Promise.resolve(); assert.equal(settled, false);
     finish('image.png'); await work; await barrier; assert.equal(settled, true); assert.equal(importing.read(), '![](<image.png>)');
   } finally { importing.destroy(); importMount.remove(); }
+});
+
+test('typing before an image and IME composition preserve its loaded DOM and mapped edit position', async () => {
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, 'before\n\n![local](assets/a.png)', () => {}, () => {}, async () => {}, {
+    imageURL: source => `ot-image://local/image?source=${encodeURIComponent(source)}`, request: async () => null,
+  });
+  try {
+    await settleDOM(); const image = mount.querySelector<HTMLImageElement>('.ot-preview-image img')!;
+    assert(image); image.dispatchEvent(new Event('load'));
+    const { changeComposition } = await import('../../packages/editor/src/features/source-mode/state.ts');
+    editor.view.dispatch({ changes: { from: 0, insert: 'New ' }, effects: changeComposition.of(true) });
+    await settleDOM(); assert.equal(mount.querySelector('.ot-preview-image img'), image);
+    assert.equal(image.parentElement!.parentElement!.querySelector('output')!.textContent, '');
+    editor.view.dispatch({ effects: changeComposition.of(false) }); await settleDOM();
+    assert.equal(mount.querySelector('.ot-preview-image img'), image);
+    image.parentElement!.parentElement!.dispatchEvent(new Event('click', { bubbles: true }));
+    assert.equal(editor.view.state.selection.main.head, editor.read().indexOf('![local]') + 2);
+  } finally { editor.destroy(); mount.remove(); }
+});
+test('image drop maps its captured location, imports the actual path, cancels without edits and respects readonly', async () => {
+  const calls: [string, string | undefined][] = [];
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, 'before\nafter', () => {}, () => {}, async () => {}, {
+    imageURL: source => source, request: async (op, payload) => { calls.push([op, payload]); return 'note.assets/drop.png'; },
+  });
+  try {
+    // DOM fixtures have no screen geometry; only the coordinate resolver is stubbed.
+    editor.view.posAtCoords = () => 7;
+    assert(prepareImageDrop(editor.view, 12, 20));
+    const originalSelection = editor.view.state.selection;
+    editor.view.dispatch({ changes: { from: 0, insert: 'X' } });
+    // Initial save binds the document directory and refreshes existing previews.
+    editor.refreshResources();
+    await commitImageDrop(editor.view, ['/fixture/picture.png']);
+    assert.deepEqual(calls, [['import-image-path', '/fixture/picture.png']]);
+    assert.equal(editor.read(), 'Xbefore\n![](<note.assets/drop.png>)after');
+    assert(editor.command('undo')); assert.equal(editor.read(), 'Xbefore\nafter');
+    assert(prepareImageDrop(editor.view, 12, 20)); cancelImageDrop(editor.view);
+    assert.equal(editor.read(), 'Xbefore\nafter');
+    editor.setReadOnly(true); assert.equal(prepareImageDrop(editor.view, 12, 20), false);
+    assert(originalSelection);
+  } finally { editor.destroy(); mount.remove(); }
 });

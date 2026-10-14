@@ -16,3 +16,5 @@ pub use composition::DocumentRuntime;
 pub use external::DocumentWatch;
 
 pub mod workspace;
+
+pub mod navigation;

@@ -8,7 +8,6 @@
 .ot-outline-row button:last-child { flex: 1; text-align: start; overflow-wrap: anywhere; }
 .ot-outline-row button[aria-current=true] { color: var(--ot-link); background: var(--ot-selection); }
 .ot-document-outline output { color: var(--ot-muted); }
-.ot-outline-open > .cm-scroller, .ot-outline-open > .cm-panels { margin-inline-start: 220px; }
 .ot-statistics { padding: 5px 12px; font: 11px system-ui; color: var(--ot-muted); }
 .cm-content { font-size: calc(16px * var(--ot-editor-scale, 1)); }
 .ot-unfocused { opacity: .4; }

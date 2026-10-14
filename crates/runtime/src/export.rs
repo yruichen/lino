@@ -2,9 +2,8 @@ use crate::{
     dispatch::{error, number, storage_error},
     DocumentRuntime,
 };
-use lino_adapters::assets::FileAssets;
 use lino_application::{
-    assets::{AssetPort, ImageContent},
+    assets::ImageContent,
     export::ExportSnapshot,
     jobs::{JobLifecycle, JobState},
     ports::DiskVersion,
@@ -27,7 +26,6 @@ pub struct ExportJob {
     runtime: Arc<DocumentRuntime>,
     input: ExportSnapshot,
     preferences: lino_protocol::EditorPreferences,
-    assets: Option<FileAssets>,
     source_path: Option<PathBuf>,
     image_paths: Mutex<HashSet<PathBuf>>,
     state: Mutex<JobLifecycle>,
@@ -54,15 +52,6 @@ impl DocumentRuntime {
                 true,
             ));
         }
-        let assets = info
-            .file
-            .map(|file| {
-                self.resources
-                    .path(file)
-                    .map_err(storage_error)
-                    .and_then(|path| FileAssets::for_document(&path).map_err(storage_error))
-            })
-            .transpose()?;
         let source_path = info
             .file
             .map(|file| self.resources.path(file).map_err(storage_error))
@@ -97,7 +86,6 @@ impl DocumentRuntime {
                 label: info.label,
             },
             preferences: self.preferences()?.values,
-            assets,
             source_path,
             image_paths: Mutex::default(),
             state: Mutex::default(),
@@ -142,15 +130,10 @@ impl ExportJob {
     }
     pub fn read_image(&self, source: &str) -> Result<ImageContent, WireError> {
         self.check()?;
-        let assets = self.assets.as_ref().ok_or_else(|| {
-            error(
-                ErrorCode::NotSaved,
-                "Local export images require a saved document",
-                false,
-            )
-        })?;
-        let image = assets.read_image(source).map_err(storage_error)?;
-        let path = assets.resolve(source).map_err(storage_error)?;
+        let directory = self.source_path.as_ref().and_then(|p| p.parent());
+        let path =
+            lino_adapters::assets::resolve_image_path(directory, source).map_err(storage_error)?;
+        let image = lino_adapters::assets::read_selected(&path).map_err(storage_error)?;
         self.image_paths
             .lock()
             .map_err(|_| Self::failure("Export resource state poisoned"))?

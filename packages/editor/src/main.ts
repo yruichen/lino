@@ -34,8 +34,30 @@ let session: DocumentSession | undefined;
 let autosave = false;
 let preferences: PreferenceSnapshot | undefined;
 let exportPlan: ExportPlan | undefined;
-let editor = new MarkdownEditor(root, '', notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true });
+let exportAppearance: 'light' | 'dark' = 'light';
+// Window geometry belongs to the host view, and survives document replacement.
+let viewportWidth = (window as Window & { __linoViewportWidth?: number }).__linoViewportWidth;
+let viewportSequence = -1n;
+let editor = new MarkdownEditor(root, '', notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true, nativeAnalysis: true });
+if (viewportWidth !== undefined) editor.setViewportWidth(viewportWidth);
 editor.setReadOnly(true);
+let backgroundAsset = '';
+let backgroundReady: Promise<void> = Promise.resolve();
+function applyBackground(): void {
+  if (!preferences) return;
+  const values = preferences.values;
+  editor.view.dom.dataset.backgroundImage = String(Boolean(values.background_image));
+  editor.view.dom.style.setProperty('--ot-background-image', values.background_image ? `url("ot-appearance://local/background?asset=${encodeURIComponent(values.background_image)}")` : 'none');
+  editor.view.dom.style.setProperty('--ot-background-image-opacity', String(values.background_opacity / 100));
+  if (backgroundAsset !== values.background_image) {
+    backgroundAsset = values.background_image;
+    const asset = backgroundAsset;
+    if (asset) {
+      const image = new Image(); image.src = `ot-appearance://local/background?asset=${encodeURIComponent(asset)}`;
+      backgroundReady = image.decode().catch(() => { if (backgroundAsset === asset) report(t('editor.backgroundUnavailable')); });
+    } else backgroundReady = Promise.resolve();
+  }
+}
 function publish(): void {
   assets.setDocument(session?.status.session_id ?? null, session?.status.file_ref ?? null);
   if (session) notifyHost({ kind: 'document', dirty: session.dirty, saving: session.isSaving,
@@ -44,6 +66,18 @@ function publish(): void {
     ...session.persistence.status });
 }
 function current(): DocumentSession { if (!session) throw new Error(t('document.notLoaded')); return session; }
+// WKWebView's private content view may receive file drags before its parent.
+// Forward trusted drop coordinates and names; native code reads the drag board,
+// authorizes actual file URLs, and reuses the same import path as AppKit drops.
+root.addEventListener('dragover', event => {
+  if (event.dataTransfer?.types.includes('Files') && !editor.view.state.readOnly && !editor.composing()) { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }
+});
+root.addEventListener('drop', event => {
+  const images = Array.from(event.dataTransfer?.files ?? []).filter(file => file.type.startsWith('image/') || /\.(png|jpe?g|gif|webp|tiff?|bmp|svg|heic|heif|avif)$/i.test(file.name));
+  if (!event.isTrusted || !images.length || editor.view.state.readOnly || editor.composing()) return;
+  event.preventDefault(); event.stopPropagation();
+  notifyHost({ kind: 'image-drop', names: images.slice(0, 32).map(file => file.name), x: event.clientX, y: event.clientY });
+}, true);
 const api = {
   async exportIdentity() {
     await editor.settleResources(); await editor.settleComposition(); await current().flush();
@@ -51,12 +85,15 @@ const api = {
     try {
       // Input stays editable; pause only acceptance until Rust captures R.
       await owner.captureExport();
+      exportAppearance = editor.appearance();
       const { session_id, epoch, revision } = owner.status; return { session_id, epoch, revision };
     } catch (error) { owner.endExportCapture(); throw error; }
   },
   endExportCapture(): void { session?.endExportCapture(); },
   prepareExport(json: string) {
-    exportPlan?.cancel(); exportPlan = new ExportPlan(JSON.parse(json));
+    const source = JSON.parse(json);
+    source.preferences.theme = exportAppearance;
+    exportPlan?.cancel(); exportPlan = new ExportPlan(source);
     return { job_id: exportPlan.source.job_id, images: exportPlan.images };
   },
   async renderExport(job: string, resources: string, mathCSS: string): Promise<string> {
@@ -80,6 +117,25 @@ const api = {
     if (position === null) throw new Error(t('navigation.invalid', { max: editor.view.state.doc.lines }));
     return navigateSourcePosition(editor.view, position);
   },
+  navigateHeading(from: number, token: string): boolean {
+    return editor.acceptsHeading(from, token) && navigateSourcePosition(editor.view, from);
+  },
+  setOutlineVisible(visible: boolean, sequence: string, owner: string, generation: number): void {
+    if (session?.status.session_id === owner && hostGeneration() === generation) editor.setOutlineVisible(visible, sequence);
+  },
+  continueOutline(): void { editor.continueOutline(); },
+  prepareImageDrop: (x: number, y: number) => editor.prepareImageDrop(x, y),
+  cancelImageDrop: () => editor.cancelImageDrop(),
+  commitImageDrop: (paths: string[]) => editor.commitImageDrop(paths),
+  formatFailure: (error: unknown) => formatError(error),
+  focusEditor(): void { editor.view.focus(); },
+  async preparePresentation(): Promise<void> { await backgroundReady; await document.fonts.ready; },
+  setViewportWidth(width: number, sequence: string, generation: number): void {
+    if (hostGeneration() !== generation || !Number.isFinite(width) || width <= 0 || !/^\d+$/.test(sequence)) return;
+    const next = BigInt(sequence);
+    if (next <= viewportSequence) return;
+    viewportSequence = next; viewportWidth = width; editor.setViewportWidth(width);
+  },
   navigateAnchor(anchor: string): boolean { return openLink(editor.view, '#' + anchor, error => report(formatError(error))); },
   receive: (json: string) => client.receive(json),
   receiveClipboard: (id: string, error: string | null) => clipboard.receive(id, error),
@@ -101,6 +157,7 @@ const api = {
     if (next.schema_version !== 1) throw new Error(t('document.protocolMismatch'));
     if (preferences && BigInt(next.revision) < BigInt(preferences.revision)) return;
     preferences = next;
+    applyBackground();
     await editor.applyPreferences(next.values);
     if (preferences !== next) return;
     autosave = next.values.auto_save; session?.persistence.setAutosave(autosave); publish();
@@ -112,11 +169,12 @@ const api = {
     const holder = document.createElement('div');
     assets.invalidate();
     assets.setDocument(opened.status.session_id, opened.status.file_ref);
-    const next = new MarkdownEditor(holder, opened.text, notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true });
+    const next = new MarkdownEditor(holder, opened.text, notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true, nativeAnalysis: true });
+    if (viewportWidth !== undefined) next.setViewportWidth(viewportWidth);
     session?.destroy(); editor.destroy(); root.replaceChildren(...Array.from(holder.childNodes)); editor = next;
     session = new DocumentSession(client, opened, editor, publish, report);
     editor.setDocumentReadOnly(opened.status.read_only ?? false);
-    if (preferences) await editor.applyPreferences(preferences.values);
+    if (preferences) { applyBackground(); await editor.applyPreferences(preferences.values); }
     session.persistence.setAutosave(autosave); publish();
   },
   async saveDocument(targetJson: string | null = null): Promise<void> {
@@ -143,6 +201,7 @@ const api = {
       await current().suspend();
       const intent = {...await current().closeIntent(true), discard: false};
       return { dirty: current().dirty, hasFile: current().status.file_ref !== null,
+        replaceableEmpty: editor.canReplaceEmpty(),
         label: current().status.label, intentJson: JSON.stringify(intent) };
     } catch (error) { editor.setReadOnly(false); current().resume(); throw error; }
   },

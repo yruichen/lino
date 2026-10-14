@@ -32,6 +32,9 @@ export interface EditorStatus {
 export type EditorHostEvent =
   | { kind: 'context-menu'; context: ComponentContext; x: number; y: number }
   | { kind: 'ready' }
+  | { kind: 'image-drop'; names: string[]; x: number; y: number }
+  | { kind: 'outline'; token: string; entries?: { id: string; from: number; to: number; level: number; title: string }[]; current: number | null; complete: boolean; truncated: boolean; exhausted: boolean }
+  | { kind: 'statistics'; counts: { words: number; characters: number; nonWhitespace: number; lines: number }; selection: boolean; visible: boolean }
   | { kind: 'rpc'; json: string }
   | { kind: 'document'; dirty: boolean; saving: boolean; hasFile: boolean; label: string | null; revision: string;
       readOnly?: boolean; sessionId?: string; fileRef?: string | null;

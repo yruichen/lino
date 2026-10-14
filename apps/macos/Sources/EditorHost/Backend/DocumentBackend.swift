@@ -11,6 +11,8 @@ struct BackendFailure: LocalizedError, Sendable {
 // runtime; filesystem work runs off the main thread and never serializes edits
 // behind a Swift actor waiting for save I/O.
 final class DocumentBackend: Sendable {
+    // All fixture windows sharing a backend also share one isolated recovery store.
+    let verificationRecoveryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("lino-recovery-verify-\(UUID().uuidString)", isDirectory: true)
     private let service = DocumentService()
     func perform<T: Sendable>(_ action: @escaping @Sendable (DocumentService) throws -> T) async throws -> T {
         let service = self.service

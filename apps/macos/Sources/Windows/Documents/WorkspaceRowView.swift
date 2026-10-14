@@ -28,9 +28,9 @@ final class WorkspaceRowView: NSTableCellView {
         textField = title; imageView = symbol
     }
     required init?(coder: NSCoder) { fatalError("Use init(frame:)") }
-    func configure(name: String, directory: Bool, excerpt: String? = nil) {
-        title.stringValue = name; detail.stringValue = excerpt ?? ""; detail.isHidden = excerpt == nil
-        symbol.image = NSImage(systemSymbolName: directory ? "folder" : "doc.text", accessibilityDescription: nil)
+    func configure(name: String, directory: Bool, excerpt: String? = nil, symbol symbolName: String? = nil) {
+        title.textColor = .labelColor; title.stringValue = name; detail.stringValue = excerpt ?? ""; detail.isHidden = excerpt == nil
+        symbol.image = NSImage(systemSymbolName: symbolName ?? (directory ? "folder" : "doc.text"), accessibilityDescription: nil)
         symbol.contentTintColor = directory ? .controlAccentColor : .secondaryLabelColor
         toolTip = excerpt.map { name + "\n" + $0 } ?? name
         setAccessibilityLabel(toolTip)

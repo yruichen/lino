@@ -51,3 +51,19 @@ final class LanguagePreferences {
 func localized(_ key: String, _ arguments: CVarArg...) -> String {
     LanguagePreferences.shared.string(key, arguments: arguments)
 }
+
+// Keep the original code and diagnostic on BackendFailure; present the action
+// the user can take rather than appending untranslated runtime messages.
+@MainActor
+func userFacingError(_ error: Error) -> String {
+    guard let failure = error as? BackendFailure else {
+        let native = error as NSError
+        if native.domain == "Lino" || native.domain == "Lino.Resources" { return native.localizedDescription }
+        NSLog("Lino operation failed [%@]: %@", native.domain, native.localizedDescription)
+        return localized(native.domain == NSCocoaErrorDomain || native.domain == NSURLErrorDomain ? "failure.io" : "failure.internal")
+    }
+    NSLog("Lino operation failed [%@]: %@", failure.code, failure.message)
+    let key = "failure." + failure.code
+    let message = localized(key)
+    return message == key ? localized("failure.internal") : message
+}

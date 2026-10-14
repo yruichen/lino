@@ -8,4 +8,7 @@ pub mod ports;
 pub mod preferences;
 pub mod recovery;
 mod search;
+pub mod themes;
 pub mod workspace;
+
+pub mod navigation;

@@ -22,7 +22,7 @@ final class RecoveryCoordinator {
         guard !configured else { return }
         let directory: URL
         if verifying {
-            directory = FileManager.default.temporaryDirectory.appendingPathComponent("lino-recovery-verify-\(UUID().uuidString)", isDirectory: true)
+            directory = backend.verificationRecoveryDirectory
             temporaryDirectory = directory
         } else {
             // Keep the published storage location across the Lino rename so

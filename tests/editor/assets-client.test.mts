@@ -31,3 +31,12 @@ test('relative image URLs require a bound file and become available after saving
     client.setDocument('3', null); assert.throws(() => client.imageURL(source), AssetLocationError);
   } finally { client.destroy(); }
 });
+
+test('absolute image references in an unsaved draft keep a scoped session URL without needing a document folder', () => {
+  const client = new AssetsClient(() => {}); client.setDocument('1', null);
+  try {
+    const source = '/Users/fixture/Photos/a%20b.png', url = new URL(client.imageURL(source));
+    assert.equal(url.searchParams.get('session'), '1'); assert.equal(url.searchParams.get('file'), ''); assert.equal(url.searchParams.get('source'), source);
+    assert.throws(() => client.imageURL('../figures/image.png'), AssetLocationError);
+  } finally { client.destroy(); }
+});

@@ -1,4 +1,5 @@
 import { ProtocolError, TransportError } from '@lino/protocol/documents';
+import { AssetError } from '@lino/protocol/assets';
 import type { ErrorCode } from '@lino/protocol/generated/ErrorCode';
 import { isLocalizedError, localizeError, localizeMessage, t } from './index.ts';
 
@@ -17,11 +18,13 @@ const protocolMessages = {
 export function localizeFailure(error: unknown): unknown {
   if (!(error instanceof Error) || isLocalizedError(error)) return error;
   if (error instanceof ProtocolError && Object.hasOwn(protocolMessages, error.detail.code)) {
-    const key = protocolMessages[error.detail.code], reason = error.detail.message;
-    return localizeMessage(error, () => t('error.withDetails', {message: t(key), reason}));
+    const key = protocolMessages[error.detail.code];
+    return localizeMessage(error, () => t(key));
   }
+  if (error instanceof AssetError) return localizeError(error, `asset.${error.code}`);
+  if (error instanceof TransportError) return localizeError(error, `transport.${error.code}`);
   const reason = error.message;
-  return localizeError(error, error instanceof TransportError ? 'error.transport' : 'error.details', { reason });
+  return localizeError(error, 'error.details', { reason });
 }
 export function formatError(error: unknown): string {
   const localized = localizeFailure(error);

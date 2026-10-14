@@ -2,7 +2,7 @@ use crate::{
     dispatch::{error, number, storage_error},
     DocumentRuntime,
 };
-use lino_adapters::assets::{read_selected, FileAssets};
+use lino_adapters::assets::{read_selected, resolve_image_path, FileAssets};
 use lino_application::assets::{AssetPort, ImageContent};
 use lino_document::SessionId;
 use lino_protocol::{ErrorCode, WireError};
@@ -74,9 +74,8 @@ impl DocumentRuntime {
             .file_gate
             .lock()
             .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
-        self.assets(session, expected_file)?
-            .read_image(source)
-            .map_err(storage_error)
+        let path = self.image_location(session, expected_file, source)?;
+        read_selected(&path).map_err(storage_error)
     }
     pub fn import_image(
         &self,
@@ -100,7 +99,25 @@ impl DocumentRuntime {
         path: &Path,
     ) -> Result<String, WireError> {
         // Called only from an explicit host file selection, never a Web path.
-        let image = read_selected(path).map_err(storage_error)?;
+        let path = path
+            .canonicalize()
+            .map_err(|e| storage_error(lino_application::ports::StorageError::Io(e.to_string())))?;
+        let image = read_selected(&path).map_err(storage_error)?;
+        if self.preferences()?.values.image_insertion == "reference" {
+            let _gate = self
+                .file_gate
+                .lock()
+                .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
+            let info = self.info(SessionId(number(session)?))?;
+            if expected_file.map(number).transpose()? != info.file.map(|f| f.0) {
+                return Err(error(
+                    ErrorCode::StaleRevision,
+                    "Image location changed",
+                    false,
+                ));
+            }
+            return Ok(path.to_string_lossy().into_owned());
+        }
         self.import_image(
             session,
             expected_file,
@@ -118,13 +135,38 @@ impl DocumentRuntime {
             .file_gate
             .lock()
             .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
-        let assets = self.assets(session, expected_file)?;
-        assets.read_image(source).map_err(storage_error)?;
-        Ok(assets
-            .resolve(source)
-            .map_err(storage_error)?
-            .to_string_lossy()
-            .into_owned())
+        let path = self.image_location(session, expected_file, source)?;
+        read_selected(&path).map_err(storage_error)?;
+        Ok(path.to_string_lossy().into_owned())
+    }
+    fn image_location(
+        &self,
+        session: &str,
+        expected_file: Option<&str>,
+        source: &str,
+    ) -> Result<std::path::PathBuf, WireError> {
+        let info = self.info(SessionId(number(session)?))?;
+        if expected_file.map(number).transpose()? != info.file.map(|f| f.0) {
+            return Err(error(
+                ErrorCode::StaleRevision,
+                "Image location changed",
+                false,
+            ));
+        }
+        let path = info
+            .file
+            .map(|file| self.resources.path(file))
+            .transpose()
+            .map_err(storage_error)?;
+        let directory = path.as_ref().and_then(|p| p.parent());
+        if directory.is_none() && !Path::new(source).is_absolute() {
+            return Err(error(
+                ErrorCode::NotSaved,
+                "Open or save the document to locate relative images",
+                false,
+            ));
+        }
+        resolve_image_path(directory, source).map_err(storage_error)
     }
     pub fn document_link_path(
         &self,

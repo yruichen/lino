@@ -1,13 +1,14 @@
 import { StateEffect, StateField } from '@codemirror/state';
+import { nativeAnalysisUI } from '../analysis/capabilities.ts';
 import { EditorView } from '@codemirror/view';
 export interface WritingOptions { outline: boolean; statistics: boolean; focus: boolean; typewriter: boolean; zoom: number }
 export const changeWriting = StateEffect.define<Partial<WritingOptions>>();
 export const writingOptions = StateField.define<WritingOptions>({
   create: () => ({ outline: false, statistics: true, focus: false, typewriter: false, zoom: 1 }),
   update: (value, tr) => tr.effects.reduce((next, effect) => effect.is(changeWriting) ? { ...next, ...effect.value } : next, value),
-  provide: field => EditorView.editorAttributes.from(field, value => ({
-    class: value.outline ? 'ot-outline-open' : '',
-    'data-typewriter': String(value.typewriter),
+  provide: field => EditorView.editorAttributes.compute([field, nativeAnalysisUI], state => ({
+    class: state.field(field).outline && !state.facet(nativeAnalysisUI) ? 'ot-outline-open' : '',
+    'data-typewriter': String(state.field(field).typewriter),
   })),
 });
 export function writingCommand(view: EditorView, command: string): boolean {

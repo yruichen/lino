@@ -81,7 +81,15 @@ func installEditorMenus(target: AnyObject) {
     command(view, localized("writing.zoomIn"), "zoom-in", "+")
     command(view, localized("writing.zoomOut"), "zoom-out", "-")
     command(view, localized("writing.zoomReset"), "zoom-reset", "0")
-    _ = action(view, localized("workspace.sidebar"), #selector(EditorApplication.toggleWorkspace))
+    let sidebar = NSMenu(title: localized("navigation.sidebar"))
+    let sidebarEntry = NSMenuItem(); sidebarEntry.submenu = sidebar; view.addItem(sidebarEntry)
+    _ = action(sidebar, localized("workspace.sidebar"), #selector(EditorApplication.toggleWorkspace), "\\")
+    sidebar.addItem(.separator())
+    for (key, label) in [("favorites", "navigation.showFavorites"), ("locations", "navigation.showLocations"), ("recents", "navigation.showRecents"), ("follow", "navigation.follow"), ("name", "workspace.byName"), ("modified", "workspace.byDate")] {
+        action(sidebar, localized(label), #selector(EditorApplication.sidebarOption(_:))).representedObject = key
+    }
+    sidebar.addItem(.separator())
+    _ = action(sidebar, localized("navigation.customize"), #selector(EditorApplication.customizeSidebar))
     _ = action(view, localized("workspace.cancelSearch"), #selector(EditorApplication.cancelWorkspaceSearch))
     view.addItem(withTitle: localized("writing.fullscreen"), action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f").keyEquivalentModifierMask = [.command, .control]
     view.addItem(.separator())

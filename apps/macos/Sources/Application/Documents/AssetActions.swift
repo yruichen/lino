@@ -40,8 +40,12 @@ final class AssetActions {
                         guard let onOpenDocument else { throw resourceError(localized("link.openFailed")) }
                         onOpenDocument(path, parts.count > 1 ? String(parts[1]) : nil); value = "requested"
                     }
+                case "import-image-path":
+                    if ThemePalette.preferences?.image_insertion == "copy", !documents.hasFile { throw resourceError(localized("media.saveFirst")) }
+                    try requireCurrent(session, generation)
+                    value = try await bridge.backend.perform { try $0.importImageFile(sessionId: session, fileRef: fileRef, path: payload) }
                 case "import-file":
-                    guard documents.hasFile else { throw resourceError(localized("media.saveFirst")) }
+                    if ThemePalette.preferences?.image_insertion == "copy", !documents.hasFile { throw resourceError(localized("media.saveFirst")) }
                     let panel = NSOpenPanel(); panel.allowedContentTypes = [.image]; panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
                     let selected = await panel.beginSheetModal(for: window)
                     if selected == .OK, let path = panel.url?.path {
@@ -49,13 +53,22 @@ final class AssetActions {
                         value = try await bridge.backend.perform { try $0.importImageFile(sessionId: session, fileRef: fileRef, path: path) }
                     } else { value = nil }
                 case "paste-image":
-                    guard documents.hasFile else { throw resourceError(localized("media.saveFirst")) }
+                    if ThemePalette.preferences?.image_insertion == "copy", !documents.hasFile { throw resourceError(localized("media.saveFirst")) }
                     guard let data = NSPasteboard.general.data(forType: .png) ?? NSPasteboard.general.data(forType: .tiff) else { throw resourceError(localized("media.noClipboardImage")) }
                     let bytes: Data
                     do { bytes = try await Task.detached { try ImageData.png(data) }.value }
                     catch { throw resourceError(localized("media.imageLimit")) }
                     try requireCurrent(session, generation)
-                    value = try await bridge.backend.perform { try $0.importImageBytes(sessionId: session, fileRef: fileRef, name: "image.png", bytes: bytes) }
+                    if ThemePalette.preferences?.image_insertion == "copy" {
+                        value = try await bridge.backend.perform { try $0.importImageBytes(sessionId: session, fileRef: fileRef, name: "image.png", bytes: bytes) }
+                    } else {
+                        let panel = NSSavePanel(); panel.allowedContentTypes = [.png]; panel.nameFieldStringValue = "Image.png"; panel.title = localized("media.saveClipboardImage")
+                        if await panel.beginSheetModal(for: window) == .OK, let url = panel.url {
+                            try requireCurrent(session, generation)
+                            try await Task.detached { try bytes.write(to: url, options: .atomic) }.value
+                            value = try await bridge.backend.perform { try $0.importImageFile(sessionId: session, fileRef: fileRef, path: url.path) }
+                        } else { value = nil }
+                    }
                 case "reveal-image":
                     let path = try await bridge.backend.perform { try $0.imagePath(sessionId: session, fileRef: fileRef, source: payload) }
                     try requireCurrent(session, generation)
@@ -82,7 +95,7 @@ final class AssetActions {
                 }
                 try requireCurrent(session, generation)
                 respond(id, value: value, error: nil, generation: generation)
-            } catch { respond(id, value: nil, error: error.localizedDescription, generation: generation) }
+            } catch { respond(id, value: nil, error: userFacingError(error), generation: generation) }
         }
     }
     private func requireCurrent(_ session: String, _ generation: Int) throws {

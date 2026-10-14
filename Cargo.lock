@@ -500,6 +500,7 @@ version = "0.0.2"
 dependencies = [
  "lino-protocol",
  "lino-runtime",
+ "serde",
  "serde_json",
  "uniffi",
 ]
@@ -529,6 +530,7 @@ dependencies = [
  "lino-application",
  "lino-document",
  "lino-protocol",
+ "serde",
  "serde_json",
  "tempfile",
 ]

@@ -31,9 +31,9 @@ export const imageSizes = StateField.define<ReadonlyMap<number, { to: number; sc
     return next;
   },
 });
-export const startImport = StateEffect.define<{ id: number; from: number; to: number }>();
+export const startImport = StateEffect.define<{ id: number; from: number; to: number; waitingForLocation?: boolean }>();
 export const finishImport = StateEffect.define<number>();
-export const importAnchor = StateField.define<{ id: number; from: number; to: number; valid: boolean } | null>({
+export const importAnchor = StateField.define<{ id: number; from: number; to: number; valid: boolean; waitingForLocation?: boolean } | null>({
   create: () => null,
   update(value, tr) {
     if (value && tr.docChanged) {
@@ -44,7 +44,7 @@ export const importAnchor = StateField.define<{ id: number; from: number; to: nu
       value = { ...old, from: tr.changes.mapPos(old.from, 1), to: tr.changes.mapPos(old.to, old.from === old.to ? 1 : -1), valid };
     }
     for (const effect of tr.effects) {
-      if (effect.is(mediaContextChanged) && value) value = { ...value, valid: false };
+      if (effect.is(mediaContextChanged) && value && !value.waitingForLocation) value = { ...value, valid: false };
       if (effect.is(startImport)) value = { ...effect.value, valid: true };
       if (effect.is(finishImport) && value?.id === effect.value) value = null;
     }

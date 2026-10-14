@@ -4,7 +4,7 @@ import WebKit
 @MainActor
 final class EditorWindowController: NSWindowController, NSWindowDelegate, NSToolbarDelegate, NSToolbarItemValidation, NSMenuItemValidation {
     let bridge: EditorBridge
-    let webView: WKWebView
+    let webView: EditorWebView
     private let imageResources: ImageResources
     private var assetActions: AssetActions!
     private var externalChanges: ExternalChanges!
@@ -16,18 +16,32 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
     private(set) var editorMode = "visual"
     private let statusLabel = NSTextField(labelWithString: localized("status.loading"))
     private let stateIcon = NSImageView()
+    private let statisticsLabel = NSTextField(labelWithString: "")
+    private let navigation: NavigationCoordinator
+    private let verifying: Bool
+    private var navigationStateKey: String
+    private var desiredSidebar = false
+    private lazy var viewport = EditorViewport(bridge: bridge)
+    private var restoreEditorAfterSidebar = false
+    private let footer = NSVisualEffectView()
+    private(set) var quickOpen: QuickOpenController!
+    private var customization: SidebarCustomizationController!
+    var onFileBindingChanged: ((String?) -> Void)?
+    private var boundFileRef: String?
+    private var bindingTask: Task<Void, Never>?
     private let detailLabel = NSTextField(labelWithString: localized("status.markdownEncoding"))
     private let retryButton = NSButton(title: localized("status.retry"), target: nil, action: nil)
     private(set) var workspace: WorkspaceController!
     private(set) var exports: ExportCoordinator!
     private(set) var searchControls: DocumentSearchController!
     private var documentDetail = localized("status.markdownEncoding")
-    private var workspaceVisible: Bool { sidebarItem?.isCollapsed == false }
-    private let splitController = NSSplitViewController()
-    private var sidebarItem: NSSplitViewItem?
-    private let sidebarContainer = NSVisualEffectView()
+    var workspaceVisible: Bool { desiredSidebar }
+    private let navigationSplit = NavigationSplitView()
+    private let sidebarContainer = NativeMaterialSurface()
     var onWillClose: ((String?) -> Void)?
     var pendingNavigationLine: Int?
+    private var outlineSequence: UInt64 = 0
+    private var outlineRequest: (generation: Int, session: String, visible: Bool)?
     private var writingStatus: [String: Any] = [:]
     private(set) var documents: DocumentActions!
     private var documentMessage = localized("status.loading")
@@ -44,14 +58,19 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
     private(set) var canUndo = false
     private(set) var canRedo = false
 
-    init(verifying: Bool = false, backend: DocumentBackend = DocumentBackend(), initialPath: String? = nil, offerRecovery: Bool = true) {
+    init(verifying: Bool = false, backend: DocumentBackend = DocumentBackend(), initialPath: String? = nil, offerRecovery: Bool = true, navigation: NavigationCoordinator? = nil) {
+        self.verifying = verifying
+        self.navigation = navigation ?? NavigationCoordinator(backend: backend)
+        navigationStateKey = "navigationWindow:" + (initialPath.map { Data($0.utf8).base64EncodedString() } ?? UUID().uuidString)
+        desiredSidebar = !verifying && UserDefaults.standard.bool(forKey: navigationStateKey + ":visible")
         bridge = EditorBridge(backend: backend)
         let imageBridge = bridge
         imageResources = ImageResources(backend: backend, session: { [weak imageBridge] in imageBridge?.sessionId })
         let configuration = WKWebViewConfiguration()
         configuration.setURLSchemeHandler(imageResources, forURLScheme: "ot-image")
+        configuration.setURLSchemeHandler(AppearanceResources(), forURLScheme: "ot-appearance")
         configuration.websiteDataStore = .nonPersistent()
-        webView = WKWebView(frame: .zero, configuration: configuration)
+        webView = EditorWebView(frame: .zero, configuration: configuration)
         webView.isHidden = true
         // Keep the painted loading surface inside the content area. AppKit
         // owns the separate titlebar, window buttons and unified toolbar.
@@ -60,8 +79,10 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         window.title = localized("document.untitled"); window.subtitle = "Lino"
         window.minSize = NSSize(width: 640, height: 420)
         window.toolbarStyle = .unified
+        window.titlebarAppearsTransparent = true; window.titlebarSeparatorStyle = .none
+        window.backgroundColor = ThemePalette.color("bg")
         window.tabbingIdentifier = "LinoDocuments"
-        window.tabbingMode = verifying ? .disallowed : .preferred
+        window.tabbingMode = verifying ? .disallowed : .automatic
         window.center()
         super.init(window: window)
         documents = DocumentActions(bridge: bridge, window: window, verifying: verifying, initialPath: initialPath, offerRecovery: offerRecovery)
@@ -75,10 +96,55 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         }
         assetActions = AssetActions(bridge: bridge, documents: documents, window: window)
         bridge.onAssetOperation = { [weak self] id, operation, payload, fileRef, sessionId in self?.assetActions.request(id: id, operation: operation, payload: payload, fileRef: fileRef, sessionId: sessionId) }
-        workspace = WorkspaceController(backend: backend, window: window, verifying: verifying)
+        webView.registerForDraggedTypes([.fileURL])
+        webView.acceptsImages = { [weak self] in self?.documents.ready == true && self?.documents.busy == false && self?.documents.readOnly == false && self?.composing == false }
+        webView.onImageDrop = { [weak self] paths, point in
+            guard let self else { return }
+            let generation = bridge.generation, owner = documents.sessionId
+            Task {
+                do {
+                    guard try await bridge.call("prepareImageDrop", arguments: [point.x, point.y]) as? Bool == true else { return }
+                    // Save before issuing asset I/O: saving waits for pending imports.
+                    if !documents.hasFile, ThemePalette.preferences?.image_insertion == "copy" {
+                        guard await documents.save() else { _ = try? await bridge.call("cancelImageDrop"); return }
+                    }
+                    guard generation == bridge.generation, owner == documents.sessionId, documents.ready, !documents.closed else { return }
+                    _ = try await bridge.call("commitImageDrop", arguments: [paths])
+                } catch { _ = try? await bridge.call("cancelImageDrop"); showError(userFacingError(error)) }
+            }
+        }
+        bridge.onImageDrop = { [weak self] paths, x, y in
+            guard let self, webView.acceptsImages?() == true else { return }
+            webView.onImageDrop?(paths, NSPoint(x: x, y: y))
+        }
+        workspace = WorkspaceController(navigation: self.navigation, window: window, verifying: verifying)
+        workspace.restoreWindowState(navigationStateKey)
+        quickOpen = QuickOpenController(window: window, navigation: self.navigation)
+        customization = SidebarCustomizationController(navigation: self.navigation)
+        workspace.onQuickOpen = { [weak self] in self?.quickOpen.show() }
+        quickOpen.currentWorkspace = { [weak self] in self?.workspace.currentRoot }
+        quickOpen.onOpenFolder = { [weak self] in Task { await self?.workspace.chooseRoot() } }
+        workspace.onContentSearch = { [weak self] in
+            self?.setWorkspaceVisible(true); self?.workspace.showContentSearch()
+        }
+        workspace.onCustomize = { [weak self] in self?.showSidebarCustomization() }
+        workspace.onOutlineVisibility = { [weak self] _ in self?.synchronizeOutline() }
+        workspace.onHeading = { [weak self] from, token in
+            guard let self else { return }
+            Task {
+                do { _ = try await bridge.call("navigateHeading", arguments: [from, token]); window.makeFirstResponder(webView) }
+                catch { showError(userFacingError(error)) }
+            }
+        }
+        workspace.onContinueOutline = { [weak self] in
+            guard let self else { return }; Task { _ = try? await bridge.call("continueOutline") }
+        }
+        bridge.onOutline = { [weak self] projection in self?.workspace.applyHeadings(projection) }
+        bridge.onStatistics = { [weak self] projection in self?.updateStatistics(projection) }
         workspace.onError = { [weak self] message in self?.showError(message) }
         workspace.onVisibility = { [weak self] visible in self?.setWorkspaceVisible(visible) }
         searchControls = DocumentSearchController(bridge: bridge)
+        searchControls.onFocusEditor = { [weak self] in self?.window?.makeFirstResponder(self?.webView) }
         searchControls.canSearch = { [weak self] in self?.documents.ready == true && self?.composing == false }
         window.delegate = self
         bridge.webView = webView
@@ -90,9 +156,12 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         toolbar.allowsUserCustomization = false
         window.toolbar = toolbar
         configureContent(in: window)
+        placeSidebar()
         documents.onAvailabilityChanged = { [weak self] in
             guard let self else { return }
+            viewport.setAvailable(documents.ready)
             webView.isHidden = !documents.ready
+            synchronizeOutline()
             searchControls.updateAvailability()
             window.toolbar?.validateVisibleItems()
             updateStatus()
@@ -123,7 +192,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
     private func configureContent(in window: NSWindow) {
         let content = EditorSurfaceView(editor: webView)
         window.contentView = content
-        let footer = NSVisualEffectView()
+        let contentGuide = installWindowChrome(in: window, content: content)
         footer.material = .headerView; footer.blendingMode = .withinWindow
         footer.state = .followsWindowActiveState
         stateIcon.image = NSImage(systemSymbolName: "circle.dotted", accessibilityDescription: nil)
@@ -140,31 +209,34 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         retryButton.target = self; retryButton.action = #selector(retry)
         retryButton.isHidden = true
         retryButton.setAccessibilityLabel(localized("status.retryAccessibility"))
-        let row = NSStackView(views: [stateIcon, statusLabel, retryButton, NSView(), detailLabel])
+        statisticsLabel.font = .systemFont(ofSize: 11); statisticsLabel.textColor = .secondaryLabelColor
+        statisticsLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        let row = NSStackView(views: [stateIcon, statusLabel, retryButton, NSView(), statisticsLabel, detailLabel])
         row.spacing = 8; row.alignment = .centerY
-        sidebarContainer.material = .sidebar; sidebarContainer.blendingMode = .behindWindow
-        sidebarContainer.state = .followsWindowActiveState
-        let sidebarController = NSViewController(); sidebarController.view = sidebarContainer
-        sidebarContainer.addSubview(workspace.view)
-        let sidebar = NSSplitViewItem(sidebarWithViewController: sidebarController)
-        sidebar.minimumThickness = 230; sidebar.maximumThickness = 420
-        sidebar.preferredThicknessFraction = 0.26; sidebar.canCollapse = true; sidebar.isCollapsed = true
-        sidebarItem = sidebar
-        let editorController = NSViewController(); editorController.view = webView
-        let editorItem = NSSplitViewItem(viewController: editorController); editorItem.minimumThickness = 320
-        splitController.splitView.isVertical = true; splitController.splitView.dividerStyle = .thin
-        splitController.addSplitViewItem(sidebar); splitController.addSplitViewItem(editorItem)
-        for view in [splitController.view, footer, row, workspace.view] { view.translatesAutoresizingMaskIntoConstraints = false }
-        content.addSubview(splitController.view); content.addSubview(footer); footer.addSubview(row)
+        let footerBackground = ThemeSurface(role: "bg")
+        footerBackground.frame = footer.bounds; footerBackground.autoresizingMask = [.width, .height]
+        footer.addSubview(footerBackground, positioned: .below, relativeTo: nil)
+        sidebarContainer.install(workspace.view)
+        navigationSplit.install(sidebar: sidebarContainer, editor: webView)
+        navigationSplit.onViewportWidth = { [weak self] width in self?.viewport.resize(width) }
+        navigationSplit.onTransitionCompleted = { [weak self] in
+            guard let self, restoreEditorAfterSidebar, !desiredSidebar else { return }
+            restoreEditorAfterSidebar = false
+            self.window?.makeFirstResponder(webView)
+        }
+        let savedWidth = verifying ? 268 : UserDefaults.standard.double(forKey: navigationStateKey + ":width")
+        navigationSplit.configure(width: savedWidth >= 230 && savedWidth <= 360 ? savedWidth : 268, expanded: desiredSidebar)
+        navigationSplit.onWidthChanged = { [weak self] width in
+            guard let self, !verifying else { return }
+            UserDefaults.standard.set(width, forKey: navigationStateKey + ":width")
+        }
+        for view in [navigationSplit, footer, row, workspace.view] { view.translatesAutoresizingMaskIntoConstraints = false }
+        content.addSubview(navigationSplit); content.addSubview(footer); footer.addSubview(row)
         NSLayoutConstraint.activate([
-            splitController.view.leadingAnchor.constraint(equalTo: content.leadingAnchor),
-            splitController.view.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            splitController.view.topAnchor.constraint(equalTo: content.topAnchor),
-            splitController.view.bottomAnchor.constraint(equalTo: footer.topAnchor),
-            workspace.view.leadingAnchor.constraint(equalTo: sidebarContainer.leadingAnchor),
-            workspace.view.trailingAnchor.constraint(equalTo: sidebarContainer.trailingAnchor),
-            workspace.view.topAnchor.constraint(equalTo: sidebarContainer.topAnchor),
-            workspace.view.bottomAnchor.constraint(equalTo: sidebarContainer.bottomAnchor),
+            navigationSplit.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            navigationSplit.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            navigationSplit.topAnchor.constraint(equalTo: contentGuide.topAnchor),
+            navigationSplit.bottomAnchor.constraint(equalTo: footer.topAnchor),
             footer.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             footer.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             footer.bottomAnchor.constraint(equalTo: content.bottomAnchor),
@@ -199,17 +271,61 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
             }
         } else { documentMessage = documents.hasFile ? localized("status.saved") : localized("status.untitled") }
         documentDetail = status["autosave"] as? Bool == true ? localized("status.autosaveEncoding") : localized("status.markdownEncoding")
+        if boundFileRef != documents.fileRef {
+            boundFileRef = documents.fileRef; bindingTask?.cancel()
+            let file = documents.fileRef, id = documents.sessionId
+            bindingTask = Task { [weak self] in
+                guard let self else { return }
+                let path: String?
+                if let id { path = try? await bridge.backend.perform { try $0.documentPath(sessionId: id) } } else { path = nil }
+                guard !Task.isCancelled, boundFileRef == file else { return }
+                if let path, !verifying {
+                    let key = "navigationWindow:" + Data(path.utf8).base64EncodedString()
+                    if key != navigationStateKey {
+                        navigationStateKey = key; workspace.rebindWindowState(key)
+                        UserDefaults.standard.set(desiredSidebar, forKey: key + ":visible")
+                        UserDefaults.standard.set(navigationSplit.rememberedWidth, forKey: key + ":width")
+                    }
+                }
+                workspace.setCurrentFile(path); quickOpen.currentFile = path; onFileBindingChanged?(path)
+                if let path { await navigation.noteFile(path) }
+            }
+        }
         updateStatus()
     }
 
-    func setWorkspaceVisible(_ value: Bool) {
-        guard let sidebarItem else { return }
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : 0.18
-            sidebarItem.animator().isCollapsed = !value
+    private func synchronizeOutline() {
+        guard documents.ready, let session = documents.sessionId else { outlineRequest = nil; return }
+        let generation = bridge.generation, visible = workspace.showingOutline
+        if let request = outlineRequest, request.generation == generation, request.session == session, request.visible == visible { return }
+        outlineSequence &+= 1; let sequence = outlineSequence
+        outlineRequest = (generation, session, visible)
+        Task { [weak self] in
+            guard let self, bridge.generation == generation, documents.sessionId == session else { return }
+            do { _ = try await bridge.call("setOutlineVisible", arguments: [visible, String(sequence), session, generation]) }
+            catch { if outlineSequence == sequence { outlineRequest = nil }; showError(userFacingError(error)) }
         }
     }
-    @objc func toggleWorkspace() { setWorkspaceVisible(!workspaceVisible) }
+    func setWorkspaceVisible(_ value: Bool) {
+        if !value, let responder = window?.firstResponder as? NSView {
+            restoreEditorAfterSidebar = responder.isDescendant(of: sidebarContainer)
+        } else { restoreEditorAfterSidebar = false }
+        desiredSidebar = value
+        if !verifying { UserDefaults.standard.set(value, forKey: navigationStateKey + ":visible") }
+        placeSidebar()
+    }
+    private func placeSidebar() {
+        navigationSplit.show(desiredSidebar, animated: window?.isVisible == true)
+    }
+    func windowDidResize(_ notification: Notification) { quickOpen?.resize() }
+    func showSidebarCustomization() { setWorkspaceVisible(true); customization.show(relativeTo: workspace.view.arrangedSubviews.first ?? workspace.view) }
+    @objc func toggleWorkspace() { setWorkspaceVisible(!desiredSidebar) }
+    private func updateStatistics(_ projection: [String: Any]) {
+        guard let counts = projection["counts"] as? [String: Any], let words = counts["words"] as? Int else { return }
+        statisticsLabel.isHidden = projection["visible"] as? Bool == false
+        statisticsLabel.stringValue = localized(projection["selection"] as? Bool == true ? "navigation.selectionWords" : "navigation.words", words)
+        statisticsLabel.toolTip = localized("navigation.countDetails", words, counts["characters"] as? Int ?? 0, counts["lines"] as? Int ?? 0)
+    }
     func writingMenuState(_ command: String) -> NSControl.StateValue {
         let key = ["toggle-outline": "outline", "toggle-statistics": "statistics", "focus-mode": "focus", "typewriter-mode": "typewriter", "code-wrap": "codeWrap", "code-line-numbers": "codeNumbers"][command]
         return key.flatMap { writingStatus[$0] as? Bool } == true ? .on : .off
@@ -218,7 +334,8 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
     private func showNotice(_ key: String) { noticeKey = key; errorMessage = nil; updateStatus() }
 
     func relocalize() {
-        workspace.relocalize()
+        workspace.relocalize(); quickOpen.relocalize()
+        if let root = window?.contentView { ThemePalette.refresh(root) }
         webView.setAccessibilityLabel(localized("editor.accessibility"))
         retryButton.setAccessibilityLabel(localized("status.retryAccessibility"))
         for item in window?.toolbar?.items ?? [] { localizeToolbarItem(item) }
@@ -227,13 +344,23 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
     }
     private func updateStatus() {
         let zoom = (writingStatus["zoom"] as? Double) ?? 1
-        detailLabel.stringValue = "\(Int((zoom * 100).rounded()))% · \(documentDetail)"
-        let error = (persistenceError ?? errorMessage).map { localized("status.errorDetail", $0) } ?? noticeKey.map { localized($0) }
+        detailLabel.stringValue = zoom == 1 ? "" : "\(Int((zoom * 100).rounded()))%"
+        let error = (persistenceError ?? errorMessage).map { localized("status.errorDetail", $0) }
+        let notice = noticeKey.map { localized($0) }
         let external = externalState == "changed" ? localized("status.externalChanged") : externalState == "deleted" ? localized("status.externalDeleted") : ""
-        statusLabel.stringValue = error ?? [external.isEmpty ? documentMessage : external, documents.readOnly ? localized("status.readOnly") : "", composing ? localized("status.composing") : ""].filter { !$0.isEmpty }.joined(separator: " · ")
-        statusLabel.toolTip = statusLabel.stringValue
+        let quietStatus: String
+        if let error { quietStatus = error }
+        else if let notice { quietStatus = notice }
+        else if !external.isEmpty { quietStatus = external }
+        else if !documents.ready { quietStatus = documentMessage }
+        else if documents.readOnly { quietStatus = localized("status.readOnly") }
+        else if documentStatus?["saving"] as? Bool == true { quietStatus = localized("navigation.saving") }
+        else if documentStatus?["dirty"] as? Bool == true { quietStatus = localized("navigation.unsaved") }
+        else { quietStatus = localized(documents.hasFile ? "status.saved" : "document.untitled") }
+        statusLabel.stringValue = quietStatus
+        statusLabel.toolTip = error ?? (documentMessage + (composing ? " · " + localized("status.composing") : ""))
         statusLabel.textColor = error == nil ? .secondaryLabelColor : .systemOrange
-        stateIcon.image = NSImage(systemSymbolName: error == nil ? "checkmark.circle" : "exclamationmark.triangle", accessibilityDescription: error == nil ? localized("status.documentAccessibility") : localized("status.errorAccessibility"))
+        stateIcon.image = NSImage(systemSymbolName: error == nil ? documentStatus?["dirty"] as? Bool == true ? "circle.fill" : documents.hasFile ? "checkmark" : "doc" : "exclamationmark.triangle", accessibilityDescription: error == nil ? localized("status.documentAccessibility") : localized("status.errorAccessibility"))
         stateIcon.contentTintColor = error == nil ? .secondaryLabelColor : .systemOrange
         retryButton.isHidden = persistenceError == nil && documents.ready
         retryButton.title = documents.ready ? localized("status.retry") : localized("status.reconnect")
@@ -243,7 +370,9 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         guard let root = Bundle.main.resourceURL?.appendingPathComponent("Editor", isDirectory: true) else {
             throw NSError(domain: "Lino", code: 1, userInfo: [NSLocalizedDescriptionKey: localized("error.missingResources")])
         }
-        bridge.beginNavigation()
+        window?.contentView?.layoutSubtreeIfNeeded()
+        viewport.setAvailable(false)
+        bridge.beginNavigation(viewportWidth: navigationSplit.viewportWidth)
         imageResources.cancelAll()
         webView.loadFileURL(root.appendingPathComponent("index.html"), allowingReadAccessTo: root)
     }
@@ -256,26 +385,29 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
             return
         }
         automaticReconnectUsed = true
-        do { try loadEditor() } catch { showError(error.localizedDescription) }
+        do { try loadEditor() } catch { showError(userFacingError(error)) }
     }
 
     func reconnect() {
         guard !documents.ready && !documents.busy else { return }
         automaticReconnectUsed = false
-        do { try loadEditor() } catch { showError(error.localizedDescription) }
+        do { try loadEditor() } catch { showError(userFacingError(error)) }
     }
 
     func detach() {
+        navigationSplit.detach()
+        viewport.detach()
         exports.detach()
         externalChanges.detach()
         imageResources.cancelAll(); bridge.onAssetOperation = nil
-        bridge.onContextMenu = nil
+        bridge.onContextMenu = nil; bridge.onImageDrop = nil
+        bindingTask?.cancel(); quickOpen.detach()
         workspace.detach()
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "editor")
         webView.navigationDelegate = nil; webView.stopLoading()
     }
     func windowWillClose(_ notification: Notification) { onClosed?() }
-    func windowDidBecomeKey(_ notification: Notification) { externalChanges?.check() }
+    func windowDidBecomeKey(_ notification: Notification) { externalChanges?.check(); if let path = workspace.currentFile { Task { await navigation.noteFile(path) } } }
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         if documents.closed { return true }
         Task { [weak self] in
@@ -308,7 +440,10 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         return allowsCommand(command, fromToolbar: true)
     }
     func performEditorCommand(_ command: String) {
-        if command == "find" || command == "replace" { searchControls.open(replacing: command == "replace") }
+        if command == "toggle-outline" {
+            let show = !workspace.showingOutline || !workspaceVisible
+            if show { workspace.setOutline(true) }; setWorkspaceVisible(show)
+        } else if command == "find" || command == "replace" { searchControls.open(replacing: command == "replace") }
         else { bridge.command(command) }
     }
     @objc func formatAction(_ sender: NSMenuItem) {

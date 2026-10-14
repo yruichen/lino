@@ -118,6 +118,11 @@ impl DocumentService {
             .map_err(wire_error)?;
         serde_json::to_string(&document).map_err(json_error)
     }
+    pub fn validate_document_file(&self, path: String) -> Result<(), BridgeError> {
+        self.runtime
+            .validate_document_file(Path::new(&path))
+            .map_err(wire_error)
+    }
     pub fn open_file(
         &self,
         path: String,

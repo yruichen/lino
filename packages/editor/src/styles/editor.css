@@ -25,18 +25,18 @@
 }
 .cm-editor[data-appearance=light] { color-scheme: light; }
 .cm-editor[data-appearance=dark] { color-scheme: dark; }
-html, body, #editor { margin: 0; height: 100%; }
+html, body, #editor { margin: 0; height: 100%; background: var(--ot-background); overflow: hidden; overscroll-behavior: none; }
 .cm-editor { height: 100%; font-size: 17px; line-height: 1.7; }
 .cm-editor.cm-focused { outline: none; }
-.cm-scroller { overflow: auto; }
+.cm-scroller { overflow: auto; background: var(--ot-background); overscroll-behavior-x: none; overscroll-behavior-y: contain; }
 .cm-content { caret-color: var(--ot-caret); }
 .cm-cursor { border-left-color: var(--ot-caret); }
 .cm-selectionBackground, .cm-content ::selection { background: var(--ot-selection) !important; }
 .markdown-table { margin: 0; padding: 20px 0; overflow-x: auto; }
 .markdown-table table { width: auto; max-width: 100%; border-collapse: collapse; table-layout: auto; }
-.markdown-table th, .markdown-table td { border: 1px solid var(--ot-border); padding: 0; }
+.markdown-table th, .markdown-table td { position: relative; border: 1px solid var(--ot-border); padding: 0; }
 .markdown-table th { background: var(--ot-panel); }
-.markdown-table input { box-sizing: border-box; width: 100%; min-width: 90px; padding: 9px 12px; color: inherit; background: transparent; border: 0; border-radius: 0; font: inherit; }
+.markdown-table input { position: absolute; inset: 0; opacity: 0; box-sizing: border-box; width: 100%; min-width: 0; height: 100%; padding: 9px 12px; color: inherit; background: transparent; border: 0; border-radius: 0; font: inherit; }
 .markdown-table th input { font-weight: 600; }
 .markdown-table input:focus { outline: 2px solid var(--ot-focus); outline-offset: -2px; }
 .ot-highlight { background: var(--ot-match); color: var(--ot-text); }
@@ -44,7 +44,7 @@ html, body, #editor { margin: 0; height: 100%; }
 .ot-subscript { vertical-align: sub; font-size: .8em; }
 .ot-frontmatter, .ot-footnote-definition { color: var(--ot-muted); }
 .ot-task-checkbox { accent-color: var(--ot-focus); cursor: pointer; vertical-align: middle; }
-.cm-line.ot-heading { font-weight: 650; line-height: inherit; color: var(--ot-text); }
+.cm-line.ot-heading { font-weight: 650; line-height: inherit; color: var(--ot-heading); }
 .cm-line.ot-heading-1 { font-size: 2em; }
 .cm-line.ot-heading-2 { font-size: 1.55em; }
 .cm-line.ot-heading-3 { font-size: 1.3em; }
@@ -52,6 +52,14 @@ html, body, #editor { margin: 0; height: 100%; }
 .cm-line.ot-heading-5 { font-size: 1.05em; }
 .cm-line.ot-heading-6 { font-size: 1em; color: var(--ot-muted); }
 .cm-line.ot-heading-underline { color: transparent; }
-.cm-line.ot-quote-line { border-inline-start: 3px solid var(--ot-border); padding-inline-start: 18px; color: var(--ot-muted); }
+.cm-line.ot-quote-line { border-inline-start: 3px solid var(--ot-border); padding-inline-start: 18px; color: var(--ot-quote, var(--ot-muted)); }
 .ot-horizontal-rule { border: 0; border-top: 1px solid var(--ot-border); margin: 1em 0; }
 .ot-list-bullet { display: inline-block; color: var(--ot-muted); }
+
+.markdown-table .table-cell-preview { box-sizing: border-box; min-width: 90px; padding: 9px 12px; white-space: nowrap; }
+.markdown-table .is-editing .table-cell-preview { visibility: hidden; }
+.markdown-table .is-editing input { opacity: 1; }
+.markdown-table .table-cell-preview code { font-family: ui-monospace, monospace; }
+
+.cm-editor[data-background-image="true"]::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--ot-background-image) center / cover no-repeat; opacity: var(--ot-background-image-opacity, .2); }
+.cm-editor[data-background-image="true"] .cm-scroller { background: transparent; position: relative; }

@@ -3,13 +3,15 @@ import UniformTypeIdentifiers
 
 @MainActor
 enum DocumentDialogs {
-    static func open(in window: NSWindow) async -> URL? {
+    static func open(in window: NSWindow?) async -> URL? {
         let panel = NSOpenPanel()
         panel.title = localized("dialog.openTitle"); panel.prompt = localized("dialog.openPrompt")
         panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.plainText, .text]
         panel.allowsOtherFileTypes = true
-        let response = await panel.beginSheetModal(for: window)
+        let response: NSApplication.ModalResponse
+        if let window { response = await panel.beginSheetModal(for: window) }
+        else { response = await withCheckedContinuation { continuation in panel.begin { continuation.resume(returning: $0) } } }
         return response == .OK ? panel.url : nil
     }
     static func save(in window: NSWindow, label: String?, resourceNote: Bool = false) async -> URL? {
@@ -28,13 +30,13 @@ enum DocumentDialogs {
         return response == .OK ? panel.url : nil
     }
     enum Decision { case save, discard, cancel }
-    static func unsaved(in window: NSWindow, label: String) async -> Decision {
+    static func unsaved(in window: NSWindow, label: String, closing: Bool = false) async -> Decision {
         let alert = NSAlert()
-        alert.messageText = localized("dialog.unsavedTitle", label)
+        alert.messageText = localized(closing ? "dialog.closeUnsavedTitle" : "dialog.unsavedTitle", label)
         alert.informativeText = localized("dialog.unsavedDetail")
-        alert.addButton(withTitle: localized("menu.save"))
-        alert.addButton(withTitle: localized("button.cancel"))
-        alert.addButton(withTitle: localized("dialog.discardChanges"))
+        alert.addButton(withTitle: localized(closing ? "dialog.saveClose" : "menu.save"))
+        alert.addButton(withTitle: localized("dialog.keepEditing"))
+        alert.addButton(withTitle: localized(closing ? "dialog.discardClose" : "dialog.discardChanges"))
         switch await alert.beginSheetModal(for: window) {
         case .alertFirstButtonReturn: return .save
         case .alertThirdButtonReturn: return .discard
@@ -49,7 +51,7 @@ extension DocumentDialogs {
         alert.alertStyle = .warning
         alert.messageText = localized("dialog.unavailableTitle")
         alert.informativeText = localized("dialog.unavailableDetail")
-        alert.addButton(withTitle: localized("button.cancel"))
+        alert.addButton(withTitle: localized("dialog.keepEditing"))
         alert.addButton(withTitle: localized("dialog.closeKeepRecovery"))
         return await alert.beginSheetModal(for: window) == .alertSecondButtonReturn
     }
@@ -96,7 +98,7 @@ private final class RecoverySelection: NSObject {
         self.entries = entries; self.restoreButton = restoreButton
         super.init()
         for entry in entries {
-            popup.addItem(withTitle: "\(entry.label ?? localized("document.untitled")) · \(entry.key.prefix(8))\(entry.problem == nil ? "" : localized("recovery.unreadableSuffix"))")
+            popup.addItem(withTitle: "\(entry.label ?? localized("document.untitled"))\(entry.problem == nil ? "" : localized("recovery.unreadableSuffix"))")
         }
         popup.target = self; popup.action = #selector(changed)
         popup.setAccessibilityLabel(localized("recovery.selectionLabel"))
@@ -112,6 +114,7 @@ private final class RecoverySelection: NSObject {
     @objc private func changed() {
         let entry = entries[selectedIndex]
         restoreButton.isEnabled = entry.problem == nil
-        detail.stringValue = entry.problem.map { localized("recovery.readError", $0) } ?? localized("recovery.durabilityDetail")
+        detail.stringValue = entry.problem == nil ? localized("recovery.durabilityDetail") : localized("recovery.readError")
+        detail.toolTip = entry.problem
     }
 }

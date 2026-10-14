@@ -5,6 +5,24 @@ const fixture = setupDOM();
 const { MarkdownEditor } = await import('../../packages/editor/src/engine/editor.ts');
 after(() => fixture.dom.window.close());
 const raw = '| A | B |\n| --- | --- |\n| x | y |\n| 中 | 👩🏽‍💻 |';
+test('table reading renders Markdown, underline and safe HTML without changing cell source', async () => {
+  const source = '| **Model** | Result |\n| --- | --- |\n| **Ours** | <u>37.5</u> |\n| `**code**` | <script>alert(1)</script> |';
+  const mount = fixture.mount(), e = new MarkdownEditor(mount, source, () => {});
+  try {
+    await settleDOM();
+    assert.equal(mount.querySelectorAll('.table-cell-preview strong').length, 2);
+    assert.equal(mount.querySelector('.table-cell-preview u')!.textContent, '37.5');
+    assert.equal(mount.querySelector('.table-cell-preview code')!.textContent, '**code**');
+    assert.equal(mount.querySelector('script'), null); assert.equal(e.read(), source);
+    const input = mount.querySelector<HTMLInputElement>('input[data-row="1"][data-column="0"]')!;
+    input.focus(); assert.equal(input.value, '**Ours**'); assert(input.parentElement!.classList.contains('is-editing'));
+    input.value = '**Better**'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    e.view.focus(); assert.equal(input.parentElement!.classList.contains('is-editing'), false);
+    assert.equal(input.parentElement!.querySelector('strong')!.textContent, 'Better');
+    e.command('undo'); await settleDOM(); assert.equal(e.read(), source);
+    assert.equal(mount.querySelector<HTMLInputElement>('input[data-row="1"][data-column="0"]')!.value, '**Ours**');
+  } finally { e.destroy(); mount.remove(); }
+});
 test('moving rows/columns updates active cell contents, transfers focus and undo/redo restore coherent cells', async () => {
   const mount = fixture.mount(), e = new MarkdownEditor(mount, raw, () => {});
   const cell = (row: number, column: number) => mount.querySelector<HTMLInputElement>(`input[data-row="${row}"][data-column="${column}"]`)!;

@@ -4,7 +4,7 @@ import WebKit
 @MainActor
 final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValidation, NSMenuDelegate {
     weak var recentMenu: NSMenu?
-    private let windows = DocumentWindows()
+    private let windows = DocumentWindows(verifying: CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings"))
     private var currentController: EditorWindowController? { verifying ? controller : windows.active }
     private var controller: EditorWindowController?
     private var settingsController: SettingsWindowController?
@@ -15,7 +15,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     private var pendingOpenPaths: [String] = []
     private lazy var preferences = PreferencesCoordinator(backend: windows.backend)
     private var verificationLifecycle: [String] = []
-    private let verifying = CommandLine.arguments.contains("--verify")
+    private let verifying = CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Task { await start() }
@@ -23,11 +23,12 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     private func start() async {
         LanguagePreferences.shared.configure(verifying: verifying)
         var startupError: String?
-        do { try await preferences.configure(verifying: verifying) }
+        do { try await preferences.configure(verifying: verifying); try await windows.navigation.configure(verifying: verifying) }
         catch {
             if verifying { finish(["failed": [error.localizedDescription]], code: 1); return }
-            startupError = error.localizedDescription
+            startupError = userFacingError(error)
         }
+        windows.navigation.onError = { [weak self] message in self?.currentController?.showError(message) }
         applyNativePreferences()
         if preferences.snapshot?.storage_warning != nil { startupError = localized("settings.notDurable") }
         starting = false
@@ -35,13 +36,13 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             installEditorMenus(target: self)
             let paths = pendingOpenPaths.isEmpty ? windows.restorationPaths : pendingOpenPaths
             pendingOpenPaths = []
-            let first = windows.create(path: paths.first, offerRecovery: paths.isEmpty)
-            if let startupError { first.showError(startupError) }
-            for path in paths.dropFirst() { Task { await windows.open(path: path) } }
+            if paths.isEmpty { windows.create(offerRecovery: true) }
+            else { for path in paths { await windows.open(path: path) } }
+            if let startupError { windows.controllers.first?.showError(startupError) }
             NSApp.activate(ignoringOtherApps: true)
             return
         }
-        let controller = EditorWindowController(verifying: verifying, backend: windows.backend)
+        let controller = EditorWindowController(verifying: verifying, backend: windows.backend, navigation: windows.navigation)
         self.controller = controller
         controller.onClosed = { [weak self] in self?.settingsController?.close() }
         installEditorMenus(target: self)
@@ -54,13 +55,13 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
                     if self.verifying { self.verify() }
                 } catch {
                     if self.verifying { self.finish(["failed": [error.localizedDescription]], code: 1) }
-                    else { controller.bridge.onError?(error.localizedDescription) }
+                    else { controller.bridge.onError?(userFacingError(error)) }
                 }
             }
         }
         if verifying {
             controller.bridge.onError = { [weak self] message in self?.finish(["failed": [message]], code: 1) }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + (CommandLine.arguments.contains("--focused") ? 75 : 30)) { [weak self] in
                 self?.finish(["failed": ["WKWebView validation timed out"]], code: 1)
             }
         } else {
@@ -72,6 +73,46 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     }
 
     private func verify() {
+        if CommandLine.arguments.contains("--verify-settings"), let controller {
+            verificationStage = "settings"
+            Task {
+                do { let checks = try await verifySettingsFlow(controller, settings: settingsWindow(), values: { self.preferences.snapshot?.values }, navigation: windows.navigation); finish(["passed": checks, "failed": []], code: 0) }
+                catch { finish(["failed": [String(describing: error)]], code: 1) }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--verify-navigation"), let controller {
+            verificationStage = "navigation"
+            let focused = CommandLine.arguments.contains("--focused")
+            if focused { controller.showWindow(nil); NSApp.activate(ignoringOtherApps: true) }
+            Task {
+                var checks: [String] = [], failures: [String] = []
+                let requested = CommandLine.arguments.first { $0.hasPrefix("--stage=") }.map { String($0.dropFirst(8)) }
+                @MainActor func run(_ stage: String, _ action: @MainActor () async throws -> [String]) async {
+                    guard requested == nil || requested == stage else { return }
+                    self.verificationStage = stage
+                    do { checks += try await action() }
+                    catch { failures.append("\(stage): \(String(describing: error))") }
+                }
+                await run("navigation") {
+                    if focused || CommandLine.arguments.contains("--presentation-only") { return try await verifyNavigationPresentation(self.windows) }
+                    return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
+                }
+                if focused {
+                    await run("media-output") { try await verifyMediaOutput(self.windows) }
+                    await run("appearance") { try await verifyAppearanceControls(controller, settings: self.settingsWindow(), values: { self.preferences.snapshot?.values }) }
+                    await run("image-references") { try await verifyImageReferenceInsertion(self.windows) }
+                    await run("window-chrome") {
+                        let root = controller.window!.contentView!, guide = controller.window!.contentLayoutGuide as! NSLayoutGuide
+                        let nativeToolbar = controller.window!.styleMask.contains(.fullSizeContentView) && !controller.window!.titlebarAppearsTransparent && controller.searchControls.item.isBordered && guide.frame.maxY < root.bounds.maxY
+                        guard nativeToolbar else { throw NSError(domain: "WindowChromeVerification", code: 1, userInfo: [NSLocalizedDescriptionKey: "Native translucent toolbar or safe content layout was missing"]) }
+                        return ["native-translucent-toolbar-keeps-controls-and-writing-below-titlebar"]
+                    }
+                }
+                finish(["passed": checks, "failed": failures], code: failures.isEmpty ? 0 : 1)
+            }
+            return
+        }
         verificationStage = "editor-fixtures"
         currentController?.bridge.command("source") { [weak self] accepted in
             guard accepted else { self?.finish(["failed": ["Native command was not accepted"]], code: 1); return }
@@ -101,8 +142,11 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
                         let documentChecks = try await verifyDocumentFlow(bridge: bridge)
                         report["passed"] = (report["passed"] as? [String] ?? []) + documentChecks
                         self.verificationStage = "recovery"
-                        let recoveryChecks = try await verifyRecoveryFlow(bridge: bridge)
+                        let recoveryChecks = try await verifyRecoveryFlow(bridge: bridge, onStep: { self.verificationStage = "recovery:" + $0 })
                         report["passed"] = (report["passed"] as? [String] ?? []) + recoveryChecks
+                        self.verificationStage = "navigation"
+                        let navigationChecks = try await verifyNavigationFlow(controller, navigation: windows.navigation)
+                        report["passed"] = (report["passed"] as? [String] ?? []) + navigationChecks
                         self.verificationStage = "localization"
                         let localizationChecks = try await verifyLocalizationFlow(controller, settings: self.settingsWindow())
                         report["passed"] = (report["passed"] as? [String] ?? []) + localizationChecks
@@ -124,7 +168,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]), let text = String(data: data, encoding: .utf8) { print(text) }
         controller?.detach()
         if code == 0 { controller?.documents.cleanupVerificationFiles() }
-        if code == 0 { preferences.cleanupVerificationFiles() }
+        if code == 0 { preferences.cleanupVerificationFiles(); windows.navigation.detach() }
         exit(code)
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -148,6 +192,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         guard let values = preferences.snapshot?.values else { return }
         LanguagePreferences.shared.select(InterfaceLanguage(rawValue: values.language) ?? .system)
         NSApp.appearance = values.theme == "system" ? nil : NSAppearance(named: values.theme == "dark" ? .darkAqua : .aqua)
+        ThemePalette.install(values)
     }
     private func setPreferences(_ values: EditorPreferences) async throws {
         guard !changingLanguage, !windows.quitting, !(verifying ? [controller].compactMap({ $0 }) : windows.controllers).contains(where: { $0.documents.busy }) else {
@@ -164,7 +209,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             do {
                 _ = try await document.bridge.call("setLocale", arguments: [LanguagePreferences.shared.locale])
                 try await document.documents.applyPreferences(snapshot.json())
-            } catch { errors.append(error.localizedDescription) }
+            } catch { errors.append(userFacingError(error)) }
         }
         if snapshot.storage_warning != nil { errors.append(localized("settings.notDurable")) }
         if !errors.isEmpty { throw NSError(domain: "Lino", code: 4, userInfo: [NSLocalizedDescriptionKey: localized("error.languageApply", errors.joined(separator: " · "))]) }
@@ -174,7 +219,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         let settings = SettingsWindowController(selectLanguage: { [weak self] preference in
             guard let self else { return }
             try await setInterfaceLanguage(preference)
-        }, values: { [weak self] in self?.preferences.snapshot?.values }, apply: { [weak self] values in try await self?.setPreferences(values) })
+        }, values: { [weak self] in self?.preferences.snapshot?.values }, apply: { [weak self] values in try await self?.setPreferences(values) }, navigation: windows.navigation)
         settingsController = settings
         return settings
     }
@@ -183,13 +228,33 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         guard let controller = currentController, controller.isActiveDocument, controller.documents.ready, !controller.documents.busy else { return nil }
         return controller
     }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard !starting, !windows.quitting else { return true }
+        if !flag { windows.reopen() }
+        return true
+    }
     @objc func newDocument() { if verifying { Task { await controller?.documents.replace(open: false) } } else if !windows.quitting { windows.create() } }
     @objc func openDocument() { if verifying { Task { await controller?.documents.replace(open: true) } } else { Task { await windows.openDialog() } } }
     @objc func openFolder() { let document = currentController ?? windows.create(); Task { await document.workspace.chooseRoot() } }
     @objc func toggleWorkspace() { currentController?.toggleWorkspace() }
     @objc func quickOpen() { currentController?.workspace.quickOpen() }
     @objc func searchWorkspace() { currentController?.workspace.searchWorkspace() }
-    @objc func cancelWorkspaceSearch() { currentController?.workspace.cancelSearch() }
+    @objc func cancelWorkspaceSearch() { currentController?.quickOpen.dismiss() }
+    @objc func customizeSidebar() { currentController?.showSidebarCustomization() }
+    @objc func sidebarOption(_ item: NSMenuItem) {
+        guard let key = item.representedObject as? String else { return }
+        Task { await windows.navigation.change { values in
+            switch key {
+            case "favorites": values.show_favorites.toggle()
+            case "locations": values.show_locations.toggle()
+            case "recents": values.show_recents.toggle()
+            case "follow": values.follow_active.toggle()
+            case "name": values.sort = "name"
+            case "modified": values.sort = "modified"
+            default: break
+            }
+        } }
+    }
     @objc func reopenClosed() { Task { await windows.reopenClosed() } }
     @objc func saveAll() { Task { await windows.saveAll() } }
     @objc func openRecent(_ sender: NSMenuItem) { if let path = sender.representedObject as? String { Task { await windows.open(path: path) } } }
@@ -224,7 +289,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         else { Task {
             guard var values = preferences.snapshot?.values else { return }
             values.auto_save.toggle()
-            do { try await setPreferences(values) } catch { controller.showError(error.localizedDescription) }
+            do { try await setPreferences(values) } catch { controller.showError(userFacingError(error)) }
         } }
     }
     @objc func restoreDocument() { guard let controller = documentForAction else { return }; Task { await controller.documents.restoreDraft() } }
@@ -236,6 +301,13 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     @objc func undoEdit() { if currentController?.allowsCommand("undo") == true, currentController?.canUndo == true { currentController?.bridge.command("undo") } }
     @objc func redoEdit() { if currentController?.allowsCommand("redo") == true, currentController?.canRedo == true { currentController?.bridge.command("redo") } }
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(sidebarOption(_:)), let key = menuItem.representedObject as? String {
+            let values = windows.navigation.values
+            let selected = ["favorites": values.show_favorites, "locations": values.show_locations, "recents": values.show_recents, "follow": values.follow_active, "name": values.sort == "name", "modified": values.sort == "modified"]
+            menuItem.state = selected[key] == true ? .on : .off; return true
+        }
+        if menuItem.action == #selector(toggleWorkspace) { menuItem.state = currentController?.workspaceVisible == true ? .on : .off }
+
         if [#selector(exportHTML), #selector(exportPDF), #selector(printDocument), #selector(pageSetup)].contains(menuItem.action) { return documentForAction != nil && currentController?.exports.busy == false }
         if menuItem.action == #selector(cancelExport) { return currentController?.exports.cancellable == true }
         if menuItem.action == #selector(reloadDocument) { return documentForAction?.documents.hasFile == true }
@@ -267,7 +339,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
 }
 
 let application = NSApplication.shared
-application.setActivationPolicy(CommandLine.arguments.contains("--verify") ? .accessory : .regular)
+application.setActivationPolicy(CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings") ? .accessory : .regular)
 let delegate = EditorApplication()
 application.delegate = delegate
 application.run()
