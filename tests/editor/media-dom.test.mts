@@ -104,7 +104,10 @@ test('late preview output cannot replace edited source; cancellation stays obser
     document.querySelector<HTMLLinkElement>('link[href="math.css"]')!.dispatchEvent(new Event('load')); await settleDOM();
     editor.view.dispatch({ changes: { from: 8, to: 11, insert: 'new' } }); release({ html: '<span>obsolete-render</span>', mathml: '<math />' }); await settleDOM();
     assert.equal(editor.read(), 'before $new$ after'); assert(!mount.textContent!.includes('obsolete-render')); assert(mount.textContent!.includes('current-render'));
-    editor.select(9); await settleDOM(); assert(editor.command('preview-cancel')); assert(mount.textContent!.includes('cancelled')); assert(!mount.textContent!.includes('current-render'));
+    editor.select(9); await settleDOM(); assert(editor.command('preview-cancel'));
+    assert.equal(mount.querySelector('.ot-preview-math')?.getAttribute('data-preview-state'), 'cancelled');
+    assert.match(mount.textContent!, /stopped/i); assert(!mount.textContent!.includes('current-render'));
+    assert.equal(editor.read(), 'before $new$ after');
   } finally { editor.destroy(); mount.remove(); }
   let finish!: (path: string | null) => void;
   const importMount = fixture.mount(), importing = new MarkdownEditor(importMount, '', () => {}, () => {}, async () => {}, {

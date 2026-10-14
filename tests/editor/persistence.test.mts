@@ -59,10 +59,11 @@ test('recovery I/O failure retains the last receipt and stops automatic retries 
 test('an unsynchronized or regressing checkpoint cannot be reported as durable recovery', async t => {
   const h = harness(t); h.accepted('5');
   const first = h.persistence.checkpoint(); await settle();
-  h.checkpoints[0].resolve({revision:'5', durable:false}); await assert.rejects(first, /断电.*手动保存/);
+  h.checkpoints[0].resolve({revision:'5', durable:false}); await assert.rejects(first, /无法确认备份.*保存文档/);
   assert.equal(h.persistence.status.recoveryRevision, null);
   const second = h.persistence.checkpoint(); await settle();
-  h.checkpoints[1].resolve({revision:'4', durable:true}); await assert.rejects(second, /版本/);
+  h.checkpoints[1].resolve({revision:'4', durable:true}); await assert.rejects(second, /备份.*最近.*保存文档/);
+  assert.equal(h.persistence.status.recoveryRevision, null);
   assert.equal(h.persistence.status.recoveryState,'error');
 });
 

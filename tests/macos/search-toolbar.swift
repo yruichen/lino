@@ -5,7 +5,7 @@ import AppKit
         let item = SearchToolbarItem()
         precondition(item.preferredWidthForSearchField == 260)
         precondition(!item.resignsFirstResponderWithCancel)
-        precondition(item.searchField.focusRingType == .none)
+        precondition(item.searchField.focusRingType == NSSearchField().focusRingType)
         precondition((item.searchField.cell as? NSSearchFieldCell)?.cancelButtonCell != nil)
         item.searchField.stringValue = "synthetic query"
         item.beginSearchInteraction(); item.endSearchInteraction()
