@@ -4,7 +4,11 @@ import AppKit
 /// input history and lifecycle. AppKit supplies native document tabs.
 @MainActor
 final class DocumentWindows {
+    private let verifying: Bool
+    init(verifying: Bool = false) { self.verifying = verifying }
     let backend = DocumentBackend()
+    lazy var navigation = NavigationCoordinator(backend: backend)
+    private var openPaths: [ObjectIdentifier: String] = [:]
     private(set) var controllers: [EditorWindowController] = []
     private var reopening: [String] = []
     private(set) var quitting = false
@@ -12,61 +16,113 @@ final class DocumentWindows {
     var restorationPaths: [String] { Array((UserDefaults.standard.stringArray(forKey: "documentSessionPaths") ?? []).prefix(32)) }
 
     @discardableResult
-    func create(path: String? = nil, offerRecovery: Bool = false, line: Int? = nil, anchor: String? = nil) -> EditorWindowController {
-        let inheritedRoot = active?.workspace.currentRoot
-        let controller = EditorWindowController(backend: backend, initialPath: path, offerRecovery: offerRecovery)
+    func reopen() -> EditorWindowController? {
+        guard !quitting else { return nil }
+        let document = active.flatMap { $0.documents.closed ? nil : $0 } ?? controllers.first { !$0.documents.closed } ?? create()
+        if document.documents.ready, let window = document.window {
+            window.tabGroup?.selectedWindow?.deminiaturize(nil)
+            window.deminiaturize(nil)
+            window.tabGroup?.selectedWindow = window
+            document.showWindow(nil); window.makeKeyAndOrderFront(nil)
+        }
+        return document
+    }
+
+    @discardableResult
+    func create(path: String? = nil, offerRecovery: Bool = false, line: Int? = nil, anchor: String? = nil, tabOrigin: EditorWindowController? = nil) -> EditorWindowController {
+        let origin = tabOrigin ?? active
+        let controller = EditorWindowController(verifying: verifying, backend: backend, initialPath: path, offerRecovery: offerRecovery, navigation: navigation)
+        controller.window?.tabbingMode = verifying ? .disallowed : .automatic
         controller.pendingNavigationLine = line
         controller.pendingNavigationAnchor = anchor
         controllers.append(controller)
         controller.onClosed = { [weak self, weak controller] in
             guard let self, let controller else { return }
-            controller.detach(); controllers.removeAll { $0 === controller }
+            controller.detach(); controllers.removeAll { $0 === controller }; openPaths.removeValue(forKey: ObjectIdentifier(controller)); navigation.updateOpenFiles(Array(openPaths.values).sorted())
         }
         // Record the path before the Rust close releases its file binding.
         controller.onWillClose = { [weak self] path in
             guard let self, let path else { return }; reopening.append(path); reopening = Array(reopening.suffix(20))
         }
-        controller.workspace.onOpen = { [weak self] path, line in Task { await self?.open(path: path, line: line) } }
+        controller.workspace.onOpen = { [weak self, weak controller] path, line in Task { await self?.open(path: path, line: line, origin: controller) } }
+        controller.quickOpen.onOpen = controller.workspace.onOpen
+        controller.workspace.onOpenDialog = { [weak self] in Task { await self?.openDialog() } }
+        controller.onFileBindingChanged = { [weak self, weak controller] path in
+            guard let self, let controller else { return }
+            openPaths[ObjectIdentifier(controller)] = path
+            navigation.updateOpenFiles(controllers.compactMap { openPaths[ObjectIdentifier($0)] })
+            if let path { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
+        }
         controller.onOpenDocumentLink = { [weak self] path, anchor in Task { await self?.open(path: path, anchor: anchor) } }
-        controller.bridge.onReady = { [weak controller] in
+        let useTabs = tabOrigin != nil || NSWindow.userTabbingPreference == .always
+        controller.bridge.onReady = { [weak self, weak controller, weak origin] in
             guard let controller else { return }
             Task {
                 do {
                     try await controller.documents.initialize()
+                    if useTabs, let old = origin?.window, let next = controller.window, old.tabbedWindows?.contains(where: { $0 === next }) != true {
+                        next.setFrame(old.frame, display: false); old.addTabbedWindow(next, ordered: .above)
+                        next.tabGroup?.selectedWindow = next
+                    }
+                    controller.showWindow(nil); controller.window?.makeKeyAndOrderFront(nil)
+                    if controller.isActiveDocument && !controller.quickOpen.visible { _ = try await controller.bridge.call("focusEditor"); controller.window?.makeFirstResponder(controller.webView) }
                     if let path { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
                     if let line = controller.pendingNavigationLine { _ = try await controller.bridge.call("navigateLine", arguments: [line]); controller.pendingNavigationLine = nil }
                     if let anchor = controller.pendingNavigationAnchor { _ = try await controller.bridge.call("navigateAnchor", arguments: [anchor]); controller.pendingNavigationAnchor = nil }
-                } catch { controller.showError(error.localizedDescription) }
+                } catch {
+                    if path != nil && controller.documents.sessionId == nil {
+                        controller.window?.close()
+                        self?.showOpenError(error, path: path!, in: origin?.window)
+                    } else { controller.showWindow(nil); controller.showError(userFacingError(error)) }
+                }
             }
         }
-        controller.showWindow(nil)
-        if let inheritedRoot { Task { await controller.workspace.inheritRoot(inheritedRoot) } }
-        do { try controller.loadEditor() } catch { controller.showError(error.localizedDescription) }
+        // The first visible frame already contains the configured editor page.
+        // Loading and wallpaper preparation happen before window/tab presentation.
+        do { try controller.loadEditor() } catch { controller.showError(userFacingError(error)) }
         return controller
     }
-    func open(path: String, line: Int? = nil, anchor: String? = nil) async {
+    func open(path: String, line: Int? = nil, anchor: String? = nil, origin: EditorWindowController? = nil) async {
         guard !quitting else { return }
         if let pending = controllers.first(where: { $0.documents.openingPath == path && !$0.documents.ready && !$0.documents.closed }) {
-            pending.pendingNavigationLine = line; pending.pendingNavigationAnchor = anchor; pending.showWindow(nil); return
+            pending.pendingNavigationLine = line; pending.pendingNavigationAnchor = anchor; return
         }
         do {
+            try await backend.perform { try $0.validateDocumentFile(path: path) }
             if let session = try await backend.perform({ try $0.fileSession(path: path) }),
                let existing = controllers.first(where: { $0.documents.sessionId == session }) {
+                if let window = existing.window { window.tabGroup?.selectedWindow = window }
                 existing.showWindow(nil); existing.window?.makeKeyAndOrderFront(nil)
+                existing.window?.makeFirstResponder(existing.webView)
+                _ = try? await existing.bridge.call("focusEditor")
+                await navigation.noteFile(path)
                 if let line, existing.documents.ready { _ = try await existing.bridge.call("navigateLine", arguments: [line]) }
                 else { existing.pendingNavigationLine = line }
                 if let anchor, existing.documents.ready { _ = try await existing.bridge.call("navigateAnchor", arguments: [anchor]) }
                 else { existing.pendingNavigationAnchor = anchor }
                 return
             }
-            create(path: path, line: line, anchor: anchor)
-        } catch { active?.showError(error.localizedDescription) }
+            if let empty = origin ?? active, (empty.window?.tabbedWindows?.count ?? 1) <= 1,
+               try await empty.documents.openIfEmpty(path: path) {
+                if let line { _ = try await empty.bridge.call("navigateLine", arguments: [line]) }
+                if let anchor { _ = try await empty.bridge.call("navigateAnchor", arguments: [anchor]) }
+                empty.window?.makeFirstResponder(empty.webView)
+                _ = try await empty.bridge.call("focusEditor")
+                await navigation.noteFile(path)
+                return
+            }
+            create(path: path, line: line, anchor: anchor, tabOrigin: origin)
+        } catch { showOpenError(error, path: path, in: (origin ?? active)?.window) }
     }
     func openDialog() async {
         guard !quitting else { return }
-        let controller = active ?? create()
-        guard let window = controller.window, let url = await DocumentDialogs.open(in: window) else { return }
+        guard let url = await DocumentDialogs.open(in: active?.window) else { return }
         await open(path: url.path)
+    }
+    private func showOpenError(_ error: Error, path: String, in window: NSWindow?) {
+        let alert = NSAlert(); alert.messageText = localized("dialog.openFailed", URL(fileURLWithPath: path).lastPathComponent)
+        alert.informativeText = userFacingError(error); alert.addButton(withTitle: localized("button.ok"))
+        if let window { alert.beginSheetModal(for: window) } else { alert.runModal() }
     }
     func reopenClosed() async { if let path = reopening.popLast() { await open(path: path) } }
     func saveAll() async {
@@ -87,7 +143,7 @@ final class DocumentWindows {
                 guard let id = controller.documents.sessionId else { continue }
                 do {
                     if let path = try await self.backend.perform({ try $0.documentPath(sessionId: id) }) { paths.append(path) }
-                } catch { controller.showError(error.localizedDescription); return false }
+                } catch { controller.showError(userFacingError(error)); return false }
             }
             return true
         }
@@ -95,5 +151,5 @@ final class DocumentWindows {
         UserDefaults.standard.set(paths, forKey: "documentSessionPaths")
         return true
     }
-    func detach() { for controller in controllers { controller.detach() } }
+    func detach() { for controller in controllers { controller.detach() }; navigation.detach() }
 }

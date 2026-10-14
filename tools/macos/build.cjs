@@ -5,8 +5,13 @@ const root = path.resolve(__dirname, '../..');
 const { version } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const buildRoot = path.join(root, '.local/build');
 const app = path.join(buildRoot, 'Lino.app');
+if (process.argv.includes('--preview')) throw new Error('Preview output was removed. Run npm run app:build to update .local/build/Lino.app.');
 if (process.platform !== 'darwin') throw new Error('The AppKit host must be built on macOS.');
 const currentApp = fs.existsSync(app) ? fs.realpathSync(app) : null;
+fs.mkdirSync(buildRoot, { recursive: true });
+const buildLog = path.join(buildRoot, 'build.log');
+fs.writeFileSync(buildLog, '');
+process.on('uncaughtExceptionMonitor', error => fs.appendFileSync(buildLog, error.stack + '\n'));
 function requireClosedApp() {
   if (!currentApp) return;
   const relative = path.relative(buildRoot, currentApp);
@@ -20,7 +25,6 @@ function requireClosedApp() {
   }
 }
 requireClosedApp();
-fs.mkdirSync(buildRoot, { recursive: true });
 const staging = fs.mkdtempSync(path.join(buildRoot, '.staging-'));
 const stagedApp = path.join(staging, 'Lino.app');
 let preserveStaging = false;
@@ -29,7 +33,10 @@ process.env.MACOSX_DEPLOYMENT_TARGET = '14.0';
 const rustBuild = path.join(root, 'target');
 process.env.CARGO_TARGET_DIR = rustBuild;
 function run(command, args) {
-  const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' });
+  const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', stdio: ['inherit', 'pipe', 'pipe'] });
+  fs.appendFileSync(buildLog, (result.stdout ?? '') + (result.stderr ?? '') + (result.error ? result.error.message + '\n' : ''));
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
   if (result.error) throw result.error;
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
@@ -46,6 +53,7 @@ fs.rmSync(resources, { recursive: true, force: true });
 fs.mkdirSync(resources, { recursive: true });
 fs.cpSync(path.join(root, 'packages/editor/dist'), resources, { recursive: true });
 fs.copyFileSync(path.join(root, 'packages/editor/index.html'), path.join(resources, 'index.html'));
+fs.cpSync(path.join(root, 'assets/themes'), path.join(contents, 'Resources/Themes'), { recursive: true });
 const nativeResources = path.join(root, 'apps/macos/Resources');
 for (const entry of fs.readdirSync(nativeResources)) {
   fs.cpSync(path.join(nativeResources, entry), path.join(contents, 'Resources', entry), { recursive: true });

@@ -4,6 +4,16 @@ import AppKit
 struct EditorPreferences: Codable, Sendable, Equatable {
     var language: String
     var theme: String
+    var theme_family: String
+    var custom_themes: [ThemeDefinition]
+    var background_image: String
+    var background_opacity: UInt32
+    var surface_opacity: UInt32
+    var glass_style: String
+    var image_insertion: String
+    var body_font: String
+    var use_theme_font_size: Bool
+    var use_theme_line_height: Bool
     var auto_save: Bool
     var font_size: UInt32
     var line_height: UInt32

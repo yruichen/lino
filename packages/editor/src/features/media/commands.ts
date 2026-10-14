@@ -46,16 +46,16 @@ export function importImage(view: EditorView, paste: boolean): Promise<string | 
   void work.finally(() => { if (imports.get(view) === work) imports.delete(view); }).catch(() => {});
   return work;
 }
-async function performImport(view: EditorView, paste: boolean): Promise<string | null> {
+async function performImport(view: EditorView, paste: boolean, sourcePath?: string, prepared = false): Promise<string | null> {
   const host = mediaHost(view);
   if (!host) throw new Error(t('media.noHost'));
   if (!writable(view.state, view.composing || !!view.state.field(compositionState, false))) throw new Error(t('editor.finishComposition'));
-  if (view.state.field(importAnchor)) throw new Error(t('media.busy'));
-  guardTextBlocks(view.state);
-  const range = view.state.selection.main, id = ++sequence;
-  view.dispatch({ effects: startImport.of({ id, from: range.from, to: range.to }) });
+  if (!prepared && view.state.field(importAnchor)) throw new Error(t('media.busy'));
+  if (!prepared) guardTextBlocks(view.state);
+  const range = view.state.selection.main, id = prepared ? view.state.field(importAnchor)!.id : ++sequence;
+  if (!prepared) view.dispatch({ effects: startImport.of({ id, from: range.from, to: range.to }) });
   try {
-    const path = await host.assets.request(paste ? 'paste-image' : 'import-file');
+    const path = await host.assets.request(sourcePath ? 'import-image-path' : paste ? 'paste-image' : 'import-file', sourcePath);
     if (!path) return null;
     const anchor = view.state.field(importAnchor);
     if (!view.dom.isConnected || anchor?.id !== id || !anchor.valid || !writable(view.state, view.composing || !!view.state.field(compositionState, false))) throw new Error(t('media.orphan', { path }));
@@ -73,4 +73,36 @@ export function applyImage(view: EditorView, from: number, to: number, original:
   if (current?.kind === 'image' && current.text === source && current.alt === alt && (current.title ?? '') === title) { view.focus(); return true; }
   const insert = imageMarkdown(source, alt, title);
   view.dispatch(replaceSource(range.from, range.to, insert)); view.focus(); return true;
+}
+
+// Capture the drop position before native save panels run. The existing import
+// anchor maps through edits; preparation never changes selection or history.
+export function prepareImageDrop(view: EditorView, x: number, y: number): boolean {
+  if (imports.has(view) || view.state.field(importAnchor) || !writable(view.state, view.composing || !!view.state.field(compositionState, false))) return false;
+  const position = view.posAtCoords({ x, y }); if (position === null) return false;
+  guardTextBlocks(view.state.update({ selection: { anchor: position } }).state);
+  view.dispatch({ effects: startImport.of({ id: ++sequence, from: position, to: position, waitingForLocation: true }) });
+  return true;
+}
+export function cancelImageDrop(view: EditorView): void {
+  const anchor = view.state.field(importAnchor);
+  if (anchor) view.dispatch({ effects: finishImport.of(anchor.id) });
+}
+export async function commitImageDrop(view: EditorView, paths: readonly string[]): Promise<void> {
+  if (!paths.length || !view.state.field(importAnchor)?.valid || imports.has(view)) throw new Error(t('media.changed'));
+  const anchor = view.state.field(importAnchor)!;
+  view.dispatch({ effects: startImport.of({ id: anchor.id, from: anchor.from, to: anchor.to }) });
+  const work = (async () => {
+    let last: string | null = null;
+    try {
+      for (const path of paths) {
+        last = await performImport(view, false, path, true);
+        const at = view.state.selection.main.head;
+        view.dispatch({ effects: startImport.of({ id: ++sequence, from: at, to: at }) });
+      }
+      return last;
+    } finally { cancelImageDrop(view); }
+  })();
+  imports.set(view, work);
+  try { await work; } finally { if (imports.get(view) === work) imports.delete(view); }
 }

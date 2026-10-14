@@ -1,8 +1,14 @@
 import type { EditorHostEvent } from './editor-host.ts';
-export type AssetOperation = 'import-file' | 'paste-image' | 'reveal-image' | 'copy-image' | 'save-svg' | 'open-link' | 'copy-save-images';
+export type AssetOperation = 'import-image-path' | 'import-file' | 'paste-image' | 'reveal-image' | 'copy-image' | 'save-svg' | 'open-link' | 'copy-save-images';
 export interface AssetPort {
   request(operation: AssetOperation, payload?: string): Promise<string | null>;
   imageURL(source: string, fresh?: boolean): string;
+}
+export function absoluteImageSource(source: string): boolean { return source.startsWith('/') && !source.startsWith('//') || /^[A-Za-z]:[/\\]/.test(source); }
+export class AssetError extends Error {
+  readonly code: 'closed' | 'busy' | 'limit' | 'timeout';
+  readonly diagnostic: string;
+  constructor(code: 'closed' | 'busy' | 'limit' | 'timeout', diagnostic: string) { super(diagnostic); this.code = code; this.diagnostic = diagnostic; }
 }
 export class AssetLocationError extends Error {
   constructor() { super('Save or open a document file before loading relative images'); }
@@ -22,19 +28,19 @@ export class AssetsClient implements AssetPort {
     if (this.sessionId !== sessionId || this.fileRef !== fileRef) { this.sessionId = sessionId; this.fileRef = fileRef; this.invalidate(); }
   }
   imageURL(source: string, fresh = false): string {
-    if (this.sessionId === null || this.fileRef === null) throw new AssetLocationError();
+    if (this.sessionId === null || this.fileRef === null && !absoluteImageSource(source)) throw new AssetLocationError();
     if (fresh) this.invalidate();
     return `ot-image://local/image?view=${this.namespace}&context=${this.context}&session=${this.sessionId ?? ''}&file=${this.fileRef ?? ''}&source=${encodeURIComponent(source)}`;
   }
   request(operation: AssetOperation, payload = ''): Promise<string | null> {
-    if (this.destroyed) return Promise.reject(new Error('Resource connection closed'));
-    if (this.pending.size) return Promise.reject(new Error('A resource operation is already in progress'));
-    if (new TextEncoder().encode(payload).byteLength > 4 * 1024 * 1024) return Promise.reject(new Error('Resource payload exceeds the limit'));
+    if (this.destroyed) return Promise.reject(new AssetError('closed', 'Resource connection closed'));
+    if (this.pending.size) return Promise.reject(new AssetError('busy', 'A resource operation is already in progress'));
+    if (new TextEncoder().encode(payload).byteLength > 4 * 1024 * 1024) return Promise.reject(new AssetError('limit', 'Resource payload exceeds the limit'));
     const requestId = String(++this.next);
     return new Promise((resolve, reject) => {
       // Interactive file panels have user-controlled duration. Only bounded
       // noninteractive I/O has a transport deadline; teardown always rejects.
-      const timer = operation === 'import-file' || operation === 'save-svg' ? undefined : setTimeout(() => this.receive(requestId, null, 'Resource operation timed out; a written resource may still exist'), 120_000);
+      const timer = operation === 'import-file' || operation === 'paste-image' || operation === 'save-svg' ? undefined : setTimeout(() => { const request = this.pending.get(requestId); this.pending.delete(requestId); request?.reject(new AssetError('timeout', 'Resource operation timed out; a written resource may still exist')); }, 120_000);
       this.pending.set(requestId, { resolve, reject, timer });
       try { this.send({ kind: 'asset-operation', requestId, operation, payload, sessionId: this.sessionId, fileRef: this.fileRef }); }
       catch (error) { this.receive(requestId, null, String(error)); }
@@ -48,6 +54,7 @@ export class AssetsClient implements AssetPort {
   }
   destroy(): void {
     this.destroyed = true;
-    for (const id of this.pending.keys()) this.receive(id, null, 'Resource connection closed');
+    for (const pending of this.pending.values()) { clearTimeout(pending.timer); pending.reject(new AssetError('closed', 'Resource connection closed')); }
+    this.pending.clear();
   }
 }

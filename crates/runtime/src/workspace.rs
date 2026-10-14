@@ -123,7 +123,7 @@ impl WorkspaceRuntime {
         }
         result
     }
-    fn acknowledge_changes(&self) {
+    pub fn acknowledge_changes(&self) {
         if let Ok(watcher) = self.watcher.lock() {
             if let Some(watcher) = watcher.as_ref() {
                 watcher.acknowledge();
@@ -172,6 +172,27 @@ impl WorkspaceRuntime {
             .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
         self.require_unused(docs, &path)?;
         lino_adapters::workspace::trash_path(&path).map_err(storage_error)
+    }
+    pub fn transfer(
+        &self,
+        docs: &DocumentRuntime,
+        source: &Path,
+        target: &str,
+        copy: bool,
+    ) -> Result<(), WireError> {
+        let source = lino_adapters::workspace::navigation_path(source).map_err(storage_error)?;
+        let destination = self.files.resolve(target, true).map_err(storage_error)?;
+        let _gate = docs
+            .file_gate
+            .lock()
+            .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
+        self.require_unused(docs, &destination)?;
+        if !copy {
+            self.require_unused(docs, &source)?;
+        }
+        self.files
+            .transfer_from(&source, target, copy)
+            .map_err(storage_error)
     }
     fn require_unused(&self, docs: &DocumentRuntime, path: &Path) -> Result<(), WireError> {
         if docs

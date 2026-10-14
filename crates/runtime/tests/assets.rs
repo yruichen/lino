@@ -175,7 +175,7 @@ fn imported_resources_are_real_no_clobber_copies_and_require_a_bound_live_docume
     );
 }
 #[test]
-fn local_image_reads_decode_once_and_reject_escape_symlinks_and_non_image_files() {
+fn local_image_reads_resolve_document_relative_parents_and_reject_symlinks_and_non_images() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("note.md"), "text").unwrap();
     fs::write(dir.path().join("a b.png"), PNG).unwrap();
@@ -197,6 +197,47 @@ fn local_image_reads_decode_once_and_reject_escape_symlinks_and_non_image_files(
         .unwrap();
     assert_eq!(image.mime, "image/svg+xml");
     assert_eq!(image.bytes, svg);
+    let nested = dir.path().join("draft/v11");
+    fs::create_dir_all(&nested).unwrap();
+    fs::write(nested.join("paper.md"), "![figure](../figures/a%20b.png)").unwrap();
+    fs::create_dir(dir.path().join("draft/figures")).unwrap();
+    fs::write(dir.path().join("draft/figures/a b.png"), PNG).unwrap();
+    let paper = runtime.open_file(&nested.join("paper.md"), None).unwrap();
+    for source in [
+        "../figures/a%20b.png",
+        "%2e%2e/figures/a%20b.png",
+        "../../a%20b.png",
+        "./../figures/a%20b.png",
+    ] {
+        assert_eq!(
+            runtime
+                .read_image(
+                    &paper.status.session_id,
+                    paper.status.file_ref.as_deref(),
+                    source
+                )
+                .unwrap()
+                .bytes,
+            PNG
+        );
+    }
+    assert!(runtime
+        .read_image(&paper.status.session_id, None, "../../a%20b.png")
+        .is_err());
+    assert_eq!(
+        runtime
+            .image_path(
+                &paper.status.session_id,
+                paper.status.file_ref.as_deref(),
+                "../figures/a%20b.png"
+            )
+            .unwrap(),
+        dir.path()
+            .join("draft/figures/a b.png")
+            .canonicalize()
+            .unwrap()
+            .to_string_lossy()
+    );
     for source in [
         "../outside.png",
         "%2e%2e/outside.png",
@@ -209,6 +250,18 @@ fn local_image_reads_decode_once_and_reject_escape_symlinks_and_non_image_files(
     }
     #[cfg(unix)]
     {
+        std::os::unix::fs::symlink(
+            dir.path().join("draft/figures"),
+            dir.path().join("draft/alias"),
+        )
+        .unwrap();
+        assert!(runtime
+            .read_image(
+                &paper.status.session_id,
+                paper.status.file_ref.as_deref(),
+                "../alias/a%20b.png"
+            )
+            .is_err());
         std::os::unix::fs::symlink(dir.path().join("a b.png"), dir.path().join("alias.png"))
             .unwrap();
         assert!(runtime.read_image(id, file, "alias.png").is_err());
@@ -279,4 +332,59 @@ fn save_as_changes_resource_scope_and_old_requests_cannot_read_or_write_the_new_
         fs::read_to_string(new.path().join("note.md")).unwrap(),
         "![x](x.png)"
     );
+}
+
+#[test]
+fn selected_images_default_to_absolute_references_without_creating_assets_or_requiring_a_saved_document(
+) {
+    let dir = tempfile::tempdir().unwrap();
+    let image = dir.path().join("original.png");
+    fs::write(&image, PNG).unwrap();
+    let image = image.canonicalize().unwrap();
+    let runtime = DocumentRuntime::default();
+    let doc = runtime.new_document(None).unwrap();
+    let source = runtime
+        .import_image_file(&doc.status.session_id, None, &image)
+        .unwrap();
+    assert_eq!(source, image.to_string_lossy());
+    assert_eq!(
+        runtime
+            .read_image(&doc.status.session_id, None, &source)
+            .unwrap()
+            .bytes,
+        PNG
+    );
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
+    assert!(runtime.read_image("999", None, &source).is_err());
+    let note = dir.path().join("note.md");
+    fs::write(&note, "").unwrap();
+    let bound = runtime.open_file(&note, None).unwrap();
+    assert_eq!(
+        runtime
+            .import_image_file(
+                &bound.status.session_id,
+                bound.status.file_ref.as_deref(),
+                &image
+            )
+            .unwrap(),
+        source
+    );
+    assert!(!dir.path().join("note.md.assets").exists());
+    let current = runtime
+        .configure_preferences(&dir.path().join("settings.json"), None, None)
+        .unwrap();
+    let mut values = current.values;
+    values.image_insertion = "copy".into();
+    runtime
+        .update_preferences(&current.revision, values)
+        .unwrap();
+    let copied = runtime
+        .import_image_file(
+            &bound.status.session_id,
+            bound.status.file_ref.as_deref(),
+            &image,
+        )
+        .unwrap();
+    assert_eq!(copied, "note.md.assets/original.png");
+    assert!(dir.path().join(&copied).is_file());
 }

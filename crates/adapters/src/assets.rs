@@ -1,4 +1,4 @@
-//! Root-scoped, bounded image reads and no-clobber imports.
+//! Document-relative, bounded image reads and root-scoped no-clobber imports.
 use crate::workspace::FileWorkspace;
 use lino_application::{
     assets::{image_mime, AssetPort, ImageContent, MAX_IMAGE_BYTES},
@@ -7,7 +7,7 @@ use lino_application::{
 use std::{
     fs::{self, OpenOptions},
     io::{Read, Write},
-    path::Path,
+    path::{Component, Path, PathBuf},
 };
 
 pub struct FileAssets {
@@ -60,6 +60,12 @@ impl FileAssets {
     pub fn resolve(&self, source: &str) -> Result<std::path::PathBuf, StorageError> {
         self.root.ordinary_file(&decode_source(source)?)
     }
+    /// Images may live beside a document's parent directories. Resolve the
+    /// exact Markdown destination; this read path never grants write scope.
+    pub fn resolve_image(&self, source: &str) -> Result<PathBuf, StorageError> {
+        resolve_image_path(Some(self.root.root()), source)
+    }
+
     pub fn copy_to(&self, target_document: &Path, sources: &[String]) -> Result<(), StorageError> {
         let target = FileWorkspace::open(target_document.parent().ok_or(StorageError::Denied)?)?;
         if self.root.resolve("", false)? == target.resolve("", false)? {
@@ -67,6 +73,11 @@ impl FileAssets {
         }
         let mut total = 0usize;
         for source in sources {
+            let relative = decode_source(source)?;
+            if Path::new(&relative).is_absolute() {
+                self.read_image(source)?;
+                continue;
+            }
             let image = self.read_image(source)?;
             total = total
                 .checked_add(image.bytes.len())
@@ -74,7 +85,6 @@ impl FileAssets {
             if total > 64 * 1024 * 1024 {
                 return Err(StorageError::LimitExceeded);
             }
-            let relative = decode_source(source)?;
             // Resolve each directory through the root policy before creating it.
             let mut prefix = std::path::PathBuf::new();
             for part in Path::new(&relative)
@@ -124,8 +134,7 @@ impl FileAssets {
     }
 }
 fn decode_source(source: &str) -> Result<String, StorageError> {
-    // Sources are Markdown URL destinations. Decode exactly once, then apply
-    // the same root and symlink validation as the workspace filesystem.
+    // Decode Markdown URL destinations exactly once before path validation.
     let mut bytes = Vec::with_capacity(source.len());
     let mut chars = source.bytes();
     while let Some(byte) = chars.next() {
@@ -140,9 +149,50 @@ fn decode_source(source: &str) -> Result<String, StorageError> {
     }
     String::from_utf8(bytes).map_err(|_| StorageError::Denied)
 }
+/// Shared read resolver for bound documents and absolute references in drafts.
+pub fn resolve_image_path(directory: Option<&Path>, source: &str) -> Result<PathBuf, StorageError> {
+    let decoded = decode_source(source)?;
+    let input = Path::new(&decoded);
+    if decoded.contains('\0') {
+        return Err(StorageError::Denied);
+    }
+    let absolute = input.is_absolute();
+    let mut path = if absolute {
+        PathBuf::new()
+    } else {
+        directory.ok_or(StorageError::Denied)?.to_path_buf()
+    };
+    for part in input.components() {
+        match part {
+            Component::RootDir | Component::Prefix(_) if absolute => path.push(part),
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if !path.pop() {
+                    return Err(StorageError::Denied);
+                }
+            }
+            Component::Normal(name) => {
+                path.push(name);
+                if fs::symlink_metadata(&path)
+                    .map_err(io)?
+                    .file_type()
+                    .is_symlink()
+                {
+                    return Err(StorageError::UnsupportedFile);
+                }
+            }
+            _ => return Err(StorageError::Denied),
+        }
+    }
+    if !fs::symlink_metadata(&path).map_err(io)?.is_file() {
+        return Err(StorageError::UnsupportedFile);
+    }
+    Ok(path)
+}
+
 impl AssetPort for FileAssets {
     fn read_image(&self, source: &str) -> Result<ImageContent, StorageError> {
-        read_selected(&self.resolve(source)?)
+        read_selected(&self.resolve_image(source)?)
     }
     fn import_image(&self, name: &str, bytes: &[u8]) -> Result<String, StorageError> {
         let mime = image_mime(bytes)?;

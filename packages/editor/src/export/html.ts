@@ -15,6 +15,7 @@ import { languageForCode } from '../features/code/languages.ts';
 import { previewRenderer, type PreviewRenderer, type RenderInput } from '../renderers/previews.ts';
 import { t } from '../localization/index.ts';
 import { exportStyle } from './style.ts';
+import { underlineReading } from '../features/markdown/reading.ts';
 
 interface Slot { input?: RenderInput; html?: string; block: boolean }
 interface FormatTrie { children: Map<string, FormatTrie>; format?: { tag: string; content: string; length: number } }
@@ -33,7 +34,7 @@ export class ExportPlan {
   private readonly renderer: PreviewRenderer;
   constructor(source: ExportSource, renderer: PreviewRenderer = previewRenderer) {
     this.source = source; this.renderer = renderer;
-    const md = this.markdown; md.use(footnotes); md.disable('footnote_inline');
+    const md = this.markdown; underlineReading(md); md.use(footnotes); md.disable('footnote_inline');
     const state = EditorState.create({ doc: sourceDocument(source.text).doc });
     const tree = parser.configure([GFM, mathSyntax, referenceSyntax]).parse(state.doc.toString());
     const headings: { from: number; to: number; title: string; level: number }[] = [];
@@ -79,7 +80,7 @@ export class ExportPlan {
         const preview = sourceNode(state, node);
         if (preview && preview.kind !== 'image') {
           if (preview.tooLarge) throw new Error(t('export.limit'));
-          return slot(node, { block: preview.block, input: { kind: preview.kind, text: preview.text, block: preview.block, dark: false } });
+          return slot(node, { block: preview.block, input: { kind: preview.kind, text: preview.text, block: preview.block, dark: source.preferences.theme === 'dark' } });
         }
         return state.sliceDoc(node.from, node.to);
       }
@@ -171,7 +172,7 @@ export class ExportPlan {
     for (const image of container.querySelectorAll('img')) if (!/^data:image\//i.test(image.getAttribute('src') ?? '')) throw new Error(t('export.invalid'));
     const title = this.source.label ?? t('document.untitled');
     const mathStyle = [...this.slots.values()].some(slot => slot.input?.kind === 'math') ? mathCSS : '';
-    const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><title>${escape(title)}</title><style>${exportStyle(this.source.preferences)}\n${mathStyle.replace(/<\/style/gi, '<\\/style')}</style></head><body>${container.outerHTML}</body></html>`;
+    const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><title>${escape(title)}</title><style>${exportStyle(this.source.preferences).replace(/<\/style/gi, '<\\/style')}\n${mathStyle.replace(/<\/style/gi, '<\\/style')}</style></head><body>${container.outerHTML}</body></html>`;
     if (html.length > 32 * 1024 * 1024) throw new Error(t('export.limit'));
     return html;
   }

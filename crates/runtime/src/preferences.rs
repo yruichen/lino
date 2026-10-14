@@ -31,6 +31,17 @@ fn model(value: EditorPreferences) -> Preferences {
     Preferences {
         language: value.language,
         theme: value.theme,
+        theme_family: value.theme_family,
+        custom_themes: value.custom_themes.into_iter().map(theme_model).collect(),
+        body_font: value.body_font,
+        background_image: value.background_image,
+        background_opacity: value.background_opacity,
+        surface_opacity: value.surface_opacity,
+        glass_style: value.glass_style,
+        image_insertion: value.image_insertion,
+
+        use_theme_font_size: value.use_theme_font_size,
+        use_theme_line_height: value.use_theme_line_height,
         auto_save: value.auto_save,
         font_size: value.font_size,
         line_height: value.line_height,
@@ -42,6 +53,42 @@ fn model(value: EditorPreferences) -> Preferences {
         code_numbers: value.code_numbers,
     }
 }
+fn theme_model(value: lino_protocol::ThemeDefinition) -> lino_application::themes::ThemeDefinition {
+    let variant = |v: lino_protocol::ThemeVariant| lino_application::themes::ThemeVariant {
+        name: v.name,
+        name_en: v.name_en,
+        colors: v.colors,
+    };
+    lino_application::themes::ThemeDefinition {
+        schema_version: value.schema_version,
+        id: value.id,
+        name: value.name,
+        font_families: value.font_families,
+        font_size: value.font_size,
+        line_height: value.line_height,
+        reading_width: value.reading_width,
+        light: variant(value.light),
+        dark: variant(value.dark),
+    }
+}
+fn theme_wire(value: &lino_application::themes::ThemeDefinition) -> lino_protocol::ThemeDefinition {
+    let variant = |v: &lino_application::themes::ThemeVariant| lino_protocol::ThemeVariant {
+        name: v.name.clone(),
+        name_en: v.name_en.clone(),
+        colors: v.colors.clone(),
+    };
+    lino_protocol::ThemeDefinition {
+        schema_version: value.schema_version,
+        id: value.id.clone(),
+        name: value.name.clone(),
+        font_families: value.font_families.clone(),
+        font_size: value.font_size,
+        line_height: value.line_height,
+        reading_width: value.reading_width,
+        light: variant(&value.light),
+        dark: variant(&value.dark),
+    }
+}
 fn snapshot(state: &PreferenceState) -> PreferenceSnapshot {
     let value = &state.values;
     PreferenceSnapshot {
@@ -51,6 +98,17 @@ fn snapshot(state: &PreferenceState) -> PreferenceSnapshot {
         values: EditorPreferences {
             language: value.language.clone(),
             theme: value.theme.clone(),
+            theme_family: value.theme_family.clone(),
+            custom_themes: value.custom_themes.iter().map(theme_wire).collect(),
+            body_font: value.body_font.clone(),
+            background_image: value.background_image.clone(),
+            background_opacity: value.background_opacity,
+            surface_opacity: value.surface_opacity,
+            glass_style: value.glass_style.clone(),
+            image_insertion: value.image_insertion.clone(),
+
+            use_theme_font_size: value.use_theme_font_size,
+            use_theme_line_height: value.use_theme_line_height,
             auto_save: value.auto_save,
             font_size: value.font_size,
             line_height: value.line_height,

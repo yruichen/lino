@@ -19,7 +19,7 @@ extension EditorWindowController {
             item = searchControls.item
         case .editorWorkspace:
             item = NSToolbarItem(itemIdentifier: identifier); item.target = self; item.action = #selector(toggleWorkspace)
-            item.isNavigational = true
+            item.isNavigational = true; item.isBordered = true
         default: return nil
         }
         localizeToolbarItem(item)

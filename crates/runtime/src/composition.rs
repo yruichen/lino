@@ -16,6 +16,7 @@ pub struct DocumentRuntime {
     pub(crate) file_gate: Mutex<()>,
     pub(crate) documents: Mutex<Documents>,
     pub(crate) recovery: Mutex<crate::recovery::RecoveryState>,
+    pub(crate) navigation: Mutex<crate::navigation::NavigationRuntime>,
     pub(crate) preferences: Mutex<crate::preferences::PreferenceRuntime>,
     pub(crate) exports: Mutex<crate::export::Exports>,
     pub(crate) storage: Arc<dyn StoragePort>,
@@ -42,6 +43,7 @@ impl DocumentRuntime {
             documents: Mutex::new(Documents::default()),
             recovery: Mutex::default(),
             preferences: Mutex::default(),
+            navigation: Mutex::default(),
             exports: Mutex::default(),
             storage,
             resources,
@@ -107,11 +109,36 @@ impl DocumentRuntime {
         self.release_unused(previous);
         Ok(to_opened(info))
     }
+    pub fn validate_document_file(&self, path: &Path) -> Result<(), WireError> {
+        let extension = path
+            .extension()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        if !lino_application::navigation::supported_document_extension(extension) {
+            return Err(crate::dispatch::error(
+                lino_protocol::ErrorCode::UnsupportedFile,
+                "Unsupported document format",
+                false,
+            ));
+        }
+        let _gate = self.file_gate.lock().map_err(|_| {
+            crate::dispatch::error(
+                lino_protocol::ErrorCode::Internal,
+                "File gate poisoned",
+                false,
+            )
+        })?;
+        let (file, _) = self.resources.register(path).map_err(storage_error)?;
+        let inspected = self.storage.inspect(file).map_err(storage_error);
+        self.release_unused_in_gate(Some(file));
+        inspected.map(|_| ())
+    }
     pub fn open_file(
         &self,
         path: &Path,
         replace: Option<lino_protocol::CloseIntent>,
     ) -> Result<OpenedDocument, WireError> {
+        self.validate_document_file(path)?;
         let _gate = self.file_gate.lock().map_err(|_| {
             crate::dispatch::error(
                 lino_protocol::ErrorCode::Internal,

@@ -365,3 +365,72 @@ impl SearchMatcher for Matcher {
 pub fn trash_path(path: &Path) -> Result<(), StorageError> {
     trash::delete(path).map_err(|e| StorageError::Io(e.to_string()))
 }
+
+impl FileWorkspace {
+    /// Bounded title prefix for navigation indexing, with the same granted-root rules.
+    pub fn title_prefix(&self, relative: &str) -> Result<String, StorageError> {
+        let path = self.ordinary_file(relative)?;
+        let mut options = OpenOptions::new();
+        options.read(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.custom_flags(libc::O_NOFOLLOW);
+        }
+        let mut bytes = Vec::new();
+        options
+            .open(path)
+            .map_err(error)?
+            .take(64 * 1024)
+            .read_to_end(&mut bytes)
+            .map_err(error)?;
+        // A truncated final UTF-8 character does not invalidate the preceding title.
+        let text = match std::str::from_utf8(&bytes) {
+            Ok(text) => text,
+            Err(e) if e.error_len().is_none() => std::str::from_utf8(&bytes[..e.valid_up_to()])
+                .map_err(|_| StorageError::UnsupportedEncoding)?,
+            Err(_) => return Err(StorageError::UnsupportedEncoding),
+        };
+        Ok(text.trim_start_matches('\u{feff}').to_owned())
+    }
+}
+
+/// Resolve platform path identity without putting filesystem rules in native UI.
+pub fn navigation_path(path: &Path) -> Result<PathBuf, StorageError> {
+    let metadata = fs::symlink_metadata(path).map_err(error)?;
+    if metadata.file_type().is_symlink() {
+        return Err(StorageError::UnsupportedFile);
+    }
+    path.canonicalize().map_err(error)
+}
+
+impl FileWorkspace {
+    /// Transfer an explicitly selected native source into this granted destination.
+    /// Exclusive rename never overwrites; cross-volume moves fail with the source intact.
+    pub fn transfer_from(
+        &self,
+        source: &Path,
+        target: &str,
+        copy: bool,
+    ) -> Result<(), StorageError> {
+        let source = navigation_path(source)?;
+        let destination = self.resolve(target, true)?;
+        if destination.starts_with(&source) {
+            return Err(StorageError::Denied);
+        }
+        if copy {
+            if fs::symlink_metadata(&source).map_err(error)?.is_dir() {
+                let staging =
+                    tempfile::tempdir_in(destination.parent().ok_or(StorageError::Denied)?)
+                        .map_err(error)?;
+                copy_directory(&source, staging.path(), 0, &mut 0, &mut (128 * 1024 * 1024))?;
+                rename_noclobber(staging.path(), &destination).map_err(error)?;
+            } else {
+                copy_file(&source, &destination, 64 * 1024 * 1024)?;
+            }
+        } else {
+            rename_noclobber(&source, &destination).map_err(error)?;
+        }
+        Ok(())
+    }
+}

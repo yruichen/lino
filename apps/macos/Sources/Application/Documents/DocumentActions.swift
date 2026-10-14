@@ -59,6 +59,8 @@ final class DocumentActions: DocumentCloseParticipant {
         try requireGeneration(generation)
         try await applyPreferences(preferences)
         _ = try await bridge.call("setLocale", arguments: [LanguagePreferences.shared.locale])
+        _ = try await bridge.call("preparePresentation")
+        try requireGeneration(generation)
         ready = true
         if reattaching { onReattached?() }
     }
@@ -66,7 +68,7 @@ final class DocumentActions: DocumentCloseParticipant {
     func viewTerminated() { ready = false }
     var verificationRecoveryPath: String? { recovery.verificationPath }
     func cleanupVerificationFiles() { recovery.cleanupVerificationFiles() }
-    private func show(_ error: Error) { bridge.onError?(error.localizedDescription) }
+    private func show(_ error: Error) { bridge.onError?(userFacingError(error)) }
     private func unavailable(_ message: String) -> NSError {
         NSError(domain: "Lino", code: 3, userInfo: [NSLocalizedDescriptionKey: message])
     }
@@ -125,19 +127,43 @@ final class DocumentActions: DocumentCloseParticipant {
         do { return try await saveCurrent(asNew: asNew) } catch { show(error); return false }
     }
 
-    private func replacementIntent() async throws -> String? {
+    private func replacementIntent(closing: Bool = false) async throws -> String? {
         let value = try await bridge.call("prepareReplacement")
         guard let context = value as? [String: Any], let original = context["intentJson"] as? String else {
             throw NSError(domain: "Lino", code: 3, userInfo: [NSLocalizedDescriptionKey: localized("error.replacementContext")])
         }
         guard context["dirty"] as? Bool == true else { return original }
         guard let window else { return nil }
-        switch await DocumentDialogs.unsaved(in: window, label: label ?? localized("document.untitled")) {
+        switch await DocumentDialogs.unsaved(in: window, label: label ?? localized("document.untitled"), closing: closing) {
         case .cancel: return nil
         case .discard: return try await bridge.call("replacementIntent", arguments: [true]) as? String
         case .save:
             guard try await saveCurrent(asNew: false) else { return nil }
             return try await bridge.call("replacementIntent", arguments: [false]) as? String
+        }
+    }
+
+    /// Reuse only a pristine, unbound page. Eligibility is checked while input
+    /// and persistence are frozen by the existing replacement transaction.
+    func openIfEmpty(path: String) async throws -> Bool {
+        guard ready && !busy && !closed && !hasFile else { return false }
+        busy = true
+        do {
+            let generation = bridge.generation
+            let value = try await bridge.call("prepareReplacement")
+            try requireGeneration(generation)
+            guard let context = value as? [String: Any], context["dirty"] as? Bool == false,
+                  context["hasFile"] as? Bool == false, context["replaceableEmpty"] as? Bool == true,
+                  let intent = context["intentJson"] as? String else {
+                _ = try? await bridge.call("cancelReplacement"); busy = false; return false
+            }
+            let json = try await bridge.backend.perform { try $0.openFile(path: path, replaceJson: intent) }
+            try await attachReplacement(json, generation: generation)
+            _ = try? await bridge.call("cancelReplacement"); busy = false
+            return true
+        } catch {
+            _ = try? await bridge.call("cancelReplacement"); busy = false
+            throw error
         }
     }
 
@@ -233,7 +259,7 @@ final class DocumentActions: DocumentCloseParticipant {
             return true
         }
         do {
-            guard let intent = try await replacementIntent() else { await cancelClose(); return false }
+            guard let intent = try await replacementIntent(closing: true) else { await cancelClose(); return false }
             closeIntent = intent
             return true
         } catch { show(error); await cancelClose(); return false }

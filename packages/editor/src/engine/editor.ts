@@ -22,21 +22,25 @@ import { SearchQuery, getSearchQuery, setSearchQuery } from '@codemirror/search'
 import { goToLine, lineNavigation } from '../features/navigation/line.ts';
 import { editorLocalization } from '../localization/editor.ts';
 import { t } from '../localization/index.ts';
-import { editorTheme, preferredAppearance } from '../themes/editor.ts';
+import { editorTheme, preferredAppearance, themePreferences } from '../themes/editor.ts';
+import { bodyFont, selectedTheme } from '../themes/catalog.ts';
 import { languageForCode } from '../features/code/languages.ts';
 import { codeBlockAt, selectedCodeLines } from '../features/code/model.ts';
 import { codeControls, runCodeCommand, setCodeClipboard, type WriteClipboard } from '../features/code/controls.ts';
 import { codeOptions, changeCodeOptions } from '../features/code/state.ts';
 import { codePresentation } from '../features/code/view.ts';
+import { statistics } from '../features/analysis/model.ts';
+import { nativeAnalysisView } from '../features/analysis/native.ts';
+import { nativeAnalysisUI, analysisEmitter } from '../features/analysis/capabilities.ts';
 import { documentAnalysis } from '../features/analysis/view.ts';
-import { writingCommand, writingOptions } from '../features/writing/state.ts';
+import { writingCommand, writingOptions, changeWriting } from '../features/writing/state.ts';
 import { writingPresentation } from '../features/writing/view.ts';
 import { zoomLayout } from '../features/writing/zoom.ts';
 import { mathSyntax } from '../features/media/syntax.ts';
 import { imageSizes, importAnchor, mediaContextChanged, setMediaHost } from '../features/media/state.ts';
 import { mediaPresentation } from '../features/media/view.ts';
 import { mediaControls, runMediaCommand } from '../features/media/controls.ts';
-import { settleImports } from '../features/media/commands.ts';
+import { settleImports, prepareImageDrop, commitImageDrop, cancelImageDrop } from '../features/media/commands.ts';
 import { referenceSyntax } from '../features/references/syntax.ts';
 import { referenceIndex } from '../features/references/model.ts';
 import { referenceControls } from '../features/references/state.ts';
@@ -59,6 +63,12 @@ import '../features/navigation/navigation.css';
 
 export class MarkdownEditor {
   readonly view: EditorView;
+  continueOutline(): void { this.view.plugin(nativeAnalysisView)?.resume(); }
+  acceptsHeading(from: number, token: string): boolean {
+    return Number.isInteger(from) && from >= 0 && from <= this.view.state.doc.length && !this.composing()
+      && this.view.plugin(nativeAnalysisView)?.token === token;
+  }
+
   private readonly source;
   private pendingMode: EditorMode | undefined;
   private disposed = false;
@@ -68,11 +78,12 @@ export class MarkdownEditor {
   private documentReadOnly = false;
   private readonly preferences = new Compartment();
   private preferenceGeneration = 0;
+  private nativeOutlineSequence = 0n;
   private nativeQuerySequence = 0n;
   private readonly emit: (event: EditorHostEvent) => void;
   private readonly onChange: (docChanged: boolean) => void;
   private readonly assets: AssetPort | undefined;
-  constructor(parent: HTMLElement, raw: string, emit: (event: EditorHostEvent) => void, onChange: (docChanged: boolean) => void = () => {}, writeClipboard?: WriteClipboard, assets?: AssetPort, capabilities: { nativeSearch?: boolean } = {}) {
+  constructor(parent: HTMLElement, raw: string, emit: (event: EditorHostEvent) => void, onChange: (docChanged: boolean) => void = () => {}, writeClipboard?: WriteClipboard, assets?: AssetPort, capabilities: { nativeSearch?: boolean; nativeAnalysis?: boolean } = {}) {
     this.emit = emit; this.onChange = onChange; this.assets = assets;
     this.source = sourceDocument(raw);
     this.view = new EditorView({ parent, state: EditorState.create({
@@ -85,7 +96,7 @@ export class MarkdownEditor {
         this.preferences.of([Prec.high(keymap.of(markdownKeymap)), EditorView.contentAttributes.of({ spellcheck: 'false' })]),
         markdown({ base: markdownLanguage, addKeymap: false, codeLanguages: languageForCode, extensions: [mathSyntax, referenceSyntax] }), editorTheme(),
         modeState, compositionState, pointerPresentation, editorLocalization(), contextualViewport, documentSearch, lineNavigation, tableControls, tableView, markdownPresentation,
-        codeOptions, codeControls, codePresentation, importAnchor, imageSizes, mediaControls, mediaPresentation, writingOptions, zoomLayout(), documentAnalysis, writingPresentation, EditorView.lineWrapping,
+        codeOptions, codeControls, codePresentation, importAnchor, imageSizes, mediaControls, mediaPresentation, writingOptions, zoomLayout(), capabilities.nativeAnalysis ? [statistics, nativeAnalysisUI.of(true), analysisEmitter.of(emit), nativeAnalysisView] : documentAnalysis, writingPresentation, EditorView.lineWrapping,
         referenceIndex, referenceControls, referencePanels, referencePresentation, referenceInteraction, taskPresentation,
         componentMenus.of((context, x, y) => this.emit({ kind: 'context-menu', context, x, y })),
         nativeSearchUI.of(!!capabilities.nativeSearch),
@@ -127,7 +138,16 @@ export class MarkdownEditor {
     const previous = getSearchQuery(this.view.state);
     this.view.dispatch({ effects: setSearchQuery.of(new SearchQuery({ ...previous, search: text })) });
   }
+  setOutlineVisible(visible: boolean, sequence: string): void {
+    if (!/^\d+$/.test(sequence)) throw new Error(t('editor.unknownCommand'));
+    const next = BigInt(sequence); if (next <= this.nativeOutlineSequence) return;
+    this.nativeOutlineSequence = next;
+    if (this.view.state.field(writingOptions).outline !== visible) this.view.dispatch({ effects: changeWriting.of({ outline: visible }) });
+  }
   refreshResources(): void { this.view.dispatch({ effects: mediaContextChanged.of(null) }); }
+  prepareImageDrop(x: number, y: number): boolean { return prepareImageDrop(this.view, x, y); }
+  cancelImageDrop(): void { cancelImageDrop(this.view); }
+  async commitImageDrop(paths: string[]): Promise<void> { await commitImageDrop(this.view, paths); }
   async settleResources(): Promise<void> { await settleImports(this.view); }
   async copySaveImages(ticket: SaveTicket, target: SaveTarget, raw: string): Promise<void> {
     const sources = localImageSources(raw);
@@ -140,14 +160,28 @@ export class MarkdownEditor {
     const generation = ++this.preferenceGeneration;
     await this.settleComposition();
     if (this.disposed || generation !== this.preferenceGeneration) return;
+    const theme = selectedTheme(values);
+    const size = values.use_theme_font_size ? theme.font_size : values.font_size;
+    const height = values.use_theme_line_height ? theme.line_height : values.line_height;
     this.view.dispatch({ effects: [this.preferences.reconfigure([
       preferredAppearance.of(values.theme),
+      themePreferences.of(values),
       ...(values.continue_lists ? [Prec.high(keymap.of(markdownKeymap))] : []),
       EditorView.contentAttributes.of({ spellcheck: String(values.spell_check) }),
-      EditorView.theme({ '.cm-content': { fontSize: `calc(${values.font_size}px * var(--ot-editor-scale, 1))`, lineHeight: String(values.line_height / 100), maxWidth: values.content_width === 'fixed' ? `${values.page_width}px` : 'var(--ot-reading-width)' } }),
+      EditorView.theme({ '.cm-content': { fontFamily: bodyFont(values), fontSize: `calc(${size}px * var(--ot-editor-scale, 1))`, lineHeight: String(height / 100), maxWidth: values.content_width === 'fixed' ? `${values.page_width}px` : 'var(--ot-reading-width)' } }),
     ]), changeCodeOptions.of({ wrap: values.code_wrap, numbers: values.code_numbers })] });
   }
   composing(): boolean { return this.view.composing || this.view.state.field(compositionState); }
+  canReplaceEmpty(): boolean {
+    return this.view.state.doc.length === 0 && undoDepth(this.view.state) === 0 && redoDepth(this.view.state) === 0;
+  }
+  appearance(): 'light' | 'dark' { return this.view.state.facet(EditorView.darkTheme) ? 'dark' : 'light'; }
+  setViewportWidth(width: number): void {
+    if (!Number.isFinite(width) || width <= 0) return;
+    this.view.dom.style.width = `${width}px`;
+    this.view.dom.style.marginInline = 'auto';
+    this.view.requestMeasure();
+  }
   setReadOnly(value: boolean): void { this.frozen = value; this.updateReadOnly(); }
   setDocumentReadOnly(value: boolean): void { this.documentReadOnly = value; this.updateReadOnly(); }
   private updateReadOnly(): void { this.view.dispatch({ effects: this.writable.reconfigure(EditorState.readOnly.of(this.frozen || this.documentReadOnly)) }); }

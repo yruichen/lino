@@ -1,315 +1,585 @@
 import AppKit
 
-private final class WorkspaceObserver: WorkspaceListener, @unchecked Sendable {
-    private let callback: @Sendable () -> Void
-    init(_ callback: @escaping @Sendable () -> Void) { self.callback = callback }
-    func changed() { callback() }
-}
-/// Native presentation of the granted-root Rust service. Responses are accepted
-/// only for the current root and query generation. No document content lives here.
+/// Native navigation presentation. Directory and mutation semantics stay in Rust;
+/// expansion/scroll/selection are private to this window.
 @MainActor
-final class WorkspaceController: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSSearchFieldDelegate, NSMenuItemValidation {
+final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate, NSMenuDelegate {
     let view = NSStackView()
-    private let roots = NSPopUpButton(frame: .zero, pullsDown: false)
-    private let pin = NSButton()
-    private let openFolder = NSButton()
-    private let query = NSSearchField()
-    private let mode = NSPopUpButton(frame: .zero, pullsDown: false)
-    private let options = NSStackView()
-    private let sensitive = NSButton(checkboxWithTitle: "Aa", target: nil, action: nil)
-    private let regex = NSButton(checkboxWithTitle: ".*", target: nil, action: nil)
-    private let word = NSButton(checkboxWithTitle: "↔", target: nil, action: nil)
-    private let hidden = NSButton(checkboxWithTitle: "", target: nil, action: nil)
-    private let ordering = NSPopUpButton(frame: .zero, pullsDown: false)
-    private let filters = NSButton()
-    private var filtersVisible = false
-    private let table = NSTableView()
-    private let notice = NSTextField(wrappingLabelWithString: "")
-    private let breadcrumb = NSTextField(labelWithString: "")
-    private let backend: DocumentBackend
-    private let verifying: Bool
     private weak var window: NSWindow?
-    private var service: WorkspaceService?
-    private var rootPath: String?
-    var currentRoot: String? { rootPath }
-    private var directory = ""
-    private var entries: [WorkspaceEntry] = []
-    private var hits: [WorkspaceHit] = []
-    private var searchResults = false
-    private var generation: UInt64 = 0
-    private var pending: Task<Void, Never>?
-    private var running = false
-    private var mutating = false { didSet { roots.isEnabled = !mutating } }
-    private var observer: WorkspaceObserver?
-    private var rootIdentity = UUID()
-    private var watchUpdate: Task<Void, Never>?
-    private var localizedButtons: [(NSButton, String)] = []
-    private var localizedItems: [(NSMenuItem, String)] = []
+    private let navigation: NavigationCoordinator
+    private let verifying: Bool
+    let outline = NavigationOutlineView()
+    let scroll = NSScrollView()
+    private let switcher = NSSegmentedControl()
+    private let locationPicker = NSPopUpButton(frame: .zero, pullsDown: false)
+    private let searchButton = NSButton()
+    private var selectedRoot: String?
+    private var searching = false
+    private var browseOrigin = NSPoint.zero
+    private var pageOrigins: [Bool: NSPoint] = [:]
+    private var browsingOutline = false
+    private var scrollObserver: NSObjectProtocol?
+    private let pages = NSStackView()
+    private lazy var contentSearch = SidebarSearchController(navigation: navigation)
+    private let addButton = NSButton()
+    private let customizeButton = NSButton()
+    private let continueButton = NSButton()
+    var onContinueOutline: (() -> Void)?
+    private let notice = NSTextField(wrappingLabelWithString: "")
+    private let empty = NSStackView()
+    private let emptyLabel = NSTextField(wrappingLabelWithString: "")
+    private let openButton = NSButton()
+    private var items: [NavigationItem] = []
+    private var nodes: [String: NavigationItem] = [:]
+    private var headings: [NavigationHeading] = []
+    private var headingToken = ""
+    private var headingCurrent: Int?
+    private var observer: UUID?
+    private var tasks: [String: Task<Void, Never>] = [:]
+    private var auxiliaryServices: [String: WorkspaceService] = [:]
+    private var contextItem: NavigationItem?
+    private var stateKey: String?
+    private var disposed = false
+    private var rebuilding = false
+    private var applyingExpansion = false
+    private var expanded = Set<String>()
+    private var collapsedHeadings = Set<String>()
+    private var collapsedSections = Set<String>()
+    private var selectedID: String?
+    private let dragType = NSPasteboard.PasteboardType("dev.lino.navigation-item")
+    private(set) var currentFile: String?
+    private(set) var showingOutline = false
+    var currentRoot: String? {
+        if let selectedRoot, navigation.values.locations.contains(selectedRoot) { return selectedRoot }
+        if let currentFile, let root = navigation.values.locations.filter({ currentFile == $0 || currentFile.hasPrefix($0 + "/") }).max(by: { $0.count < $1.count }) { return root }
+        return navigation.values.locations.first
+    }
     var onOpen: ((String, Int?) -> Void)?
+    var onOpenDialog: (() -> Void)?
     var onError: ((String) -> Void)?
     var onVisibility: ((Bool) -> Void)?
-
-    init(backend: DocumentBackend, window: NSWindow, verifying: Bool = false) {
-        self.backend = backend; self.window = window; self.verifying = verifying; super.init()
-        view.orientation = .vertical; view.alignment = .leading; view.spacing = 10
-        view.edgeInsets = NSEdgeInsets(top: 16, left: 12, bottom: 12, right: 12)
-        roots.isBordered = false; roots.font = .systemFont(ofSize: 13, weight: .semibold)
-        roots.target = self; roots.action = #selector(rootSelected)
-        openFolder.target = self; openFolder.action = #selector(chooseFolder); openFolder.bezelStyle = .rounded
-        pin.target = self; pin.action = #selector(togglePin); pin.bezelStyle = .inline; pin.imagePosition = .imageOnly
-        query.delegate = self; query.controlSize = .regular; query.font = .systemFont(ofSize: 13)
-        query.sendsSearchStringImmediately = true
-        filters.target = self; filters.action = #selector(toggleFilters); filters.bezelStyle = .inline
-        filters.image = NSImage(systemSymbolName: "line.3.horizontal.decrease", accessibilityDescription: nil)
-        mode.controlSize = .small; mode.isBordered = false; ordering.controlSize = .small
-        for control in [mode, ordering] { control.target = self; control.action = #selector(refresh) }
-        for button in [sensitive, regex, word, hidden] { button.target = self; button.action = #selector(refresh); button.controlSize = .small }
-        options.orientation = .vertical; options.alignment = .leading; options.spacing = 8
-        let searchOptions = NSStackView(views: [sensitive, regex, word]); searchOptions.spacing = 8
-        options.setViews([searchOptions, hidden, ordering], in: .leading); options.isHidden = true
-        let commands = NSStackView()
-        for (key, symbol, selector) in [("workspace.up", "chevron.left", #selector(up)), ("workspace.refresh", "arrow.clockwise", #selector(refresh)), ("workspace.newFile", "square.and.pencil", #selector(newFile)), ("workspace.newFolder", "folder.badge.plus", #selector(newFolder))] {
-            let button = NSButton(image: NSImage(systemSymbolName: symbol, accessibilityDescription: localized(key))!, target: self, action: selector)
-            button.bezelStyle = .inline; commands.addArrangedSubview(button); localizedButtons.append((button, key))
-        }
-        let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("file")); column.width = 250
-        table.addTableColumn(column); table.headerView = nil; table.delegate = self; table.dataSource = self
-        table.style = .sourceList; table.backgroundColor = .clear; table.rowHeight = 34
-        table.intercellSpacing = NSSize(width: 0, height: 4)
-        table.target = self; table.doubleAction = #selector(openSelection)
-        let scroll = NSScrollView(); scroll.documentView = table; scroll.hasVerticalScroller = true; scroll.borderType = .noBorder
-        scroll.drawsBackground = false; scroll.autohidesScrollers = true
-        let menu = NSMenu()
-        for (key, selector) in [("workspace.open", #selector(openSelection)), ("workspace.copy", #selector(copyFile)), ("workspace.move", #selector(moveFile)), ("workspace.trash", #selector(trashFile)), ("workspace.reveal", #selector(revealFile)), ("workspace.properties", #selector(properties))] {
-            let item = menu.addItem(withTitle: localized(key), action: selector, keyEquivalent: ""); item.target = self; localizedItems.append((item, key))
-        }
-        table.menu = menu
+    var onOutlineVisibility: ((Bool) -> Void)?
+    var onHeading: ((Int, String) -> Void)?
+    var onQuickOpen: (() -> Void)?
+    var onContentSearch: (() -> Void)?
+    var onCustomize: (() -> Void)?
+    init(navigation: NavigationCoordinator, window: NSWindow, verifying: Bool) {
+        self.navigation = navigation; self.window = window; self.verifying = verifying
+        super.init()
+        switcher.segmentCount = 2; switcher.segmentStyle = .rounded; switcher.trackingMode = .selectOne
+        switcher.segmentDistribution = .fillEqually
+        switcher.selectedSegment = 0; switcher.target = self; switcher.action = #selector(switchSection)
+        addButton.image = NSImage(systemSymbolName: "plus", accessibilityDescription: nil)
+        addButton.bezelStyle = .accessoryBarAction; addButton.isBordered = false; addButton.target = self; addButton.action = #selector(addContextFile)
+        customizeButton.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
+        customizeButton.bezelStyle = .accessoryBarAction; customizeButton.isBordered = false
+        customizeButton.target = self; customizeButton.action = #selector(customize)
+        locationPicker.isBordered = false; locationPicker.font = .systemFont(ofSize: 13, weight: .medium)
+        locationPicker.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        locationPicker.target = self; locationPicker.action = #selector(changeLocation)
+        searchButton.image = NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: nil)
+        searchButton.isBordered = false; searchButton.target = self; searchButton.action = #selector(searchContents)
+        let header = NSStackView(views: [locationPicker, NSView(), searchButton, addButton, customizeButton]); header.spacing = 5
+        header.edgeInsets = NSEdgeInsets(top: 12, left: 10, bottom: 8, right: 10)
+        pages.addArrangedSubview(switcher); pages.edgeInsets = NSEdgeInsets(top: 0, left: 12, bottom: 10, right: 12)
+        switcher.translatesAutoresizingMaskIntoConstraints = false
+        switcher.widthAnchor.constraint(equalTo: pages.widthAnchor, constant: -24).isActive = true
+        outline.headerView = nil; outline.style = .sourceList; outline.backgroundColor = .clear
+        outline.indentationPerLevel = 12; outline.intercellSpacing = NSSize(width: 0, height: 2)
+        outline.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
+        let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("navigation")); outline.addTableColumn(column); outline.outlineTableColumn = column
+        outline.dataSource = self; outline.delegate = self; outline.target = self; outline.action = #selector(clicked); outline.doubleAction = #selector(doubleClicked)
+        outline.onOpen = { [weak self] in self?.openSelection() }
+        outline.registerForDraggedTypes([dragType, .fileURL]); outline.setDraggingSourceOperationMask([.copy, .move], forLocal: true)
+        let menu = NSMenu(); menu.delegate = self; outline.menu = menu
+        scroll.documentView = outline; scroll.hasVerticalScroller = true; scroll.drawsBackground = true
+        scroll.scrollerStyle = .overlay; scroll.autohidesScrollers = true; scroll.borderType = .noBorder
+        scroll.contentView.drawsBackground = false
+        scroll.backgroundColor = ThemePalette.navigationBackground
+        outline.backgroundColor = ThemePalette.navigationBackground
         notice.font = .systemFont(ofSize: 11); notice.textColor = .secondaryLabelColor
-        breadcrumb.font = .systemFont(ofSize: 11); breadcrumb.textColor = .secondaryLabelColor; breadcrumb.lineBreakMode = .byTruncatingMiddle
-        let rootRow = NSStackView(views: [roots, pin]); rootRow.alignment = .centerY; rootRow.spacing = 6
-        roots.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        let modeRow = NSStackView(views: [mode, NSView(), filters]); modeRow.alignment = .centerY
-        let navigation = NSStackView(views: [breadcrumb, NSView(), commands]); navigation.alignment = .centerY
-        breadcrumb.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        commands.spacing = 6
-        for child in [rootRow, openFolder, query, modeRow, options, navigation, scroll, notice] {
-            view.addArrangedSubview(child); child.translatesAutoresizingMaskIntoConstraints = false
-            child.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -24).isActive = true
+        notice.isHidden = true
+        openButton.bezelStyle = .rounded; openButton.target = self; openButton.action = #selector(openDocument)
+        let addEmpty = NSButton(title: "", target: self, action: #selector(chooseFolder)); addEmpty.identifier = NSUserInterfaceItemIdentifier("add-folder"); addEmpty.bezelStyle = .rounded
+        empty.orientation = .vertical; empty.alignment = .centerX; empty.spacing = 12
+        empty.edgeInsets = NSEdgeInsets(top: 24, left: 16, bottom: 24, right: 16)
+        empty.addArrangedSubview(emptyLabel); empty.addArrangedSubview(openButton); empty.addArrangedSubview(addEmpty)
+        emptyLabel.alignment = .center; emptyLabel.textColor = .secondaryLabelColor
+        view.orientation = .vertical; view.alignment = .leading; view.spacing = 0; view.distribution = .fill
+        header.setContentHuggingPriority(.required, for: .vertical)
+        pages.setContentHuggingPriority(.required, for: .vertical)
+        scroll.setContentHuggingPriority(.defaultLow, for: .vertical)
+        contentSearch.view.setContentHuggingPriority(.defaultLow, for: .vertical)
+        continueButton.target = self; continueButton.action = #selector(continueOutline); continueButton.bezelStyle = .inline; continueButton.isHidden = true
+        for subview in [header, pages, empty, scroll, notice, continueButton] {
+            view.addArrangedSubview(subview); subview.translatesAutoresizingMaskIntoConstraints = false
+            subview.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         }
-        view.setVisibilityPriority(.notVisible, for: options)
-        let scrollHeight = scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 100)
-        scrollHeight.priority = .defaultLow; scrollHeight.isActive = true
-        relocalize()
+        notice.setContentHuggingPriority(.required, for: .vertical)
+        contentSearch.view.isHidden = true
+        view.addArrangedSubview(contentSearch.view); contentSearch.view.translatesAutoresizingMaskIntoConstraints = false
+        contentSearch.view.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        contentSearch.onOpen = { [weak self] path, line in self?.onOpen?(path, line) }
+        contentSearch.onClose = { [weak self] in self?.hideContentSearch() }
+        observer = navigation.observe { [weak self] root in self?.navigationChanged(root) }
+        scrollObserver = NotificationCenter.default.addObserver(forName: NSScrollView.willStartLiveScrollNotification, object: scroll, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.browsingOutline = true }
+        }
+        relocalize(); rebuild()
+    }
+    func restoreWindowState(_ key: String) {
+        guard !verifying else { return }; stateKey = key
+        selectedRoot = UserDefaults.standard.string(forKey: key + ":workspace")
+        expanded = Set(UserDefaults.standard.stringArray(forKey: key + ":expanded") ?? [])
+        collapsedSections = Set(UserDefaults.standard.stringArray(forKey: key + ":collapsedSections") ?? [])
+        showingOutline = UserDefaults.standard.bool(forKey: key + ":outline")
+        switcher.selectedSegment = showingOutline ? 1 : 0; rebuild()
+    }
+    func rebindWindowState(_ key: String) { guard !verifying else { return }; stateKey = key; saveWindowState() }
+    private func saveWindowState() {
+        guard let stateKey, !verifying else { return }
+        UserDefaults.standard.set(selectedRoot, forKey: stateKey + ":workspace")
+        UserDefaults.standard.set(Array(expanded), forKey: stateKey + ":expanded")
+        UserDefaults.standard.set(Array(collapsedSections), forKey: stateKey + ":collapsedSections")
+        UserDefaults.standard.set(showingOutline, forKey: stateKey + ":outline")
     }
     func relocalize() {
-        let selectedMode = mode.indexOfSelectedItem, selectedOrder = ordering.indexOfSelectedItem
-        mode.removeAllItems(); mode.addItems(withTitles: [localized("workspace.browse"), localized("workspace.quick"), localized("workspace.search")]); mode.selectItem(at: max(0, selectedMode))
-        ordering.removeAllItems(); ordering.addItems(withTitles: [localized("workspace.byName"), localized("workspace.byDate")]); ordering.selectItem(at: max(0, selectedOrder))
-        query.placeholderString = localized("workspace.query"); query.setAccessibilityLabel(localized("workspace.query"))
-        sensitive.toolTip = localized("workspace.case"); regex.toolTip = localized("workspace.regex"); word.toolTip = localized("workspace.word"); hidden.title = localized("workspace.hidden")
-        for (button, key) in localizedButtons { button.toolTip = localized(key); button.setAccessibilityLabel(localized(key)) }
-        filters.toolTip = localized("workspace.filters"); filters.setAccessibilityLabel(localized("workspace.filters"))
-        openFolder.title = localized("workspace.openFolder"); openFolder.setAccessibilityLabel(openFolder.title)
-        for (item, key) in localizedItems { item.title = localized(key) }
-        for (button, key) in [(sensitive, "workspace.case"), (regex, "workspace.regex"), (word, "workspace.word")] { button.setAccessibilityLabel(localized(key)) }
-        updateRoots()
-    }
-    private func recentRoots() -> [String] { verifying ? [] : Array((UserDefaults.standard.stringArray(forKey: "workspaceRoots") ?? []).prefix(12)) }
-    private func pinnedRoots() -> [String] { verifying ? [] : Array((UserDefaults.standard.stringArray(forKey: "pinnedWorkspaceRoots") ?? []).prefix(12)) }
-    @objc private func togglePin() {
-        guard !verifying, let path = rootPath else { return }
-        let pinned = pinnedRoots()
-        UserDefaults.standard.set(pinned.contains(path) ? pinned.filter { $0 != path } : Array(([path] + pinned).prefix(12)), forKey: "pinnedWorkspaceRoots")
-        updateRoots()
-    }
-    private func updateRoots() {
-        roots.removeAllItems(); roots.addItem(withTitle: rootPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? localized("workspace.noRoot"))
-        let pinned = pinnedRoots()
-        for path in pinned + recentRoots().filter({ !pinned.contains($0) }) where path != rootPath {
-            roots.addItem(withTitle: (pinned.contains(path) ? "★ " : "") + path); roots.lastItem?.representedObject = path
-        }
-        let isPinned = rootPath.map { pinned.contains($0) } == true
-        pin.image = NSImage(systemSymbolName: isPinned ? "pin.fill" : "pin", accessibilityDescription: nil)
-        pin.toolTip = localized(isPinned ? "workspace.unpin" : "workspace.pin"); pin.setAccessibilityLabel(pin.toolTip)
-        pin.isEnabled = rootPath != nil
-        roots.addItem(withTitle: localized("workspace.openFolder")); roots.lastItem?.representedObject = "choose-root"
-        roots.addItem(withTitle: localized("workspace.clearRecent")); roots.lastItem?.representedObject = "clear-recent"
+        switcher.setLabel(localized("navigation.files"), forSegment: 0); switcher.setLabel(localized("writing.outline"), forSegment: 1)
+        switcher.setAccessibilityLabel(localized("navigation.section"))
+        searchButton.toolTip = localized("workspace.searchContents"); searchButton.setAccessibilityLabel(searchButton.toolTip)
+        addButton.toolTip = localized(currentRoot == nil ? "navigation.addFolder" : "workspace.newFile"); addButton.setAccessibilityLabel(addButton.toolTip)
+        customizeButton.toolTip = localized("navigation.customize"); customizeButton.setAccessibilityLabel(customizeButton.toolTip)
+        emptyLabel.stringValue = localized("navigation.empty")
+        openButton.title = localized("menu.open")
+        (empty.arrangedSubviews.last as? NSButton)?.title = localized("navigation.addFolder")
+        outline.setAccessibilityLabel(localized(showingOutline ? "writing.outline" : "navigation.files"))
+        contentSearch.relocalize(); rebuild()
     }
     func chooseRoot() async {
-        guard !mutating else { notice.stringValue = localized("error.busy"); return }
         guard let window else { return }
-        let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
-        panel.title = localized("workspace.openFolder")
-        guard await panel.beginSheetModal(for: window) == .OK, let path = panel.url?.path else { return }
-        await openRoot(path)
+        let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = true
+        panel.title = localized("navigation.addFolder"); panel.prompt = localized("navigation.add")
+        guard await panel.beginSheetModal(for: window) == .OK else { return }
+        for url in panel.urls { if let root = await navigation.addLocation(url.path) { selectedRoot = root } }
+        saveWindowState(); rebuild()
+        if searching { contentSearch.rebind(root: currentRoot) }
+        onVisibility?(true)
+    }
+    @objc private func searchContents() { onContentSearch?() }
+    @objc private func addContextFile() {
+        guard let root = currentRoot else { chooseFolder(); return }
+        contextItem = fileNode(root, prefix: "location", directory: true); newFile()
+    }
+    @objc private func changeLocation() {
+        if locationPicker.indexOfSelectedItem >= navigation.values.locations.count { chooseFolder(); return }
+        selectedRoot = navigation.values.locations[locationPicker.indexOfSelectedItem]; saveWindowState(); rebuild()
+        if searching { contentSearch.rebind(root: currentRoot) }
     }
     @objc private func chooseFolder() { Task { await chooseRoot() } }
-    func inheritRoot(_ path: String) async { await openRoot(path) }
-    private func openRoot(_ path: String) async {
-        invalidate(); let expected = generation
-        do {
-            let next = try await backend.perform { try $0.openWorkspace(path: path) }
-            guard expected == generation else { return }
-            let previous = service; service = next; rootPath = next.root(); directory = ""; query.stringValue = ""; mode.selectItem(at: 0)
-            rootIdentity = UUID(); let identity = rootIdentity
-            if let previous { Task.detached { previous.unwatch() } }
-            observer = WorkspaceObserver { [weak self] in Task { @MainActor in self?.changedRoot(identity) } }
-            if let observer {
-                do { try await Task.detached { try next.watch(listener: observer) }.value }
-                catch { fail(error) }
+    @objc private func openDocument() { onOpenDialog?() }
+    @objc private func customize() {
+        let menu = NSMenu()
+        func action(_ key: String, _ selector: Selector) { let item = menu.addItem(withTitle: localized(key), action: selector, keyEquivalent: ""); item.target = self }
+        action("navigation.addFolder", #selector(chooseFolder))
+        if let root = currentRoot {
+            contextItem = fileNode(root, prefix: "location", directory: true)
+            action("workspace.reveal", #selector(revealFile)); action("navigation.removeLocation", #selector(removeLocation))
+        }
+        menu.addItem(.separator()); action("navigation.customize", #selector(showCustomization))
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: customizeButton.bounds.minY - 4), in: customizeButton)
+    }
+    @objc private func showCustomization() { onCustomize?() }
+    @objc private func switchSection() { setOutline(switcher.selectedSegment == 1) }
+    func setOutline(_ value: Bool) {
+        guard value != showingOutline else { return }
+        pageOrigins[showingOutline] = scroll.contentView.bounds.origin
+        showingOutline = value; switcher.selectedSegment = value ? 1 : 0; browsingOutline = false
+        onOutlineVisibility?(value); saveWindowState(); rebuild()
+        scroll.contentView.scroll(to: pageOrigins[value] ?? .zero); scroll.reflectScrolledClipView(scroll.contentView)
+    }
+    func setCurrentFile(_ path: String?) {
+        currentFile = path; rebuild()
+        if navigation.values.follow_active, !showingOutline, let path {
+            // Follow only already-visible rows; never reopen a deliberately collapsed tree.
+            if let row = (0..<outline.numberOfRows).first(where: { (outline.item(atRow: $0) as? NavigationItem)?.path == path }) {
+                outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+                let visible = outline.rows(in: outline.visibleRect)
+                if visible.location != NSNotFound && row >= visible.location - 3 && row <= NSMaxRange(visible) + 3 { outline.scrollRowToVisible(row) }
             }
-            guard service === next else { return }
-            entries = []; hits = []; searchResults = false; table.reloadData()
-            let recents = [path] + recentRoots().filter { $0 != path }
-            if !verifying { UserDefaults.standard.set(Array(recents.prefix(12)), forKey: "workspaceRoots") }
-            updateRoots(); onVisibility?(true); refresh()
-        } catch { if expected == generation { running = false; fail(error) } }
+        }
     }
-    @objc private func rootSelected() {
-        let selection = roots.selectedItem?.representedObject as? String
-        if selection == "choose-root" { Task { await chooseRoot() } }
-        else if selection == "clear-recent" { if !verifying { UserDefaults.standard.removeObject(forKey: "workspaceRoots") }; updateRoots() }
-        else if let selection { Task { await openRoot(selection) } }
+    func applyHeadings(_ projection: [String: Any]) {
+        guard let token = projection["token"] as? String else { return }
+        let entries = projection["entries"] as? [[String: Any]] ?? []
+        let changed = token != headingToken
+        let previousCurrent = headingCurrent
+        headingToken = token; headingCurrent = projection["current"] as? Int
+        var structureChanged = false
+        if changed {
+            var existing: [String: NavigationHeading] = [:]
+            func collect(_ list: [NavigationHeading]) { for heading in list { existing[heading.id] = heading; collect(heading.children) } }
+            collect(headings)
+            var parents: [NavigationHeading] = [], next: [NavigationHeading] = []
+            var relationships: [String: [String]] = [:], oldRelationships: [String: [String]] = ["root": headings.map(\.id)]
+            for heading in existing.values { oldRelationships[heading.id] = heading.children.map(\.id) }
+            var live = Set<String>()
+            for entry in entries {
+                guard let id = entry["id"] as? String, let from = entry["from"] as? Int, let level = entry["level"] as? Int, let title = entry["title"] as? String else { continue }
+                let item = existing[id] ?? NavigationHeading(id: id, from: from, title: title, level: level)
+                if item.title != title || item.level != level { structureChanged = true }
+                item.from = from; item.title = title; item.level = level; item.children = []; live.insert(id)
+                while let last = parents.last, last.level >= level { parents.removeLast() }
+                if let parent = parents.last { parent.children.append(item); relationships[parent.id, default: []].append(id) }
+                else { next.append(item); relationships["root", default: []].append(id) }
+                parents.append(item)
+            }
+            for id in live { relationships[id] = relationships[id] ?? [] }
+            structureChanged = structureChanged || relationships != oldRelationships
+            headings = next; collapsedHeadings.formIntersection(live)
+        }
+        if showingOutline && !searching {
+            if structureChanged {
+                let origin = scroll.contentView.bounds.origin
+                applyingExpansion = true; outline.reloadData(); restoreHeadingExpansion(); applyingExpansion = false
+                scroll.contentView.scroll(to: origin); scroll.reflectScrolledClipView(scroll.contentView)
+            }
+            if let current = headingCurrent, let row = (0..<outline.numberOfRows).first(where: { (outline.item(atRow: $0) as? NavigationHeading)?.from == current }) {
+                outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+                let visible = outline.rows(in: outline.visibleRect)
+                if !changed, previousCurrent != current, !browsingOutline, visible.location != NSNotFound,
+                   (row < visible.location || row >= NSMaxRange(visible)) { outline.scrollRowToVisible(row) }
+            } else { outline.deselectAll(nil) }
+            notice.stringValue = projection["truncated"] as? Bool == true ? localized("navigation.headingLimit") : projection["exhausted"] as? Bool == true ? localized("navigation.headingPartial") : projection["complete"] as? Bool == false ? localized("analysis.parsing") : headings.isEmpty ? localized("analysis.empty") : ""
+            continueButton.isHidden = projection["exhausted"] as? Bool != true
+            continueButton.title = localized("navigation.loadHeadings")
+            notice.isHidden = notice.stringValue.isEmpty
+        }
     }
-    private func invalidate() {
-        service?.cancel(queryId: generation); generation &+= 1; pending?.cancel(); pending = nil
+    @objc private func continueOutline() { onContinueOutline?() }
+    private func navigationChanged(_ root: String?) {
+        if let root {
+            for node in nodes.values where root.isEmpty || node.root == root { node.loaded = false; node.loading = false; node.children = [] }
+            for task in tasks.values { task.cancel() }; tasks.removeAll()
+        }
+        rebuild()
     }
-    @objc func refresh() {
-        invalidate(); let expected = generation
-        guard let service else { notice.stringValue = localized("workspace.noRoot"); return }
-        let directory = self.directory, hidden = hidden.state == .on, text = query.stringValue
-        let content = mode.indexOfSelectedItem == 2
-        sensitive.isEnabled = content; regex.isEnabled = content; word.isEnabled = content
-        let searching = mode.indexOfSelectedItem != 0 && !text.isEmpty
-        let options = WorkspaceSearchOptions(text: text, content: content, caseSensitive: sensitive.state == .on, regex: regex.state == .on, wholeWord: word.state == .on, includeHidden: hidden)
-        running = true; notice.stringValue = localized("workspace.loading")
-        pending = Task { [weak self] in
-            guard let self else { return }
+    private func node(_ id: String, title: String) -> NavigationItem {
+        if let item = nodes[id] { item.title = title; return item }
+        let item = NavigationItem(id: id, title: title); nodes[id] = item; return item
+    }
+    private func fileNode(_ path: String, prefix: String, directory: Bool = false) -> NavigationItem {
+        let title = URL(fileURLWithPath: path).lastPathComponent
+        let item = node(prefix + ":" + path, title: title); item.path = path; item.directory = directory
+        if let root = navigation.values.locations.filter({ path == $0 || path.hasPrefix($0 + "/") }).max(by: { $0.count < $1.count }) {
+            item.root = root; item.relative = path == root ? "" : String(path.dropFirst(root.count + 1))
+        } else if directory { item.root = path; item.relative = "" }
+        else { item.root = (path as NSString).deletingLastPathComponent; item.relative = URL(fileURLWithPath: path).lastPathComponent }
+        return item
+    }
+    private func rebuild() {
+        guard !disposed, !rebuilding else { return }; rebuilding = true; defer { rebuilding = false }
+        let scrollOrigin = scroll.contentView.bounds.origin
+        let values = navigation.values
+        locationPicker.removeAllItems()
+        for root in values.locations { locationPicker.addItem(withTitle: URL(fileURLWithPath: root).lastPathComponent); locationPicker.lastItem?.toolTip = root }
+        locationPicker.addItem(withTitle: localized("navigation.addFolder"))
+        if let root = currentRoot, let index = values.locations.firstIndex(of: root) { locationPicker.selectItem(at: index) }
+        searchButton.isEnabled = currentRoot != nil
+        if !showingOutline {
+            var sections: [String: [NavigationItem]] = [:]
+            sections["favorites"] = values.show_favorites ? values.favorites.map { path in
+                // Stored favorites are shortcuts; directory identity is refreshed by the service.
+                fileNode(path, prefix: "favorite", directory: navigation.services[path] != nil || auxiliaryServices[path] != nil)
+            } : []
+            var locations = currentRoot.map { [fileNode($0, prefix: "location", directory: true)] } ?? []
+            if !values.show_root, let root = locations.first {
+                if !root.loaded { load(root) }; locations = root.children
+            }
+            sections["locations"] = values.show_locations ? locations : []
+            sections["open_files"] = values.show_open_files ? navigation.openFiles.filter { path in !values.locations.contains { path == $0 || path.hasPrefix($0 + "/") } }.map { fileNode($0, prefix: "open") } : []
+            sections["recents"] = values.show_recents ? navigation.recent.prefix(20).map { fileNode($0, prefix: "recent") } : []
+            items = values.sections.compactMap { key in
+                guard let children = sections[key], !children.isEmpty || key == "locations" && !values.locations.isEmpty && values.show_locations else { return nil }
+                let group = node("section:" + key, title: localized("navigation." + key)); group.section = key; group.children = children; group.loaded = true
+                if key == "locations", !values.show_root, let path = currentRoot { group.path = path; group.root = path; group.directory = true }
+                else { group.path = nil; group.root = nil; group.directory = false }
+                return group
+            }
+        }
+        if !showingOutline { continueButton.isHidden = true; notice.isHidden = true }
+        empty.isHidden = showingOutline || !items.isEmpty
+        scroll.isHidden = !showingOutline && items.isEmpty
+        if !showingOutline, !values.show_root { items = items.flatMap { $0.section == "locations" ? $0.children : [$0] } }
+        outline.selectionHighlightStyle = .regular
+        outline.rowHeight = showingOutline ? 29 : values.compact ? 24 : 29
+        applyingExpansion = true
+        outline.reloadData()
+        if showingOutline { restoreHeadingExpansion() }
+        else {
+            for item in items where item.section != nil && !collapsedSections.contains(item.id) { outline.expandItem(item) }
+            for id in expanded { if let item = nodes[id] { outline.expandItem(item) } }
+            if let selectedID, let item = nodes[selectedID], outline.row(forItem: item) >= 0 { outline.selectRowIndexes(IndexSet(integer: outline.row(forItem: item)), byExtendingSelection: false) }
+        }
+        applyingExpansion = false
+        if !showingOutline { empty.isHidden = !items.isEmpty; scroll.isHidden = items.isEmpty }
+        scroll.contentView.scroll(to: scrollOrigin); scroll.reflectScrolledClipView(scroll.contentView)
+        if searching { empty.isHidden = true; scroll.isHidden = true; notice.isHidden = true; continueButton.isHidden = true }
+    }
+    private func load(_ item: NavigationItem) {
+        guard item.directory, !item.loaded, !item.loading, let root = item.root else { return }
+        item.loading = true
+        let relative = item.relative
+        tasks[item.id] = Task { [weak self, weak item] in
+            guard let self, let item else { return }
             do {
-                if searching {
-                    let result = try await Task.detached(priority: .userInitiated) { try service.search(queryId: expected, options: options) }.value
-                    guard !Task.isCancelled, expected == generation else { return }
-                    searchResults = true; hits = result.hits
-                    notice.stringValue = result.cancelled ? localized("workspace.cancelled") : localized(result.truncated ? "workspace.truncated" : "workspace.results", result.hits.count, result.skipped)
-                } else {
-                    let result = try await Task.detached(priority: .userInitiated) { try service.list(path: directory, hidden: hidden) }.value
-                    guard !Task.isCancelled, expected == generation else { return }
-                    searchResults = false; entries = result.entries.filter { text.isEmpty || $0.name.localizedCaseInsensitiveContains(text) }
-                    if ordering.indexOfSelectedItem == 1 { entries.sort { $0.directory == $1.directory ? $0.modified > $1.modified : $0.directory } }
-                    notice.stringValue = result.truncated ? localized("workspace.listTruncated") : localized("workspace.items", entries.count)
+                let service: WorkspaceService
+                if let existing = navigation.services[root] ?? auxiliaryServices[root] { service = existing }
+                else {
+                    service = try await navigation.backend.perform { try $0.openWorkspace(path: root) }
+                    guard !Task.isCancelled else { return }; auxiliaryServices[root] = service
                 }
-                running = false; breadcrumb.stringValue = directory.isEmpty ? localized("workspace.browse") : directory
-                breadcrumb.toolTip = directory.isEmpty ? rootPath : directory; table.reloadData()
-            } catch { guard expected == generation else { return }; running = false; fail(error) }
+                let listing = try await Task.detached(priority: .userInitiated) { try service.list(path: relative, hidden: false) }.value
+                guard !Task.isCancelled, !disposed else { return }
+                var entries = listing.entries
+                entries.sort { $0.directory == $1.directory ? $0.name.localizedStandardCompare($1.name) == .orderedAscending : $0.directory }
+                item.children = entries.map { entry in
+                    let child = fileNode((root as NSString).appendingPathComponent(entry.path), prefix: item.id, directory: entry.directory)
+                    child.root = root; child.relative = entry.path; child.modified = entry.modified; return child
+                }
+                item.loaded = true; item.loading = false; tasks.removeValue(forKey: item.id)
+                if listing.truncated { notice.stringValue = localized("workspace.listTruncated"); notice.isHidden = false }
+                rebuild()
+            } catch {
+                guard !Task.isCancelled else { return }; item.loading = false; item.loaded = true
+                notice.stringValue = userFacingError(error); notice.isHidden = false
+            }
         }
     }
-    func controlTextDidChange(_ obj: Notification) {
-        invalidate()
-        pending = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(200))
-            guard !Task.isCancelled else { return }; self?.refresh()
+    func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
+        if showingOutline { return (item as? NavigationHeading)?.children.count ?? headings.count }
+        guard let item = item as? NavigationItem else { return items.count }
+        if item.directory && !item.loaded { load(item) }
+        return item.children.count
+    }
+    func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
+        if showingOutline { return (item as? NavigationHeading)?.children[index] ?? headings[index] }
+        return (item as? NavigationItem)?.children[index] ?? items[index]
+    }
+    func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
+        if let heading = item as? NavigationHeading { return !heading.children.isEmpty }
+        guard let item = item as? NavigationItem else { return false }
+        return item.section != nil || item.directory
+    }
+    func outlineView(_ outlineView: NSOutlineView, isGroupItem item: Any) -> Bool { (item as? NavigationItem)?.section != nil }
+    func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool { (item as? NavigationItem)?.section == nil }
+    func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
+        if let item = item as? NavigationItem, item.section != nil {
+            let label = NSTextField(labelWithString: item.title.uppercased()); label.font = .systemFont(ofSize: 10, weight: .semibold); label.textColor = .labelColor.withAlphaComponent(0.65); return label
         }
-    }
-    func quickOpen() { onVisibility?(true); mode.selectItem(at: 1); window?.makeFirstResponder(query); refresh() }
-    func searchWorkspace() { onVisibility?(true); mode.selectItem(at: 2); window?.makeFirstResponder(query); refresh() }
-    func cancelSearch() { invalidate(); running = false; notice.stringValue = localized("workspace.cancelled") }
-    @objc private func toggleFilters() {
-        filtersVisible.toggle(); options.isHidden = !filtersVisible
-        view.setVisibilityPriority(filtersVisible ? .mustHold : .notVisible, for: options)
-        filters.state = filtersVisible ? .on : .off
-    }
-    private func changedRoot(_ identity: UUID) {
-        guard identity == rootIdentity else { return }
-        watchUpdate?.cancel()
-        watchUpdate = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(200))
-            guard !Task.isCancelled else { return }; self?.refresh()
+        let cell = outlineView.makeView(withIdentifier: WorkspaceRowView.reuseIdentifier, owner: self) as? WorkspaceRowView ?? WorkspaceRowView(frame: .zero)
+        if let heading = item as? NavigationHeading {
+            let headingCell = outlineView.makeView(withIdentifier: OutlineHeadingCell.reuseIdentifier, owner: self) as? OutlineHeadingCell ?? OutlineHeadingCell(frame: .zero)
+            headingCell.configure(title: heading.title.isEmpty ? localized("analysis.untitled") : heading.title, level: heading.level)
+            return headingCell
         }
-    }
-    func detach() {
-        invalidate(); watchUpdate?.cancel(); rootIdentity = UUID(); observer = nil
-        let previous = service; service = nil
-        if let previous { Task.detached { previous.unwatch() } }
-    }
-    func numberOfRows(in tableView: NSTableView) -> Int { searchResults ? hits.count : entries.count }
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        let cell = tableView.makeView(withIdentifier: WorkspaceRowView.reuseIdentifier, owner: self) as? WorkspaceRowView ?? WorkspaceRowView(frame: .zero)
-        if searchResults { let hit = hits[row]; cell.configure(name: hit.path, directory: false, excerpt: "\(hit.line)  \(hit.preview)") }
-        else { let entry = entries[row]; cell.configure(name: entry.name, directory: entry.directory) }
+        else if let item = item as? NavigationItem {
+            let name = navigation.values.show_extensions || item.directory ? item.title : (item.title as NSString).deletingPathExtension
+            cell.configure(name: name, directory: item.directory); cell.toolTip = item.path
+        }
         return cell
     }
-    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat { searchResults ? 52 : 34 }
-    private var selectedPath: String? {
-        let row = table.clickedRow >= 0 ? table.clickedRow : table.selectedRow
-        guard row >= 0, row < numberOfRows(in: table) else { return nil }
-        return searchResults ? hits[row].path : entries[row].path
+    private func restoreHeadingExpansion() {
+        func expand(_ nodes: [NavigationHeading]) {
+            for heading in nodes where !collapsedHeadings.contains(heading.id) { outline.expandItem(heading); expand(heading.children) }
+        }
+        expand(headings)
     }
-    @objc private func openSelection() {
-        guard let service, let path = selectedPath else { return }
-        let row = table.clickedRow >= 0 ? table.clickedRow : table.selectedRow
-        if !searchResults && entries[row].directory { directory = path; query.stringValue = ""; mode.selectItem(at: 0); refresh(); return }
-        let line = searchResults ? Int(hits[row].line) : nil
-        Task {
-            do {
-                let fullPath = try await Task.detached { try service.resolve(path: path) }.value
-                guard service === self.service else { return }; onOpen?(fullPath, line)
-            } catch { if service === self.service { fail(error) } }
+    func outlineViewItemDidExpand(_ notification: Notification) {
+        if !applyingExpansion, let heading = notification.userInfo?["NSObject"] as? NavigationHeading { collapsedHeadings.remove(heading.id); return }
+        guard !applyingExpansion, let item = notification.userInfo?["NSObject"] as? NavigationItem else { return }
+        if item.section != nil { collapsedSections.remove(item.id) } else { expanded.insert(item.id); load(item) }; saveWindowState()
+    }
+    func outlineViewItemDidCollapse(_ notification: Notification) {
+        if !applyingExpansion, let heading = notification.userInfo?["NSObject"] as? NavigationHeading { collapsedHeadings.insert(heading.id); return }
+        guard !applyingExpansion, let item = notification.userInfo?["NSObject"] as? NavigationItem else { return }
+        if item.section != nil { collapsedSections.insert(item.id) } else { expanded.remove(item.id) }; saveWindowState()
+    }
+    func outlineViewSelectionDidChange(_ notification: Notification) {
+        if let item = outline.item(atRow: outline.selectedRow) as? NavigationItem { selectedID = item.id }
+    }
+    @objc private func clicked() { if showingOutline { openSelection() } }
+    @objc private func doubleClicked() { if !showingOutline { openSelection() } }
+    private func openSelection() {
+        let item = outline.item(atRow: outline.selectedRow)
+        if let heading = item as? NavigationHeading { browsingOutline = false; onHeading?(heading.from, headingToken) }
+        else if let item = item as? NavigationItem, !item.directory, let path = item.path { onOpen?(path, nil) }
+    }
+    func quickOpen() { onQuickOpen?() }
+    func searchWorkspace() { onContentSearch?() }
+    func showContentSearch() {
+        if !searching { browseOrigin = scroll.contentView.bounds.origin }
+        searching = true; pages.isHidden = true; empty.isHidden = true; scroll.isHidden = true; notice.isHidden = true; continueButton.isHidden = true
+        contentSearch.view.isHidden = false
+        contentSearch.show(root: currentRoot, window: window)
+    }
+    private func hideContentSearch() {
+        searching = false; contentSearch.view.isHidden = true; pages.isHidden = false; rebuild()
+        scroll.contentView.scroll(to: browseOrigin); scroll.reflectScrolledClipView(scroll.contentView)
+    }
+    func detach() {
+        saveWindowState(); contentSearch.cancel()
+        if let scrollObserver { NotificationCenter.default.removeObserver(scrollObserver); self.scrollObserver = nil }
+        disposed = true; for task in tasks.values { task.cancel() }; tasks.removeAll()
+        if let observer { navigation.removeObserver(observer) }; observer = nil
+    }
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        contextItem = outline.item(atRow: outline.clickedRow >= 0 ? outline.clickedRow : outline.selectedRow) as? NavigationItem
+        func action(_ key: String, _ selector: Selector) { let entry = menu.addItem(withTitle: localized(key), action: selector, keyEquivalent: ""); entry.target = self }
+        guard !showingOutline, let item = contextItem, let path = item.path else {
+            action("navigation.addFolder", #selector(chooseFolder)); action("navigation.customize", #selector(showCustomization)); return
+        }
+        if item.relative.isEmpty && navigation.values.locations.contains(path) { action("navigation.removeLocation", #selector(removeLocation)); menu.addItem(.separator()) }
+        action(navigation.values.favorites.contains(path) ? "navigation.unfavorite" : "navigation.favorite", #selector(toggleFavorite))
+        action("workspace.reveal", #selector(revealFile)); action("navigation.copyPath", #selector(copyPath))
+        if item.root != nil && !item.relative.isEmpty {
+            menu.addItem(.separator())
+            action("navigation.rename", #selector(renameFile)); action("workspace.move", #selector(moveFile)); action("navigation.duplicate", #selector(duplicateFile)); action("workspace.trash", #selector(trashFile))
+        }
+        if item.root != nil {
+            menu.addItem(.separator()); action("workspace.newFile", #selector(newFile)); action("workspace.newFolder", #selector(newFolder))
         }
     }
-    @objc private func up() { directory = (directory as NSString).deletingLastPathComponent; query.stringValue = ""; refresh() }
-    private func askPath(_ title: String, initial: String) async -> String? {
+    @objc private func removeLocation() {
+        guard let path = contextItem?.path else { return }
+        Task { await navigation.change { $0.locations.removeAll { $0 == path } } }
+    }
+    @objc private func toggleFavorite() {
+        guard let path = contextItem?.path else { return }
+        Task { await navigation.change { if $0.favorites.contains(path) { $0.favorites.removeAll { $0 == path } } else { $0.favorites.append(path) } } }
+    }
+    @objc private func copyPath() {
+        guard let path = contextItem?.path else { return }; NSPasteboard.general.clearContents()
+        if !NSPasteboard.general.setString(path, forType: .string) { onError?(localized("error.clipboard")) }
+    }
+    @objc private func revealFile() { if let path = contextItem?.path { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)]) } }
+    private func askName(_ key: String, initial: String) async -> String? {
         guard let window else { return nil }
-        let alert = NSAlert(); alert.messageText = title; alert.informativeText = localized("workspace.relativePath")
-        let input = NSTextField(string: initial); input.frame.size = NSSize(width: 300, height: 24); alert.accessoryView = input
-        alert.addButton(withTitle: localized("button.ok")); alert.addButton(withTitle: localized("button.cancel"))
-        return await alert.beginSheetModal(for: window) == .alertFirstButtonReturn ? input.stringValue : nil
+        let alert = NSAlert(); alert.messageText = localized(key); alert.informativeText = localized("navigation.nameDetail")
+        let input = NSTextField(string: initial); input.frame.size = NSSize(width: 300, height: 24); alert.accessoryView = input; alert.window.initialFirstResponder = input
+        alert.addButton(withTitle: localized("button.ok")); alert.addButton(withTitle: localized("button.cancel")); window.makeFirstResponder(input)
+        guard await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return nil }
+        return input.stringValue
     }
-    private func mutate(_ operation: WorkspaceMutation, key: String) {
-        guard let service, !mutating else { return }
-        let source = selectedPath ?? ""
-        let initial: String
-        switch operation {
-        case .newFile, .newDirectory: initial = directory.isEmpty ? "" : directory + "/"
-        case .copy, .move: initial = source
-        }
+    private func mutate(_ operation: WorkspaceMutation, key: String, initial: String? = nil) {
+        guard let item = contextItem, let root = item.root else { return }
+        let source = item.relative, directory = item.directory ? item.relative : (item.relative as NSString).deletingLastPathComponent
         Task {
-            guard let target = await askPath(localized(key), initial: initial) else { return }
-            guard service === self.service else { return }
-            mutating = true; defer { mutating = false }
-            do { try await Task.detached { try service.mutate(operation: operation, source: source, target: target) }.value; refresh() }
-            catch { fail(error) }
+            guard let name = await askName(key, initial: initial ?? item.title), !name.isEmpty else { return }
+            let destination = (directory as NSString).appendingPathComponent(name)
+            let target = operation == .move || operation == .copy ? ((source as NSString).deletingLastPathComponent as NSString).appendingPathComponent(name) : destination
+            do {
+                let service = try await navigation.backend.perform { try $0.openWorkspace(path: root) }
+                try await Task.detached { try service.mutate(operation: operation, source: source, target: target) }.value
+                if operation == .move, let old = item.path {
+                    let new = (root as NSString).appendingPathComponent(target)
+                    await navigation.change { config in config.favorites = config.favorites.map { $0 == old ? new : $0 } }
+                }
+                await navigation.refresh()
+            } catch { reportFileFailure(error, moving: operation == .move) }
         }
     }
-    @objc private func newFile() { mutate(.newFile, key: "workspace.newFile") }
-    @objc private func newFolder() { mutate(.newDirectory, key: "workspace.newFolder") }
-    @objc private func copyFile() { mutate(.copy, key: "workspace.copy") }
-    @objc private func moveFile() { mutate(.move, key: "workspace.move") }
+    @objc private func renameFile() { mutate(.move, key: "navigation.rename") }
+    @objc private func moveFile() {
+        guard let item = contextItem, let path = item.path, let root = item.root, let window else { return }
+        Task {
+            let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
+            panel.directoryURL = URL(fileURLWithPath: root); panel.prompt = localized("navigation.moveHere")
+            guard await panel.beginSheetModal(for: window) == .OK, let destination = panel.url else { return }
+            guard destination.path == root || destination.path.hasPrefix(root + "/") else { onError?(localized("navigation.moveInside")); return }
+            let relative = destination.path == root ? item.title : String(destination.path.dropFirst(root.count + 1)) + "/" + item.title
+            transfer(path, root: root, destination: relative, copy: false)
+        }
+    }
+    @objc private func duplicateFile() {
+        guard let name = contextItem?.title else { return }
+        let ext = (name as NSString).pathExtension, stem = (name as NSString).deletingPathExtension
+        mutate(.copy, key: "navigation.duplicate", initial: stem + " " + localized("navigation.copySuffix") + (ext.isEmpty ? "" : "." + ext))
+    }
+    @objc private func newFile() { mutate(.newFile, key: "workspace.newFile", initial: localized("document.defaultFilename")) }
+    @objc private func newFolder() { mutate(.newDirectory, key: "workspace.newFolder", initial: localized("navigation.newFolderName")) }
     @objc private func trashFile() {
-        guard let service, let path = selectedPath, let window, !mutating else { return }
+        guard let item = contextItem, let root = item.root, let window else { return }
         Task {
-            let alert = NSAlert(); alert.messageText = localized("workspace.trashTitle", path); alert.informativeText = localized("workspace.trashDetail")
+            let alert = NSAlert(); alert.messageText = localized("workspace.trashTitle", item.title); alert.informativeText = localized("workspace.trashDetail")
             alert.addButton(withTitle: localized("button.cancel")); alert.addButton(withTitle: localized("workspace.trash"))
-            guard await alert.beginSheetModal(for: window) == .alertSecondButtonReturn, service === self.service else { return }
-            mutating = true; defer { mutating = false }
-            do { try await Task.detached { try service.trash(path: path) }.value; refresh() } catch { fail(error) }
+            guard await alert.beginSheetModal(for: window) == .alertSecondButtonReturn else { return }
+            do {
+                let service = try await navigation.backend.perform { try $0.openWorkspace(path: root) }
+                let relative = item.relative
+                try await Task.detached { try service.trash(path: relative) }.value
+                await navigation.refresh()
+            } catch { reportFileFailure(error, moving: true) }
         }
     }
-    @objc private func revealFile() {
-        guard let service, let path = selectedPath else { return }
+    private func reportFileFailure(_ error: Error, moving: Bool) {
+        let detail = userFacingError(error)
+        onError?(moving && (error as? BackendFailure)?.code == "busy" ? localized("navigation.closeBeforeMove") : detail)
+    }
+    private func transfer(_ source: String, root: String, destination: String, copy: Bool) {
         Task {
             do {
-                let fullPath = try await Task.detached { try service.resolve(path: path) }.value
-                guard service === self.service else { return }
-                NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: fullPath)])
-            } catch { if service === self.service { fail(error) } }
+                let service = try await navigation.backend.perform { try $0.openWorkspace(path: root) }
+                try await Task.detached { try service.transfer(source: source, target: destination, copy: copy) }.value
+                if !copy {
+                    let target = (root as NSString).appendingPathComponent(destination)
+                    await navigation.change { config in
+                        config.favorites = config.favorites.map { $0 == source ? target : $0.hasPrefix(source + "/") ? target + $0.dropFirst(source.count) : $0 }
+                    }
+                }
+                await navigation.refresh()
+                notice.stringValue = localized(copy ? "navigation.copied" : "navigation.moved"); notice.isHidden = false
+            } catch { reportFileFailure(error, moving: !copy) }
         }
     }
-    @objc private func properties() {
-        guard let path = selectedPath, let window else { return }
-        let alert = NSAlert(); alert.messageText = path
-        if let entry = entries.first(where: { $0.path == path }) { alert.informativeText = localized("workspace.fileDetails", entry.bytes, Date(timeIntervalSince1970: TimeInterval(entry.modified)).description) }
-        alert.addButton(withTitle: localized("button.ok")); Task { _ = await alert.beginSheetModal(for: window) }
+    func outlineView(_ outlineView: NSOutlineView, pasteboardWriterForItem item: Any) -> NSPasteboardWriting? {
+        guard !showingOutline, let item = item as? NavigationItem, let path = item.path else { return nil }
+        let board = NSPasteboardItem(); board.setString(item.id, forType: dragType); board.setString(URL(fileURLWithPath: path).absoluteString, forType: .fileURL); return board
     }
-    func validateMenuItem(_ item: NSMenuItem) -> Bool { selectedPath != nil && !mutating && !running }
-    private func fail(_ error: Error) { notice.stringValue = error.localizedDescription; onError?(error.localizedDescription) }
+    func outlineView(_ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo, proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
+        guard !showingOutline else { return [] }
+        if let id = info.draggingPasteboard.string(forType: dragType), let source = nodes[id], let target = item as? NavigationItem {
+            if target.section == "favorites" && id.hasPrefix("favorite:") || target.section == "locations" && id.hasPrefix("location:") { return .move }
+            if target.directory, source.path != target.path { return NSApp.currentEvent?.modifierFlags.contains(.option) == true ? .copy : .move }
+        }
+        if info.draggingPasteboard.canReadObject(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) { return .copy }
+        return []
+    }
+    func outlineView(_ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo, item: Any?, childIndex index: Int) -> Bool {
+        if let id = info.draggingPasteboard.string(forType: dragType), let source = nodes[id], let target = item as? NavigationItem {
+            if let section = target.section, ["favorites", "locations"].contains(section), let path = source.path {
+                Task { await navigation.change { values in
+                    var list = section == "favorites" ? values.favorites : values.locations
+                    guard let old = list.firstIndex(of: path) else { return }; list.remove(at: old)
+                    list.insert(path, at: min(list.count, max(0, index - (old < index ? 1 : 0))))
+                    if section == "favorites" { values.favorites = list } else { values.locations = list }
+                } }; return true
+            }
+            if target.directory, let root = target.root, let path = source.path {
+                let destination = (target.relative as NSString).appendingPathComponent(source.title)
+                transfer(path, root: root, destination: destination, copy: NSApp.currentEvent?.modifierFlags.contains(.option) == true)
+                return true
+            }
+            return false
+        }
+        guard let urls = info.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] else { return false }
+        Task {
+            for url in urls {
+                let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+                if let target = item as? NavigationItem, target.directory, let root = target.root {
+                    transfer(url.path, root: root, destination: (target.relative as NSString).appendingPathComponent(url.lastPathComponent), copy: true)
+                } else if isDirectory { await navigation.addLocation(url.path) } else { onOpen?(url.path, nil) }
+            }
+        }; return true
+    }
 }

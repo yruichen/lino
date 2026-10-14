@@ -12,3 +12,5 @@ pub use exports::{BridgeError, DocumentService};
 uniffi::setup_scaffolding!();
 
 mod workspace;
+
+mod navigation;

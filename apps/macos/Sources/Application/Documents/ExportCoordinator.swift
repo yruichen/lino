@@ -28,7 +28,9 @@ final class ExportCoordinator {
         let operation = generation, view = bridge.generation
         var target: String?
         var temporary: URL?
+        var scopedTarget: URL?
         defer {
+            scopedTarget?.stopAccessingSecurityScopedResource()
             if let target { Task { try? await bridge.backend.perform { try $0.releaseSaveTarget(targetJson: target) } } }
             _ = job?.cancel(); job = nil; surface?.cancel(); surface = nil; busy = false; cancellable = false
             if let temporary { try? FileManager.default.removeItem(at: temporary) }
@@ -44,6 +46,7 @@ final class ExportCoordinator {
                 let panel = NSSavePanel(); panel.allowedContentTypes = [format == .html ? .html : .pdf]
                 panel.nameFieldStringValue = ((label ?? localized("document.untitled")) as NSString).deletingPathExtension + (format == .html ? ".html" : ".pdf")
                 guard await panel.beginSheetModal(for: window) == .OK, let url = panel.url else { _ = job.cancel(); onNotice?("export.cancelled"); return }
+                if url.startAccessingSecurityScopedResource() { scopedTarget = url }
                 try requireCurrent(operation, view)
                 target = try await bridge.backend.perform { try $0.saveTarget(path: url.path) }
             }
@@ -54,7 +57,14 @@ final class ExportCoordinator {
             var resources: [String: String] = [:], bytes = 0
             for image in images {
                 try requireCurrent(operation, view)
-                let content = try await bridge.backend.perform { _ in try job.readImage(source: image) }
+                let content: ImageContent
+                do { content = try await bridge.backend.perform { _ in try job.readImage(source: image) } }
+                catch {
+                    if let failure = error as? BackendFailure, ["denied", "not_found", "unsupported_operation"].contains(failure.code) {
+                        throw NSError(domain: "Lino.Export", code: 1, userInfo: [NSLocalizedDescriptionKey: localized("export.imageUnavailable", image)])
+                    }
+                    throw error
+                }
                 bytes += content.bytes.count
                 guard bytes <= 16 * 1024 * 1024 else { throw NSError(domain: "Lino", code: 1, userInfo: [NSLocalizedDescriptionKey: localized("export.imageLimit")]) }
                 let data = Data(content.bytes); try ImageData.validate(data, mime: content.mime)
@@ -96,7 +106,7 @@ final class ExportCoordinator {
         } catch is CancellationError { onNotice?("export.cancelled") }
         catch {
             if operation == generation && view == bridge.generation {
-                onError?((error as? BackendFailure)?.code == "not_saved" ? localized("export.saveSource") : error.localizedDescription)
+                onError?((error as? BackendFailure)?.code == "not_saved" ? localized("export.saveSource") : userFacingError(error))
             }
         }
         _ = try? await bridge.call("endExportCapture")

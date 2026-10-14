@@ -83,6 +83,9 @@ impl WorkspaceService {
     pub fn unwatch(&self) {
         self.workspace.unwatch();
     }
+    pub fn acknowledge_changes(&self) {
+        self.workspace.acknowledge_changes();
+    }
     pub fn root(&self) -> String {
         self.workspace.root()
     }
@@ -157,6 +160,11 @@ impl WorkspaceService {
         };
         self.workspace
             .mutate(&self.documents, operation, &source, &target)
+            .map_err(wire_error)
+    }
+    pub fn transfer(&self, source: String, target: String, copy: bool) -> Result<(), BridgeError> {
+        self.workspace
+            .transfer(&self.documents, Path::new(&source), &target, copy)
             .map_err(wire_error)
     }
     pub fn trash(&self, path: String) -> Result<(), BridgeError> {

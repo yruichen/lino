@@ -135,7 +135,7 @@ test('save failure retains dirty state and allows a new save target', async () =
     const apply = await h.request(); h.reply(apply, applied('1','1'));
     const prepare = await h.request(); h.reply(prepare,{kind:'prepared',ticket:{ticket_id:'1',revision:'1'}});
     const commit = await h.request(); h.reply(commit,{kind:'error',error:{code:'changed_externally',message:'conflict',retryable:false}});
-    await assert.rejects(save,/conflict/); assert(h.session.dirty);
+    await assert.rejects(save,/外部修改.*另存/); assert(h.session.dirty);
     const retry = h.session.save({file_ref:'10',expected_version:null,label:'b.md'});
     const newPrepare = await h.request();
     assert.equal(newPrepare.operation.kind,'prepare_save');
@@ -149,7 +149,7 @@ test('composition blocks submission and close intent until the input is committe
   const h = harness();
   try {
     h.compose(true); assert(h.session.dirty);
-    await assert.rejects(h.session.closeIntent(true),/输入法/);
+    await assert.rejects(h.session.closeIntent(true),/确认正在输入的文字/);
     h.compose(false); h.setText('中文'); const close = h.session.closeIntent(false);
     const apply = await h.request(); h.reply(apply,applied('1','1'));
     assert.deepEqual(await close,{session_id:'1',epoch:'1',revision:'1',discard:false});
@@ -230,7 +230,7 @@ test('autosave executes the same flush/prepare/commit chain and stops on an exte
     h.reply(prepare,{kind:'prepared',ticket:{ticket_id:'1',revision:'1'}});
     const commit = await h.request(); assert.equal(commit.operation.kind,'commit_save');
     h.reply(commit,{kind:'error',error:{code:'changed_externally',message:'external conflict',retryable:false}}); await settle();
-    assert(h.session.dirty); assert.match(h.session.persistence.status.autosaveError!,/external conflict/);
+    assert(h.session.dirty); assert.match(h.session.persistence.status.autosaveError!,/外部修改.*另存/);
     t.mock.timers.tick(10000); await settle(); assert.equal(h.queued.length,0,'automatic retries must stop after conflict');
   } finally { h.dispose(); }
 });

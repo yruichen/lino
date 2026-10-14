@@ -1,3 +1,4 @@
+import { TransportError } from '../client/documents.ts';
 import type { EditorHostEvent } from '../client/editor-host.ts';
 type HostWindow = Window & {
   __linoViewGeneration?: number;
@@ -8,7 +9,7 @@ type HostWindow = Window & {
 export function notifyHost(event: EditorHostEvent): void {
   const host = window as HostWindow;
   const handler = host.webkit?.messageHandlers?.editor;
-  if (!handler && event.kind === "rpc") throw new Error("请在原生应用中打开编辑器。");
+  if (!handler && event.kind === "rpc") throw new TransportError("Open the editor in the Lino application.");
   handler?.postMessage({ ...event, viewGeneration: host.__linoViewGeneration });
 }
 export function hostGeneration(): number | undefined { return (window as HostWindow).__linoViewGeneration; }

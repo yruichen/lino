@@ -22,7 +22,7 @@ final class ImageResources: NSObject, WKURLSchemeHandler {
             guard let self else { return }
             defer { activeRequests -= 1; tasks.removeValue(forKey: key) }
             do {
-                let fileRef = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first(where: { $0.name == "file" })?.value
+                let fileRef = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first(where: { $0.name == "file" })?.value.flatMap { $0.isEmpty ? nil : $0 }
                 let image = try await backend.perform { try $0.readImage(sessionId: id, fileRef: fileRef, source: source) }
                 guard !Task.isCancelled, tasks[key] != nil else { return }
                 guard session() == id else { throw resourceError(localized("media.oldResource")) }

@@ -91,3 +91,130 @@ fn settings_io_and_future_schema_failures_preserve_previous_file_and_effective_v
     assert!(runtime.update_preferences(&first.revision, values).is_err());
     assert!(!runtime.preferences().unwrap().values.auto_save);
 }
+
+#[test]
+fn theme_import_roundtrips_and_rejects_bad_data_without_touching_the_saved_preferences() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    let runtime = DocumentRuntime::default();
+    let first = runtime.configure_preferences(&path, None, None).unwrap();
+    let catalog: Vec<lino_protocol::ThemeDefinition> =
+        serde_json::from_str(include_str!("../../../assets/themes/classic.json")).unwrap();
+    let mut custom = catalog[0].clone();
+    custom.id = "custom-writing".into();
+    custom.name = "My Writing".into();
+    // DIY contrast choices are not blocked; only the data format is validated.
+    custom
+        .dark
+        .colors
+        .insert("text".into(), custom.dark.colors["bg"].clone());
+    let mut values = first.values;
+    values.custom_themes.push(custom);
+    values.theme_family = "custom-writing".into();
+    values.body_font = "Georgia".into();
+    values.font_size = 23;
+    values.use_theme_font_size = false;
+    let saved = runtime.update_preferences(&first.revision, values).unwrap();
+    let restored = DocumentRuntime::default()
+        .configure_preferences(&path, None, None)
+        .unwrap();
+    assert_eq!(
+        restored.values.custom_themes[0].dark.colors,
+        saved.values.custom_themes[0].dark.colors
+    );
+    assert_eq!(restored.values.theme_family, "custom-writing");
+    assert_eq!(restored.values.body_font, "Georgia");
+    assert_eq!(restored.values.font_size, 23);
+    assert!(!restored.values.use_theme_font_size);
+    let bytes = fs::read(&path).unwrap();
+    let mut invalid = saved.values;
+    invalid.custom_themes[0]
+        .light
+        .colors
+        .insert("bg".into(), "url(https://example.invalid)".into());
+    assert!(runtime
+        .update_preferences(&saved.revision, invalid)
+        .is_err());
+    assert_eq!(fs::read(&path).unwrap(), bytes);
+}
+
+#[test]
+fn appearance_and_image_insertion_settings_roundtrip_and_older_files_get_defaults() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("settings.json");
+    let runtime = DocumentRuntime::default();
+    let first = runtime.configure_preferences(&path, None, None).unwrap();
+    let mut values = first.values;
+    values.background_image = "platform-bookmark".into();
+    values.background_opacity = 15;
+    values.surface_opacity = 45;
+    values.glass_style = "clear".into();
+    values.image_insertion = "copy".into();
+    let saved = runtime.update_preferences(&first.revision, values).unwrap();
+    let restored = DocumentRuntime::default()
+        .configure_preferences(&path, None, None)
+        .unwrap();
+    assert_eq!(
+        restored.values.background_image,
+        saved.values.background_image
+    );
+    assert_eq!(restored.values.background_opacity, 15);
+    assert_eq!(restored.values.surface_opacity, 45);
+    assert_eq!(restored.values.glass_style, "clear");
+    assert_eq!(restored.values.image_insertion, "copy");
+    let mut legacy: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    for key in [
+        "background_image",
+        "background_opacity",
+        "surface_opacity",
+        "glass_style",
+        "image_insertion",
+    ] {
+        legacy["values"].as_object_mut().unwrap().remove(key);
+    }
+    fs::write(&path, serde_json::to_vec(&legacy).unwrap()).unwrap();
+    let old = DocumentRuntime::default()
+        .configure_preferences(&path, None, None)
+        .unwrap();
+    assert_eq!(old.values.background_image, "");
+    assert_eq!(old.values.background_opacity, 20);
+    assert_eq!(old.values.surface_opacity, 100);
+    assert_eq!(old.values.glass_style, "solid");
+    assert_eq!(old.values.image_insertion, "reference");
+    let mut invalid = saved.values;
+    invalid.background_opacity = 101;
+    assert!(runtime
+        .update_preferences(&saved.revision, invalid)
+        .is_err());
+}
+
+#[test]
+fn older_preferences_keep_the_users_typography_when_the_theme_fields_are_missing() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("settings.json");
+    let initial = DocumentRuntime::default()
+        .configure_preferences(&path, None, None)
+        .unwrap();
+    let mut old = serde_json::to_value(initial).unwrap();
+    let values = old["values"].as_object_mut().unwrap();
+    for key in [
+        "theme_family",
+        "custom_themes",
+        "body_font",
+        "use_theme_font_size",
+        "use_theme_line_height",
+    ] {
+        values.remove(key);
+    }
+    values.insert("font_size".into(), 21.into());
+    values.insert("line_height".into(), 195.into());
+    fs::write(&path, serde_json::to_vec(&old).unwrap()).unwrap();
+    let loaded = DocumentRuntime::default()
+        .configure_preferences(&path, None, None)
+        .unwrap();
+    assert_eq!(loaded.values.theme_family, "paper");
+    assert_eq!(loaded.values.font_size, 21);
+    assert_eq!(loaded.values.line_height, 195);
+    assert!(!loaded.values.use_theme_font_size);
+    assert!(!loaded.values.use_theme_line_height);
+}
