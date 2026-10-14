@@ -1,6 +1,6 @@
 {
   "name": "lino",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "A file-first editor with a native shell and shared Rust services, starting with Markdown.",
   "license": "MIT",

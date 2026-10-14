@@ -8,11 +8,11 @@
 
 macOS 原生外壳、Rust 共享核心的开源 Markdown 编辑器。写一篇笔记，讲清一个想法，让代码、公式和图表与文字放在同一份文档里。
 
-[![Version](https://img.shields.io/badge/v0.0.2-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.2)
+[![Version](https://img.shields.io/badge/v0.0.3-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.3)
 [![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**下载 macOS 版本**](https://github.com/yruichen/lino/releases/tag/v0.0.2) · [从源码构建](#从源码构建) · [English](README.md)
+[**下载 macOS 版本**](https://github.com/yruichen/lino/releases/tag/v0.0.3) · [从源码构建](#从源码构建) · [English](README.md)
 
 </div>
 
@@ -31,7 +31,9 @@ macOS 原生外壳、Rust 共享核心的开源 Markdown 编辑器。写一篇�
 
 可以打开[英文展示样稿](examples/showcase/Lino-Showcase.md)，并保留旁边的图片目录，体验原创文案、Rust 示例、表格、公式与 Mermaid 图表。
 
-## v0.0.2 可以做什么
+## v0.0.3 可以做什么
+
+本版新增原生文件／大纲侧栏、**⌘P** 快速打开、分类设置、十二种主题外观与自定义主题；插入图片默认引用原文件。
 
 | 写下文字 | 表达想法 | 留住文件 |
 | --- | --- | --- |
@@ -42,15 +44,15 @@ macOS 原生外壳、Rust 共享核心的开源 Markdown 编辑器。写一篇�
 
 界面支持**英语和简体中文**，macOS PDF 与打印也已提供测试入口。
 
-**v0.0.2 是基础可用的 Markdown 编辑器，仍处于 Beta。** 更广泛的 Markdown 兼容、无障碍、原生交互与打印排版需要继续验证。响应速度和较小的运行时是设计目标，目前尚未发布性能对比；Windows、Linux 与更多文档格式留待后续实现。
+**v0.0.3 是基础可用的 Markdown 编辑器，仍处于 Beta。** 更广泛的 Markdown 兼容、无障碍、原生交互与打印排版需要继续验证。响应速度和较小的运行时是设计目标，目前尚未发布性能对比；Windows、Linux 与更多文档格式留待后续实现。
 
 ## 获取 Lino
 
-1. [下载 Lino v0.0.2](https://github.com/yruichen/lino/releases/download/v0.0.2/Lino-v0.0.2-macos-arm64.zip)，需要 **Apple Silicon 芯片与 macOS 14 或更新版本**。
+1. [下载 Lino v0.0.3](https://github.com/yruichen/lino/releases/download/v0.0.3/Lino-v0.0.3-macos-arm64.zip)，需要 **Apple Silicon 芯片与 macOS 14 或更新版本**。
 2. 解压，将 **Lino.app** 移到**应用程序**目录。
 3. 打开一个 Markdown 文件，开始写作。
 
-校验值与发行说明见 [v0.0.2 发布页](https://github.com/yruichen/lino/releases/tag/v0.0.2)。Lino 原名 Open Typora，已有恢复数据仍保留原来的存放位置。
+校验值与发行说明见 [v0.0.3 发布页](https://github.com/yruichen/lino/releases/tag/v0.0.3)。Lino 原名 Open Typora，已有恢复数据仍保留原来的存放位置。
 
 当前 Beta 采用临时签名，**尚未经过 Apple 公证**；macOS 可能要求明确的安全许可才能打开。
 
