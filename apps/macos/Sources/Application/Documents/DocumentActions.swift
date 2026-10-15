@@ -13,8 +13,8 @@ final class DocumentActions: DocumentCloseParticipant {
     private(set) var sessionId: String?
     private var closeIntent: String?
     private var abandonOnClose = false
-    private(set) var ready = false { didSet { onAvailabilityChanged?() } }
-    private(set) var busy = false { didSet { onAvailabilityChanged?() } }
+    private(set) var ready = false { didSet { if oldValue != ready { onAvailabilityChanged?() } } }
+    private(set) var busy = false { didSet { if oldValue != busy { onAvailabilityChanged?() } } }
     private(set) var closed = false
     private(set) var autosave: Bool
     var onAvailabilityChanged: (() -> Void)?

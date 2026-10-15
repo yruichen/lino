@@ -12,6 +12,8 @@ final class ExternalChanges {
     private var binding: (String, String)?
     private var generation = 0
     private var checking = false
+    private var saving = false
+    private var inspectionSequence = 0
     private var invalidated = false
     var onChange: ((String) -> Void)?
     var onError: ((String) -> Void)?
@@ -33,19 +35,24 @@ final class ExternalChanges {
             } catch { if self.generation == generation { onError?(userFacingError(error)) } }
         }
     }
+    func setSaving(_ value: Bool) {
+        guard value != saving else { return }
+        saving = value; inspectionSequence += 1
+        if !value { check() }
+    }
     func check() {
         guard binding != nil else { return }
         invalidated = true
-        guard !checking else { return }
+        guard !checking, !saving else { return }
         checking = true
         Task { [weak self] in
             guard let self else { return }
-            defer { checking = false; if invalidated { check() } }
-            while invalidated, let (session, file) = binding {
-                invalidated = false; let generation = self.generation
+            defer { checking = false; if invalidated && !saving { check() } }
+            while invalidated, !saving, let (session, file) = binding {
+                invalidated = false; let generation = self.generation, sequence = inspectionSequence
                 do {
                     let state = try await bridge.backend.perform { try $0.externalChange(sessionId: session, fileRef: file) }
-                    if self.generation == generation { onChange?(state) }
+                    if self.generation == generation, inspectionSequence == sequence, !saving { onChange?(state) }
                 } catch { if self.generation == generation { onError?(userFacingError(error)) } }
             }
         }

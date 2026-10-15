@@ -211,3 +211,40 @@ fn unsupported_files_never_create_or_replace_a_document() {
     );
     assert_eq!(fs::read_to_string(&good).unwrap(), "original");
 }
+
+#[test]
+fn quick_open_includes_native_media_without_admitting_binary_editing_sessions() {
+    let dir = tempfile::tempdir().unwrap();
+    for name in ["Figure.PNG", "Paper.pdf", "Notes.md", "Program.exe"] {
+        fs::write(dir.path().join(name), b"binary fixture").unwrap();
+    }
+    let runtime = DocumentRuntime::default();
+    let initial = runtime
+        .configure_navigation(&dir.path().join("navigation.json"), vec![])
+        .unwrap();
+    runtime
+        .update_navigation(
+            initial.revision,
+            NavigationPreferences {
+                locations: vec![dir.path().to_string_lossy().into_owned()],
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    for query in ["Figure", "Paper", "Notes"] {
+        let found = runtime
+            .quick_files(query, Some(dir.path()), None, &AtomicBool::new(false))
+            .unwrap();
+        assert_eq!(found.files.len(), 1);
+    }
+    assert!(runtime
+        .quick_files("Program", Some(dir.path()), None, &AtomicBool::new(false))
+        .unwrap()
+        .files
+        .is_empty());
+    for name in ["Figure.PNG", "Paper.pdf"] {
+        assert!(runtime
+            .validate_document_file(&dir.path().join(name))
+            .is_err());
+    }
+}

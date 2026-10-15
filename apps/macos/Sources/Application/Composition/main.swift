@@ -84,13 +84,14 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         if CommandLine.arguments.contains("--verify-navigation"), let controller {
             verificationStage = "navigation"
             let focused = CommandLine.arguments.contains("--focused")
-            if focused { controller.showWindow(nil); NSApp.activate(ignoringOtherApps: true) }
+            if focused && !CommandLine.arguments.contains("--headless") { controller.showWindow(nil); NSApp.activate(ignoringOtherApps: true) }
             Task {
                 var checks: [String] = [], failures: [String] = []
-                let requested = CommandLine.arguments.first { $0.hasPrefix("--stage=") }.map { String($0.dropFirst(8)) }
+                let requested = CommandLine.arguments.first { $0.hasPrefix("--stage=") || $0.hasPrefix("--stages=") }.map { Set($0.split(separator: "=", maxSplits: 1)[1].split(separator: ",").map(String.init)) }
                 @MainActor func run(_ stage: String, _ action: @MainActor () async throws -> [String]) async {
-                    guard requested == nil || requested == stage else { return }
+                    guard requested == nil || requested?.contains(stage) == true else { return }
                     self.verificationStage = stage
+                    if CommandLine.arguments.contains("--headless") { FileHandle.standardError.write(Data(("stage: " + stage + "\n").utf8)) }
                     do { checks += try await action() }
                     catch { failures.append("\(stage): \(String(describing: error))") }
                 }
@@ -99,12 +100,13 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
                     return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
                 }
                 if focused {
+                    await run("upgrade") { try await verifyUpgrade(self.windows) }
                     await run("media-output") { try await verifyMediaOutput(self.windows) }
                     await run("appearance") { try await verifyAppearanceControls(controller, settings: self.settingsWindow(), values: { self.preferences.snapshot?.values }) }
                     await run("image-references") { try await verifyImageReferenceInsertion(self.windows) }
                     await run("window-chrome") {
                         let root = controller.window!.contentView!, guide = controller.window!.contentLayoutGuide as! NSLayoutGuide
-                        let nativeToolbar = controller.window!.styleMask.contains(.fullSizeContentView) && !controller.window!.titlebarAppearsTransparent && controller.searchControls.item.isBordered && guide.frame.maxY < root.bounds.maxY
+                        let nativeToolbar = controller.window!.styleMask.contains(.fullSizeContentView) && controller.window!.titlebarAppearsTransparent && controller.searchControls.item.isBordered && guide.frame.maxY < root.bounds.maxY
                         guard nativeToolbar else { throw NSError(domain: "WindowChromeVerification", code: 1, userInfo: [NSLocalizedDescriptionKey: "Native translucent toolbar or safe content layout was missing"]) }
                         return ["native-translucent-toolbar-keeps-controls-and-writing-below-titlebar"]
                     }
@@ -172,6 +174,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         exit(code)
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        if CommandLine.arguments.contains("--headless") { return false }
         if verifying { verificationLifecycle.append("last-window-closed:\(verificationStage)") }
         return verifying
     }
@@ -225,7 +228,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     }
     @objc func showSettings() { settingsWindow().showWindow(nil) }
     private var documentForAction: EditorWindowController? {
-        guard let controller = currentController, controller.isActiveDocument, controller.documents.ready, !controller.documents.busy else { return nil }
+        guard let controller = currentController, !controller.isPreviewing, controller.isActiveDocument, controller.documents.ready, !controller.documents.busy else { return nil }
         return controller
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -276,7 +279,12 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     }
     @objc func saveDocument() { guard let controller = documentForAction else { return }; Task { await controller.documents.save() } }
     @objc func saveDocumentAs() { guard let controller = documentForAction else { return }; Task { await controller.documents.save(asNew: true) } }
-    @objc func reloadDocument() { guard let controller = documentForAction else { return }; Task { await controller.documents.reloadFile() } }
+    @objc func reloadDocument() {
+        if let controller = currentController, let preview = controller.filePreview {
+            do { try preview.reload() } catch { controller.showError(userFacingError(error)) }; return
+        }
+        guard let controller = documentForAction else { return }; Task { await controller.documents.reloadFile() }
+    }
     @objc func toggleReadOnly() { guard let controller = documentForAction else { return }; Task { await controller.documents.toggleReadOnly() } }
     @objc func exportHTML() { guard let controller = documentForAction else { return }; Task { await controller.exports.export(.html, label: controller.documents.label) } }
     @objc func exportPDF() { guard let controller = documentForAction else { return }; Task { await controller.exports.export(.pdf, label: controller.documents.label) } }
@@ -310,7 +318,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
 
         if [#selector(exportHTML), #selector(exportPDF), #selector(printDocument), #selector(pageSetup)].contains(menuItem.action) { return documentForAction != nil && currentController?.exports.busy == false }
         if menuItem.action == #selector(cancelExport) { return currentController?.exports.cancellable == true }
-        if menuItem.action == #selector(reloadDocument) { return documentForAction?.documents.hasFile == true }
+        if menuItem.action == #selector(reloadDocument) { return currentController?.isPreviewing == true || documentForAction?.documents.hasFile == true }
         if menuItem.action == #selector(toggleReadOnly) {
             menuItem.state = currentController?.documents.readOnly == true ? .on : .off
             return documentForAction != nil
@@ -339,7 +347,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
 }
 
 let application = NSApplication.shared
-application.setActivationPolicy(CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings") ? .accessory : .regular)
+application.setActivationPolicy(CommandLine.arguments.contains("--headless") ? .prohibited : CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings") ? .accessory : .regular)
 let delegate = EditorApplication()
 application.delegate = delegate
 application.run()

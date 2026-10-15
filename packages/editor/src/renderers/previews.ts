@@ -15,11 +15,34 @@ export class PreviewRenderer {
   private size = 0;
   private readonly render: (input: RenderInput) => Promise<RenderResult>;
   constructor(render: (input: RenderInput) => Promise<RenderResult> = renderPreview) { this.render = render; }
+  /** Mounted previews can use cached markup before their first layout. */
+  cached(input: RenderInput): RenderResult | undefined {
+    const key = JSON.stringify(input), found = this.cache.get(key);
+    if (found) { this.cache.delete(key); this.cache.set(key, found); }
+    return found;
+  }
+  immediate(input: RenderInput): RenderResult | undefined {
+    if (this.render !== renderPreview || input.kind !== 'math' || input.text.length > MAX_PREVIEW_TEXT) return undefined;
+    const renderer = (window as Window & { LinoMath?: RendererModule }).LinoMath;
+    const result = renderer?.renderSync?.(input);
+    if (result) this.remember(JSON.stringify(input), result);
+    return result;
+  }
+  private remember(key: string, result: RenderResult): void {
+    const size = key.length + result.html.length + (result.mathml?.length ?? 0) + (result.svg?.length ?? 0);
+    if (size > 4 * 1024 * 1024) throw new PreviewError('limit');
+    if (this.cache.has(key)) return;
+    this.cache.set(key, result); this.size += size;
+    while (this.size > 4 * 1024 * 1024) {
+      const [oldKey, old] = this.cache.entries().next().value!;
+      this.cache.delete(oldKey); this.size -= oldKey.length + old.html.length + (old.mathml?.length ?? 0) + (old.svg?.length ?? 0);
+    }
+  }
   request(input: RenderInput, signal: AbortSignal): Promise<RenderResult> {
     if (signal.aborted) return Promise.reject(new PreviewError('cancelled'));
     if (input.text.length > MAX_PREVIEW_TEXT) return Promise.reject(new PreviewError('limit'));
-    const key = JSON.stringify(input), found = this.cache.get(key);
-    if (found) { this.cache.delete(key); this.cache.set(key, found); return Promise.resolve(found); }
+    const found = this.cached(input);
+    if (found) return Promise.resolve(found);
     if (this.queue.length >= 24) return Promise.reject(new PreviewError('busy'));
     return new Promise((resolve, reject) => {
       const work: Work = { input, signal, resolve, reject, abort: () => {
@@ -38,15 +61,7 @@ export class PreviewRenderer {
           const key = JSON.stringify(work.input);
           const result = this.cache.get(key) ?? await this.render(work.input);
           if (work.signal.aborted) throw new PreviewError('cancelled');
-          const size = result.html.length + (result.mathml?.length ?? 0);
-          if (size > 4 * 1024 * 1024) throw new PreviewError('limit');
-          if (!this.cache.has(key)) {
-            this.cache.set(key, result); this.size += size;
-            while (this.cache.size > 32 || this.size > 4 * 1024 * 1024) {
-              const [oldKey, old] = this.cache.entries().next().value!;
-              this.cache.delete(oldKey); this.size -= old.html.length + (old.mathml?.length ?? 0);
-            }
-          }
+          this.remember(key, result);
           work.resolve(result);
         } catch (error) { work.reject(error); }
         finally { work.signal.removeEventListener('abort', work.abort); }
@@ -57,9 +72,11 @@ export class PreviewRenderer {
 export async function renderPreview(input: RenderInput): Promise<RenderResult> {
   const renderer = await loadRenderer(input.kind); return renderer.render(input);
 }
-interface RendererModule { render(input: RenderInput): Promise<RenderResult> }
+interface RendererModule { render(input: RenderInput): Promise<RenderResult>; renderSync?(input: RenderInput): RenderResult }
 const modules = new Map<RenderKind, Promise<RendererModule>>();
 function loadRenderer(kind: RenderKind): Promise<RendererModule> {
+  const prepared = kind === 'math' ? (window as Window & { LinoMath?: RendererModule }).LinoMath : undefined;
+  if (prepared?.renderSync) return Promise.resolve(prepared);
   const cached = modules.get(kind); if (cached) return cached;
   // Separate local classic-script bundles preserve the tested file:// host;
   // no ESM/file-origin migration or third-party CDN is needed for lazy loading.

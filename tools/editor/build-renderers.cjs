@@ -1,6 +1,6 @@
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
-for (const kind of ['math', 'diagram']) {
+for (const kind of ['math', 'diagram', 'print']) {
   const result = spawnSync(process.execPath, [path.resolve(__dirname, '../../node_modules/vite/bin/vite.js'), 'build', '--config', 'vite.renderers.config.ts'], {
     cwd: path.resolve(__dirname, '../../packages/editor'), stdio: 'inherit', env: { ...process.env, OT_RENDERER: kind },
   });

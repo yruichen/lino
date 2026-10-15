@@ -85,7 +85,7 @@ test('visual code hides its fences and info, edits actual body text, and exposes
     editor.command('source'); assert(editor.view.contentDOM.textContent!.includes('```RUST title'));
     editor.command('undo'); assert.equal(editor.read(), raw);
     editor.command('visual'); mount.querySelector<HTMLButtonElement>('.ot-code-language')!.click();
-    assert(mount.querySelector('input[name=code-language]')); assert.equal(mount.querySelector('button[name=code-indent]'), null);
+    assert(mount.querySelector('[data-code-language-input]')); assert.equal(mount.querySelector('button[name=code-indent]'), null);
   } finally { editor.destroy(); mount.remove(); }
 });
 

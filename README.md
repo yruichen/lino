@@ -1,76 +1,74 @@
 <div align="center">
 
-<img src="assets/brand/lino.png" alt="Lino folded-paper L logo" width="96">
+<img src="assets/brand/lino.png" alt="Lino" width="96">
 
 # Lino
 
-**A quiet place for your words.**
+**An open-source Markdown editor for macOS.**
 
-An open-source Markdown editor with a native Mac shell and a shared Rust core. Write a note, explain an idea, or bring code, equations and diagrams into the same document.
+Visual editing. Native Mac windows and tabs. Your own Markdown files.
 
-[![Version](https://img.shields.io/badge/v0.0.3-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.3)
-[![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases)
+[![Version](https://img.shields.io/badge/v0.0.4-Beta-ef9f43)](https://github.com/yruichen/lino/releases/tag/v0.0.4)
+[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.0.4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**Download for macOS**](https://github.com/yruichen/lino/releases/tag/v0.0.3) · [Build from source](#build-it-yourself) · [简体中文](README.zh-CN.md)
+[**Download**](https://github.com/yruichen/lino/releases/download/v0.0.4/Lino-v0.0.4-macos-arm64.zip) · [Features](#features) · [Build](#build-from-source) · [Report an issue](https://github.com/yruichen/lino/issues) · [简体中文](README.zh-CN.md)
 
 </div>
 
-<p align="center">
-  <img src="assets/screenshots/writing.png" alt="Lino on macOS showing an English writing sample and a local illustration" width="48%">
-  <img src="assets/screenshots/code-and-math.png" alt="Rust syntax highlighting, inline mathematics and a rendered equation in Lino" width="48%">
-</p>
+![Lino’s light appearance, showing an illustrated Markdown document and the native outline sidebar](assets/screenshots/writing.png)
 
-## Make room for the thought
+Lino combines visual Markdown editing with a native Mac workspace. Write notes, documentation and technical articles with code, tables, equations and diagrams in one editor. Browse your folders, navigate the outline, and switch between documents in native tabs.
 
-Start with a sentence, then give the idea room to grow. Lino keeps your writing in ordinary Markdown files, with a focused editing surface and the windows, menus and shortcuts you expect on a Mac.
+## Features
 
-- **Keep the file yours.** Open a `.md` file, write, and save it back to disk. Your work stays portable.
-- **Stay with the paragraph.** Visual editing, readable code blocks, editable tables and rendered mathematics sit alongside your words. **⌘/** brings up the original source with the same undo history.
-- **Feel at home on macOS.** Native window tabs, menus, file dialogs and search controls surround an editor that uses the WebKit engine supplied by macOS.
+- **Visual and source editing** — Read formatted Markdown as you edit. Switch to source with **⌘/**; both modes share the same undo history.
+- **Code, math and diagrams** — Syntax-highlighted code blocks, editable tables, KaTeX equations, Mermaid diagrams and image previews.
+- **File navigation** — A native file tree and outline sidebar, **⌘P** Quick Open, folder content search, and find and replace with regular expressions.
+- **Writing tools** — Focus and typewriter modes, word and selection counts, adjustable fonts, line spacing and reading width.
+- **Light and dark themes** — Six paired themes, custom theme import, and background image options.
+- **Local Markdown files** — Open and save ordinary `.md` files, with optional autosave, local recovery copies and external-change detection.
+- **Export and print** — Standalone HTML, PDF export and macOS printing.
 
-Try the [English showcase document](examples/showcase/Lino-Showcase.md) with its accompanying image folder. It contains original writing, a Rust example, a table, equations and a Mermaid diagram.
+The interface supports **English and Simplified Chinese**.
 
-## In v0.0.3
+![Lino’s dark appearance, showing syntax-highlighted Rust code and rendered equations](assets/screenshots/code-and-math.png)
 
-New in this release: a native file/outline sidebar, Quick Open with **⌘P**, categorized settings with twelve theme appearances and custom themes, and image insertion that links to the original file by default.
 
-| For your words | For your ideas | For your files |
-| --- | --- | --- |
-| Visual and source editing with shared undo | Syntax-highlighted code with language selection | Open, save and Save As |
-| Headings, lists, tasks and editable tables | Local images and reference links | Native document windows and tabs |
-| Find and replace, including regular expressions | Inline and block equations with KaTeX | Optional autosave and local recovery copies |
-| Outline, focus mode and reading statistics | Mermaid diagrams and standalone HTML export | External-change detection and read-only handling |
+## Download
 
-The interface is available in **English and Simplified Chinese**. macOS PDF and printing are also available for testing.
+**[Download Lino v0.0.4 Beta for macOS →](https://github.com/yruichen/lino/releases/download/v0.0.4/Lino-v0.0.4-macos-arm64.zip)**
 
-**v0.0.3 is a usable Markdown foundation, still in Beta.** Broader Markdown compatibility, accessibility, native interaction and print layout need more testing. Responsiveness and a small runtime are design priorities; performance comparisons have not yet been published. Windows, Linux and broader document formats are future work.
+Requires **macOS 14 or later on Apple Silicon**. Unzip the download and move **Lino.app** to **Applications**. Release notes and checksums are on the [release page](https://github.com/yruichen/lino/releases/tag/v0.0.4).
 
-## Get Lino
+The Beta is ad-hoc signed and **not notarized**. If macOS blocks the first launch, use **System Settings → Privacy & Security → Open Anyway** to approve the app.
 
-1. [Download Lino v0.0.3](https://github.com/yruichen/lino/releases/download/v0.0.3/Lino-v0.0.3-macos-arm64.zip) for **Apple Silicon and macOS 14 or later**.
-2. Unzip the archive and move **Lino.app** to **Applications**.
-3. Open a Markdown file and start writing.
+Lino is under active development. Markdown compatibility, accessibility and print layout still need testing. Windows and Linux builds are not yet available.
 
-Checksums and release notes are on the [v0.0.3 release page](https://github.com/yruichen/lino/releases/tag/v0.0.3). Lino was previously named Open Typora; existing recovery data keeps its original location.
+## Getting started
 
-The Beta is ad-hoc signed and **not notarized**; macOS may require an explicit security approval before opening it.
+Open a Markdown file with **⌘O**, or create one with **⌘N**. The [showcase document](examples/showcase/Lino-Showcase.md) includes writing, images, code, tables, equations and a diagram; keep its image folder alongside it.
 
 | Action | Shortcut |
 | --- | --- |
-| Open a file | ⌘O |
+| Quick Open | ⌘P |
 | Save / Save As | ⌘S / ⇧⌘S |
 | Find / Find next | ⌘F / ⌘G |
-| Switch editing modes | ⌘/ |
-| Zoom in / out / reset | ⌘+ / ⌘− / ⌘0 |
+| Switch visual / source mode | ⌘/ |
+| Settings | ⌘, |
 
-Change the interface language in **Lino → Settings… → General → Language** (**⌘,**).
+Change the interface language in **Lino → Settings… → General → Language**.
 
-Current file support covers ordinary UTF-8 files up to 64 MiB, preserving BOM and mixed line endings. Recovery opens an unsaved copy; input that was never persisted cannot be recovered.
+<details>
+<summary>File and recovery support</summary>
 
-## Build it yourself
+Lino currently supports ordinary UTF-8 files up to 64 MiB, preserving BOM and mixed line endings. Recovery opens an unsaved copy; input that was never persisted cannot be recovered. Lino was previously named Open Typora, and existing recovery data keeps its original location.
 
-Requirements: an Apple Silicon Mac with macOS 14 or later, Xcode with Swift 6, Rust/Cargo, and Node.js 24.11 or later with npm.
+</details>
+
+## Build from source
+
+Requires an Apple Silicon Mac with macOS 14 or later, Xcode with Swift 6, Rust/Cargo, and Node.js 24.11 or later with npm.
 
 ```bash
 git clone https://github.com/yruichen/lino.git
@@ -80,24 +78,14 @@ npm run app:build
 open .local/build/Lino.app
 ```
 
-The build generates the Swift bindings and bundles the editor into the app. The built app needs neither Node.js nor a development server. Quit the app before rebuilding; successful builds replace the previous app at the same path.
+Lino uses AppKit for its native interface, the system WebKit engine for the editor, and Rust for shared document services. The built app requires neither Node.js nor a development server. Quit Lino before rebuilding.
 
-## Inside the project
+## Contributing
 
-| Path | Responsibility |
-| --- | --- |
-| `apps/macos/` | AppKit windows, menus, dialogs and WebView host |
-| `packages/editor/` | Editing, selection, history and Markdown presentation |
-| `packages/protocol/` | Editor–host protocol client and transports |
-| `crates/` | Rust document model, use cases, I/O, runtime and Swift bindings |
-| `tests/` | Shared test fixtures and integration checks |
-| `tools/` | Build tools, code generation and checks |
-| `assets/` | Shared brand artwork and product screenshots |
+Bug reports, feature suggestions and pull requests are welcome. [Open an issue](https://github.com/yruichen/lino/issues) with your macOS version, steps to reproduce and a small sample document when relevant.
 
-Try the Beta, [share a reproducible bug](https://github.com/yruichen/lino/issues), or contribute a focused fix. Include your macOS version and a small sample document when reporting editing problems. If this is an editor you’d like to see grow, a star helps others discover it.
+## License
 
-## License and acknowledgements
-
-Original work is licensed under [MIT](LICENSE). This project is independent of Typora and its developers; see [NOTICE.md](NOTICE.md) for attribution and licensing scope.
+[MIT](LICENSE). Lino is independent of Typora and its developers. See [NOTICE.md](NOTICE.md) for attribution and licensing scope.
 
 Thanks to [REA — Reverse Engineer Anything](https://github.com/morluto/rea) for its application analysis tools and workflows.

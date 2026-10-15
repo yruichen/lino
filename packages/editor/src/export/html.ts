@@ -8,16 +8,20 @@ import type { SyntaxNode } from '@lezer/common';
 import type { ExportSource } from '@lino/protocol/generated/ExportSource';
 import { sourceDocument } from '../transactions/line-endings.ts';
 import { mathSyntax } from '../features/media/syntax.ts';
-import { sourceNode } from '../features/media/model.ts';
+import { linkDefinitions } from '../features/markdown/urls.ts';
+import { footnoteBodies } from '../features/references/bodies.ts';
+import { sourceNode, type PreviewSource } from '../features/media/model.ts';
 import { referenceSyntax } from '../features/references/syntax.ts';
 import { anchoredHeadings } from '../features/references/model.ts';
-import { languageForCode } from '../features/code/languages.ts';
+import { languageForCode, loadCodeLanguage } from '../features/code/languages.ts';
 import { previewRenderer, type PreviewRenderer, type RenderInput } from '../renderers/previews.ts';
 import { t } from '../localization/index.ts';
 import { exportStyle } from './style.ts';
 import { underlineReading } from '../features/markdown/reading.ts';
+import { inlineHTML } from '../features/markdown/inline-reading.ts';
 
-interface Slot { input?: RenderInput; html?: string; block: boolean }
+export interface ExportPresentation { fontSize?: number; contentWidth?: number; padding?: number; imageScales?: ReadonlyMap<number, number> }
+interface Slot { image?: PreviewSource; input?: RenderInput; html?: string; block: boolean }
 interface FormatTrie { children: Map<string, FormatTrie>; format?: { tag: string; content: string; length: number } }
 const inlineTags: Record<string, string> = { Highlight: 'mark', Superscript: 'sup', Subscript: 'sub' };
 const safeURL = (url: string) => !/^[\s\u0000-\u001f]*\/\//.test(url) && (!/^[a-z][a-z\d+.-]*:/i.test(url) || /^(https?:|mailto:|data:image\/)/i.test(url));
@@ -32,11 +36,13 @@ export class ExportPlan {
   private readonly environment = {};
   private readonly abort = new AbortController();
   private readonly renderer: PreviewRenderer;
-  constructor(source: ExportSource, renderer: PreviewRenderer = previewRenderer) {
-    this.source = source; this.renderer = renderer;
+  private readonly presentation: ExportPresentation;
+  constructor(source: ExportSource, renderer: PreviewRenderer = previewRenderer, presentation: ExportPresentation = {}) {
+    this.source = source; this.renderer = renderer; this.presentation = presentation;
     const md = this.markdown; underlineReading(md); md.use(footnotes); md.disable('footnote_inline');
     const state = EditorState.create({ doc: sourceDocument(source.text).doc });
     const tree = parser.configure([GFM, mathSyntax, referenceSyntax]).parse(state.doc.toString());
+    const definitions = linkDefinitions(state, tree, footnoteBodies(state, tree));
     const headings: { from: number; to: number; title: string; level: number }[] = [];
     tree.iterate({ enter(node) {
       if (['FrontMatter', 'FootnoteDefinition', 'FencedCode', 'CodeBlock', 'HTMLBlock'].includes(node.name)) return false;
@@ -84,6 +90,7 @@ export class ExportPlan {
         }
         return state.sliceDoc(node.from, node.to);
       }
+      if (node.name === 'Image') { const image = sourceNode(state, node, definitions); if (image) return slot(node, { block: false, image }); }
       if (['InlineCode', 'CodeBlock', 'HTMLBlock', 'HTMLTag', 'Image', 'LinkReference'].includes(node.name)) return state.sliceDoc(node.from, node.to);
       const tag = inlineTags[node.name]; let result = '', position = node.from;
       for (let child = node.firstChild; child; child = child.nextSibling) {
@@ -117,6 +124,12 @@ export class ExportPlan {
       }
       if (token.type === 'heading_open') { const anchor = token.map && anchors.get(token.map[0]); if (anchor) token.attrSet('id', anchor); }
     });
+    for (const slot of this.slots.values()) if (slot.image) {
+      const url = slot.image.text;
+      if (/^https?:/i.test(url)) throw new Error(t('export.remoteImage'));
+      if (!safeURL(url)) throw new Error(t('export.unsafeURL'));
+      if (!/^data:image\//i.test(url)) images.add(url);
+    }
     this.images = [...images];
     md.renderer.rules.fence = (tokens, index) => {
       const token = tokens[index], language = languageForCode(token.info), spans: string[] = []; let cursor = 0;
@@ -139,8 +152,13 @@ export class ExportPlan {
     }
   }
   cancel(): void { this.abort.abort(); }
-  async render(resources: Record<string, string>, mathCSS = ''): Promise<string> {
+  async render(resources: Record<string, string>, mathCSS = '', background = '', widths: Record<string, number> = {}): Promise<string> {
     if (this.abort.signal.aborted) throw new Error(t('export.cancelled'));
+    const languages = new Set<string>();
+    const collect = (tokens: Token[]) => { for (const token of tokens) { if (token.type === 'fence') languages.add(token.info); if (token.children) collect(token.children); } };
+    collect(this.tokens); if (languages.size) await Promise.all([...languages].map(loadCodeLanguage));
+    if (this.abort.signal.aborted) throw new Error(t('export.cancelled'));
+    // Official language-data loaders share their loaded LanguageDescription.
     const md = this.markdown, imageRule = md.renderer.rules.image!;
     md.renderer.rules.image = (tokens, index, options, environment, renderer) => {
       const url = String(tokens[index].attrGet('src')!);
@@ -159,9 +177,18 @@ export class ExportPlan {
       for (const placeholder of placeholders) {
         if (--remaining < 0) throw new Error(t('export.invalid'));
         const entry = this.slots.get(placeholder.getAttribute('href')!.slice('lino-slot:'.length)); if (!entry) throw new Error(t('export.invalid'));
-        const html = entry.html ?? (await this.renderer.request(entry.input!, this.abort.signal)).html;
+        let html: string;
+        if (entry.image) {
+          const image = entry.image, data = /^data:image\//i.test(image.text) ? image.text : resources[image.text];
+          if (!data || !/^data:image\/[a-z\d.+-]+;base64,[a-z\d+/=]+$/i.test(data)) throw new Error(t('export.missingImage', { source: image.text }));
+          const scale = this.presentation.imageScales?.get(image.from) ?? 1;
+          const width = widths[image.text];
+          const size = Number.isFinite(width) && width > 0 ? ` style="width:${width * scale}px"` : '';
+          const caption = await inlineHTML(image.caption ?? '', this.source.preferences.theme === 'dark', this.renderer, this.abort.signal);
+          html = `<span class="export-image"><img src="${escape(data)}" alt="${escape(image.alt ?? '')}"${size}><span class="image-caption">${caption}</span></span>`;
+        } else html = entry.html ?? (await this.renderer.request(entry.input!, this.abort.signal)).html;
         if (this.abort.signal.aborted) throw new Error(t('export.cancelled'));
-        const holder = document.createElement(entry.block ? 'div' : 'span'); holder.innerHTML = html;
+        const holder = document.createElement(entry.block ? 'div' : 'span'); holder.innerHTML = html; if (entry.input?.kind === 'diagram') holder.className = 'export-diagram';
         if (entry.block && placeholder.parentElement?.tagName === 'P' && placeholder.parentElement.textContent?.trim() === placeholder.textContent) placeholder.parentElement.replaceWith(holder);
         else placeholder.replaceWith(holder);
       }
@@ -171,8 +198,8 @@ export class ExportPlan {
     for (const link of container.querySelectorAll('a')) if (!safeURL(link.getAttribute('href') ?? '')) link.removeAttribute('href');
     for (const image of container.querySelectorAll('img')) if (!/^data:image\//i.test(image.getAttribute('src') ?? '')) throw new Error(t('export.invalid'));
     const title = this.source.label ?? t('document.untitled');
-    const mathStyle = [...this.slots.values()].some(slot => slot.input?.kind === 'math') ? mathCSS : '';
-    const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><title>${escape(title)}</title><style>${exportStyle(this.source.preferences).replace(/<\/style/gi, '<\\/style')}\n${mathStyle.replace(/<\/style/gi, '<\\/style')}</style></head><body>${container.outerHTML}</body></html>`;
+    const mathStyle = [...this.slots.values()].some(slot => slot.input?.kind === 'math') || container.querySelector('math,.katex,.katex-error') ? mathCSS : '';
+    const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><title>${escape(title)}</title><style>${exportStyle(this.source.preferences, this.presentation, background).replace(/<\/style/gi, '<\\/style')}\n${mathStyle.replace(/<\/style/gi, '<\\/style')}</style></head><body><div class="export-paper" aria-hidden="true"></div><div class="export-backdrop" aria-hidden="true">${background ? `<img src="${background}" alt="">` : ''}</div>${container.outerHTML}</body></html>`;
     if (html.length > 32 * 1024 * 1024) throw new Error(t('export.limit'));
     return html;
   }

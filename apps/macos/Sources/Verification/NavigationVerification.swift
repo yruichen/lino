@@ -111,7 +111,7 @@ func verifyNavigationFlow(_ controller: EditorWindowController, navigation: Navi
     guard let target = tabs.controllers.last, target !== source else { throw NSError(domain: "NavigationVerification", code: 3) }
     try await waitReady(target)
     try check("native-sidebar-opens-file-in-existing-native-tab-group", source.window?.tabbedWindows?.contains(where: { $0 === target.window }) == true)
-    try check("native-new-document-does-not-inherit-sidebar", !target.workspaceVisible && target.window?.tabbingMode == .disallowed)
+    try check("native-new-document-shares-sidebar-presentation", target.workspaceVisible && target.workspace.showingOutline == source.workspace.showingOutline && target.window?.tabbingMode == .disallowed)
     await tabs.open(path: one.path, origin: target)
     let returned = try await source.bridge.call("snapshot") as? [String: Any] ?? [:]
     try check("native-navigation-return-keeps-dirty-text-and-undo", original["text"] as? String == returned["text"] as? String && returned["dirty"] as? Bool == true && returned["canUndo"] as? Bool == true)
@@ -182,17 +182,17 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     }
     let source = windows.create()
     try await wait { source.documents.ready }
-    guard let window = source.window, let split = source.webView.superview?.superview as? NavigationSplitView else { throw NSError(domain: "NavigationPresentation", code: 3) }
+    guard let window = source.window, let split = Optional(source.navigationSplit) else { throw NSError(domain: "NavigationPresentation", code: 3) }
     NSApp.activate(ignoringOtherApps: true)
     window.makeKeyAndOrderFront(nil)
     try await wait { NSApp.isActive && window.isKeyWindow }
     await windows.navigation.addLocation(directory.path)
     source.setWorkspaceVisible(true); try await Task.sleep(for: .milliseconds(240))
-    let frame = window.frame, sidebarWidth = split.subviews[0].frame.width
+    let frame = window.frame, sidebarWidth = split.sidebarPane.frame.width
     source.workspace.setOutline(true)
     await windows.open(path: first.path, origin: source)
     let opened = try await source.bridge.call("snapshot") as? [String: Any] ?? [:]
-    try check("first-file-reuses-pristine-page-without-window-tab-or-sidebar-resize", windows.controllers.count == initialCount + 1 && source.documents.hasFile && opened["text"] as? String == (try String(contentsOf: first, encoding: .utf8)) && window.frame == frame && split.subviews[0].frame.width == sidebarWidth)
+    try check("first-file-reuses-pristine-page-without-window-tab-or-sidebar-resize", windows.controllers.count == initialCount + 1 && source.documents.hasFile && opened["text"] as? String == (try String(contentsOf: first, encoding: .utf8)) && window.frame == frame && split.sidebarPane.frame.width == sidebarWidth)
     try await wait { source.workspace.outline.numberOfRows == 2 }
     try check("reused-page-outline-is-ready-without-changing-sidebar-page", source.workspace.showingOutline && source.workspace.outline.numberOfRows == 2)
     source.workspace.setOutline(false)
@@ -207,6 +207,7 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
         return row.isSelected && outline.selectionHighlightStyle == .regular
     }
     let other = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 160, height: 120), styleMask: [.titled], backing: .buffered, defer: false)
+    other.isReleasedWhenClosed = false
     defer { other.close() }
     for appearance in ["light", "dark"] {
         preferences.values.theme = appearance
@@ -227,14 +228,14 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     let backingWidth = source.webView.frame.width
     var covered = true, stableTree = true, sawIntermediate = false, centered = true
     func sample() async throws {
-        let visible = split.subviews[0].frame.width
+        let visible = split.arrangedSubviews.first?.frame.width ?? 0
         sawIntermediate = sawIntermediate || (visible > 1 && visible < sidebarWidth - 1)
         let backing = split.convert(source.webView.bounds, from: source.webView)
-        covered = covered && source.webView.frame.width == backingWidth && backing.maxX >= split.bounds.maxX && backing.minX >= 0 && split.layer?.masksToBounds == true && source.webView.superview?.layer?.masksToBounds == true && abs(split.subviews[1].frame.maxX - split.bounds.maxX) < 0.1
-        stableTree = stableTree && split.subviews[0].subviews.first?.frame.width == sidebarWidth
+        covered = covered && source.webView.frame.width == backingWidth && backing.maxX >= split.bounds.maxX && backing.minX >= 0 && split.layer?.masksToBounds == true && source.webView.superview?.layer?.masksToBounds == true && abs(split.convert(split.editorPane.bounds, from: split.editorPane).maxX - split.bounds.maxX) < 0.1
+        stableTree = stableTree && split.sidebarPane.subviews.first?.frame.width == sidebarWidth
         let center = try await source.webView.callAsyncJavaScript("const r=document.querySelector('.cm-content').getBoundingClientRect(); return r.left+r.width/2;", arguments: [:], in: nil, contentWorld: .page) as? Double ?? -1
         let currentBacking = split.convert(source.webView.bounds, from: source.webView)
-        centered = centered && abs(currentBacking.minX + center - split.subviews[1].frame.midX) < 1
+        centered = centered && abs(currentBacking.minX + center - split.convert(split.editorPane.bounds, from: split.editorPane).midX) < 1
 
     }
     source.setWorkspaceVisible(false)
@@ -243,7 +244,7 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     for _ in 0..<4 { try await sample(); try await Task.sleep(for: .milliseconds(16)) }
     source.setWorkspaceVisible(false)
     for _ in 0..<14 { try await sample(); try await Task.sleep(for: .milliseconds(16)) }
-    try check("collapse-and-reversal-cover-right-edge-with-stable-backing-and-tree-throughout-animation", covered && stableTree && sawIntermediate && split.subviews[0].frame.width == 0 && source.webView.frame.minX == 0)
+    try check("collapse-and-reversal-cover-right-edge-with-stable-backing-and-tree-throughout-animation", covered && stableTree && sawIntermediate && split.controller.splitViewItems.first?.isCollapsed == true && source.webView.frame.minX == 0)
     try check("writing-center-follows-pane-through-animation-without-final-rebound", centered)
     let after = try await source.bridge.call("snapshot") as? [String: Any] ?? [:]
     let geometry = try await source.webView.callAsyncJavaScript("const s=document.querySelector('.cm-scroller'), e=document.querySelector('.cm-editor'); return {width:e.getBoundingClientRect().width, left:s.scrollLeft, top:s.scrollTop};", arguments: [:], in: nil, contentWorld: .page) as? [String: Double] ?? [:]

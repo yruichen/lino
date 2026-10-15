@@ -25,7 +25,12 @@ export function contextualControls<Value>(context: Context, field: StateField<Va
     const panel = form(view);
     panel.dom.classList.add('ot-contextual-controls');
     panel.dom.setAttribute('role', 'dialog');
-    return { dom: panel.dom, offset: { x: 0, y: 10 },
+    return { dom: panel.dom, offset: { x: 0, y: context === 'code' ? 4 : 10 },
+      ...(context === 'code' ? { getCoords: (pos: number) => {
+        const badge = [...view.dom.querySelectorAll<HTMLElement>('.ot-code-language-anchor')].find(node => Number(node.dataset.codeBodyFrom) === pos);
+        const rect = badge?.querySelector('button')?.getBoundingClientRect() ?? view.coordsAtPos(pos) ?? view.scrollDOM.getBoundingClientRect();
+        return { left: rect.right - 220, right: rect.right, top: rect.top, bottom: rect.bottom };
+      } } : {}),
       mount: () => panel.mount?.(), update: update => panel.update?.(update), destroy: () => panel.destroy?.() };
   };
   return [contextOwner, showTooltip.compute([field, contextOwner, 'selection', localeFacet], state => {

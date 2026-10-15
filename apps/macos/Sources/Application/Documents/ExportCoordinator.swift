@@ -1,5 +1,6 @@
 import AppKit
 import UniformTypeIdentifiers
+import ImageIO
 
 @MainActor
 final class ExportCoordinator {
@@ -41,6 +42,14 @@ final class ExportCoordinator {
             try requireCurrent(operation, view)
             let job = try await bridge.backend.perform { try $0.beginExport(sessionId: id, epoch: epoch, revision: revision) }
             self.job = job; try requireCurrent(operation, view)
+            let source = try await bridge.backend.perform { _ in try job.source() }
+            struct Configuration: Decodable { let preferences: EditorPreferences }
+            let preferences = try JSONDecoder().decode(Configuration.self, from: Data(source.utf8)).preferences
+            var backdrop = ""
+            if !preferences.background_image.isEmpty {
+                let (data, kind, _, _) = try AppearanceImage.snapshot(preferences.background_image)
+                backdrop = "data:\(UTType(kind)?.preferredMIMEType ?? "image/png");base64,\(data.base64EncodedString())"
+            }
             _ = try await bridge.call("endExportCapture")
             if format != .printDocument {
                 let panel = NSSavePanel(); panel.allowedContentTypes = [format == .html ? .html : .pdf]
@@ -51,10 +60,9 @@ final class ExportCoordinator {
                 target = try await bridge.backend.perform { try $0.saveTarget(path: url.path) }
             }
             onNotice?("export.rendering")
-            let source = try await bridge.backend.perform { _ in try job.source() }
             let plan = try await bridge.call("prepareExport", arguments: [source]) as? [String: Any]
             guard let jobId = plan?["job_id"] as? String, let images = plan?["images"] as? [String] else { throw NSError(domain: "Lino", code: 1) }
-            var resources: [String: String] = [:], bytes = 0
+            var resources: [String: String] = [:], widths: [String: Double] = [:], bytes = 0
             for image in images {
                 try requireCurrent(operation, view)
                 let content: ImageContent
@@ -68,19 +76,26 @@ final class ExportCoordinator {
                 bytes += content.bytes.count
                 guard bytes <= 16 * 1024 * 1024 else { throw NSError(domain: "Lino", code: 1, userInfo: [NSLocalizedDescriptionKey: localized("export.imageLimit")]) }
                 let data = Data(content.bytes); try ImageData.validate(data, mime: content.mime)
+                if let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+                   let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any], let width = properties[kCGImagePropertyPixelWidth] as? NSNumber {
+                    let orientation = (properties[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1
+                    widths[image] = [5, 6, 7, 8].contains(orientation) ? (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue ?? width.doubleValue : width.doubleValue
+                } else if let picture = NSImage(data: data) { widths[image] = picture.size.width }
                 resources[image] = "data:\(content.mime);base64,\(data.base64EncodedString())"
             }
             try requireCurrent(operation, view)
             let resourceJSON = String(decoding: try JSONSerialization.data(withJSONObject: resources), as: UTF8.self)
+            let widthJSON = String(decoding: try JSONSerialization.data(withJSONObject: widths), as: UTF8.self)
             guard let license = Bundle.main.resourceURL?.appendingPathComponent("Licenses/KaTeX.txt") else { throw NSError(domain: "Lino", code: 1) }
             let fontNotice = "\n/* KaTeX styles and fonts:\n" + (try String(contentsOf: license, encoding: .utf8)).replacingOccurrences(of: "*/", with: "* /") + "\n*/"
             guard let editor = Bundle.main.resourceURL?.appendingPathComponent("Editor"),
-                  let html = try await bridge.call("renderExport", arguments: [jobId, resourceJSON, try String(contentsOf: editor.appendingPathComponent("math.css"), encoding: .utf8) + fontNotice]) as? String else { throw NSError(domain: "Lino", code: 1) }
+                  let html = try await bridge.call("renderExport", arguments: [jobId, resourceJSON, try String(contentsOf: editor.appendingPathComponent("math.css"), encoding: .utf8) + fontNotice, backdrop, widthJSON]) as? String else { throw NSError(domain: "Lino", code: 1) }
             try requireCurrent(operation, view)
             let output: Data
             if format == .html { output = Data(html.utf8) }
             else {
                 let surface = PrintSurface(); self.surface = surface; try await surface.load(html)
+                try await surface.prepare(info: printInfo)
                 try requireCurrent(operation, view)
                 if format == .pdf {
                     temporary = FileManager.default.temporaryDirectory.appendingPathComponent("lino-export-\(UUID().uuidString).pdf")

@@ -14,9 +14,11 @@ const args = process.argv.includes('--settings-layout') ? [mode, '--layout-only'
 if (process.argv.includes('--settings-layout') && process.argv.includes('--selection-only')) args.push('--selection-only');
 if (process.argv.includes('--navigation') && process.argv.includes('--presentation-only')) args.push('--presentation-only');
 if (focused) args.push('--focused');
-const stage = process.argv.find(value => value.startsWith('--stage='));
+if (process.argv.includes('--headless')) args.push('--headless');
+const stage = process.argv.find(value => value.startsWith('--stage=') || value.startsWith('--stages='));
+const stages = stage?.split('=')[1].split(',');
 if (stage) {
-  if (!focused || !['navigation', 'media-output', 'appearance', 'image-references', 'window-chrome'].includes(stage.slice(8))) throw new Error('Unknown focused verification stage.');
+  if (!focused || !stages.every(value => ['upgrade', 'navigation', 'media-output', 'appearance', 'image-references', 'window-chrome'].includes(value))) throw new Error('Unknown focused verification stage.');
   args.push(stage);
 }
 const output = path.join(root, '.local/validation');
@@ -28,7 +30,7 @@ try { report = JSON.parse(result.stdout); }
 catch { report = { passed: [], failed: [result.error?.message ?? (result.signal ? `Native verification stopped with ${result.signal}.` : 'Native verification did not return a valid report.')] }; }
 if (result.error && Array.isArray(report.failed) && !report.failed.includes(result.error.message)) report.failed.push(result.error.message);
 if (result.status !== 0 && Array.isArray(report.failed) && !report.failed.length) report.failed.push(`Native verification exited with status ${result.status}.`);
-report.scope = focused ? stage?.slice(8) ?? 'navigation-media-appearance' : process.argv.includes('--settings-layout') ? (process.argv.includes('--selection-only') ? 'settings-selection' : 'settings-layout') : process.argv.includes('--settings') ? 'settings' : process.argv.includes('--navigation') ? (process.argv.includes('--presentation-only') ? 'navigation-presentation' : 'navigation') : 'full';
+report.scope = focused ? stages?.join(',') ?? 'navigation-media-appearance' : process.argv.includes('--settings-layout') ? (process.argv.includes('--selection-only') ? 'settings-selection' : 'settings-layout') : process.argv.includes('--settings') ? 'settings' : process.argv.includes('--navigation') ? (process.argv.includes('--presentation-only') ? 'navigation-presentation' : 'navigation') : 'full';
 report.environment = { os: os.release(), architecture: process.arch, node: process.version, checkedAt: new Date().toISOString() };
 fs.writeFileSync(path.join(output, 'latest.json'), JSON.stringify(report, null, 2) + '\n');
 // Retire the former fixed report location after the latest report is written.

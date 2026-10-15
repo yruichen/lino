@@ -5,6 +5,6 @@ import AppKit
 @MainActor
 func installWindowChrome(in window: NSWindow, content: NSView) -> NSLayoutGuide {
     window.styleMask.insert(.fullSizeContentView)
-    window.titlebarAppearsTransparent = false; window.titlebarSeparatorStyle = .none
+    window.titlebarAppearsTransparent = true; window.titlebarSeparatorStyle = .none
     return window.contentLayoutGuide as! NSLayoutGuide
 }

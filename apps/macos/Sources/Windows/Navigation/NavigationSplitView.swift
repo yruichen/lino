@@ -1,105 +1,112 @@
 import AppKit
 
-/// One split position drives both native surfaces, including reversals.
+/// AppKit owns sidebar, titlebar and tab-bar geometry. Only the editor's backing
+/// canvas is kept wider than its visible pane to avoid repainting on reveal.
 @MainActor
-final class NavigationSplitView: NSSplitView, NSSplitViewDelegate {
-    private var transition: SidebarWidthAnimation?
-    private var applying = false
-    private var position: CGFloat = 0
+final class NavigationSplitView: NSSplitView {
+    weak var controller: NSSplitViewController!
+    private var sidebarItem: NSSplitViewItem!
     private let sidebarClip = NSView()
-    private let editorClip = NSView()
+    private var editorClip = NSView()
     private weak var sidebarContent: NSView?
     private weak var editorContent: NSView?
+    private weak var footer: NSView?
+    private var fixedBacking = true
+    private var trackingDivider = false
+    private var presentationSequence: UInt64 = 0
+    var onSidebarSafeTop: ((CGFloat) -> Void)?
     private(set) var rememberedWidth: CGFloat = 268
+    private(set) var expanded = false
     var onWidthChanged: ((CGFloat) -> Void)?
     var onViewportWidth: ((CGFloat) -> Void)?
     var onTransitionCompleted: (() -> Void)?
-    private(set) var expanded = false
-    override var dividerThickness: CGFloat { position > 0 ? super.dividerThickness : 0 }
+    var viewportWidth: CGFloat { editorClip.bounds.width }
+    var editorPane: NSView { editorClip }
+    var sidebarPane: NSView { sidebarClip }
     override var dividerColor: NSColor { ThemePalette.color("border") }
-    override func drawDivider(in rect: NSRect) { if position > 0 { super.drawDivider(in: rect) } }
-    var viewportWidth: CGFloat {
-        let width = min(position, maximumWidth)
-        return max(0, bounds.width - width - (width > 0 ? dividerThickness : 0))
-    }
-    func install(sidebar: NSView, editor: NSView) {
+
+    func install(sidebar: NSView, editor: NSView, footer: NSView, pane: NSView, fixedBacking: Bool = true) {
+        self.fixedBacking = fixedBacking; self.footer = footer; editorClip = pane
+        sidebarContent = sidebar; editorContent = editor
+        isVertical = true; dividerStyle = .thin
         wantsLayer = true; layer?.masksToBounds = true
-        sidebarClip.wantsLayer = true; sidebarClip.layer?.masksToBounds = true
-        editorClip.wantsLayer = true; editorClip.layer?.masksToBounds = true
-        sidebarContent = sidebar; sidebarClip.addSubview(sidebar)
-        editorContent = editor; editorClip.addSubview(editor)
-        addSubview(sidebarClip); addSubview(editorClip)
+        for clip in [sidebarClip, editorClip] { clip.wantsLayer = true; clip.layer?.masksToBounds = true }
+        sidebarClip.addSubview(sidebar); editorClip.addSubview(editor); editorClip.addSubview(footer)
+        let sidebarController = NSViewController(); sidebarController.view = sidebarClip
+        let detailController = NSViewController(); detailController.view = editorClip
+        sidebarItem = NSSplitViewItem(sidebarWithViewController: sidebarController)
+        sidebarItem.minimumThickness = 230; sidebarItem.maximumThickness = 360
+        sidebarItem.canCollapseFromWindowResize = false
+        sidebarItem.collapseBehavior = .preferResizingSiblingsWithFixedSplitView
+        sidebarItem.allowsFullHeightLayout = true
+        // Preserve the sidebar before the document on window resize, while
+        // remaining below AppKit's divider-drag constraint priority (490).
+        sidebarItem.holdingPriority = NSLayoutConstraint.Priority(260)
+        sidebarItem.canCollapse = false
+        let detail = NSSplitViewItem(viewController: detailController)
+        detail.minimumThickness = 320
+        controller.addSplitViewItem(sidebarItem); controller.addSplitViewItem(detail)
     }
-    var maximumWidth: CGFloat { min(360, max(230, bounds.width - 320 - dividerThickness)) }
     func configure(width: CGFloat, expanded: Bool) {
-        isVertical = true; dividerStyle = .thin; delegate = self
         rememberedWidth = min(360, max(230, width)); self.expanded = expanded
-        position = expanded ? rememberedWidth : 0
-        adjustSubviews()
+        sidebarItem.isCollapsed = !expanded
+        if expanded { layoutSubtreeIfNeeded(); setPosition(rememberedWidth, ofDividerAt: 0) }
+    }
+    func setRememberedWidth(_ width: CGFloat) {
+        let value = min(360, max(230, width))
+        guard value != rememberedWidth else { return }
+        rememberedWidth = value
+        if expanded {
+            layoutSubtreeIfNeeded(); setPosition(value, ofDividerAt: 0)
+            layoutPanes()
+        }
     }
     func show(_ value: Bool, animated: Bool) {
-        transition?.stop(); transition = nil; expanded = value
-        let target = value ? rememberedWidth : 0
-        guard animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion, abs(target - position) > 0.5 else { apply(target); onTransitionCompleted?(); return }
-        let animation = SidebarWidthAnimation(from: position, to: target, duration: value ? 0.18 : 0.16) { [weak self] width, finished in
-            self?.apply(width)
-            if finished { self?.onTransitionCompleted?() }
+        guard expanded != value else { layoutPanes(); return }
+        expanded = value; presentationSequence &+= 1
+        let sequence = presentationSequence
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = animated && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.18 : 0
+            sidebarItem.animator().isCollapsed = !value
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.presentationSequence == sequence else { return }
+                if self.expanded {
+                    self.layoutSubtreeIfNeeded(); self.setPosition(self.rememberedWidth, ofDividerAt: 0)
+                }
+                self.layoutPanes(); self.onTransitionCompleted?()
+            }
         }
-        transition = animation; animation.start()
     }
-    private func apply(_ width: CGFloat) {
-        position = width; adjustSubviews()
-    }
-    func detach() {
-        transition?.stop(); transition = nil
-        onWidthChanged = nil; onViewportWidth = nil; onTransitionCompleted = nil
-    }
-    override func adjustSubviews() {
-        guard subviews.count == 2, bounds.width > 0 else { return }
-        applying = true; defer { applying = false }
-        let width = min(position, maximumWidth), divider: CGFloat = width > 0 ? dividerThickness : 0
-        sidebarContent?.frame = NSRect(x: 0, y: 0, width: min(rememberedWidth, maximumWidth), height: bounds.height)
-        subviews[0].isHidden = width <= 0
-        subviews[0].frame = NSRect(x: 0, y: 0, width: width, height: bounds.height)
-        // WebKit paints asynchronously. Keep its backing surface at window width
-        // during a reveal; only the native origin and the visible CSS viewport move.
-        // The clipped extra backing area covers the right edge throughout animation.
-        editorClip.frame = NSRect(x: width + divider, y: 0, width: viewportWidth, height: bounds.height)
-        // Center the fixed backing canvas on the visible pane. CSS can reflow
-        // asynchronously, but its center never moves relative to this canvas.
-        editorContent?.frame = NSRect(x: -(width + divider) / 2, y: 0, width: bounds.width, height: bounds.height)
+    func layoutPanes() {
+        guard sidebarItem != nil else { return }
+        // Safe-area insets come from the system's actual toolbar/tab layout,
+        // independently for the full-height sidebar and document pane.
+        let sidebarFrame = NSRect(x: 0, y: 0, width: max(rememberedWidth, sidebarClip.bounds.width), height: sidebarClip.bounds.height)
+        if sidebarContent?.frame != sidebarFrame { sidebarContent?.frame = sidebarFrame }
+        let safe = editorClip.safeAreaRect
+        let footerFrame = NSRect(x: 0, y: safe.minY, width: editorClip.bounds.width, height: 30)
+        if footer?.frame != footerFrame { footer?.frame = footerFrame }
+        let offset = fixedBacking ? -(bounds.width - viewportWidth) / 2 : 0
+        let editorFrame = NSRect(x: offset, y: footerFrame.maxY, width: fixedBacking ? bounds.width : viewportWidth, height: max(0, safe.maxY - footerFrame.maxY))
+        if editorContent?.frame != editorFrame { editorContent?.frame = editorFrame }
         onViewportWidth?(viewportWidth)
-        needsDisplay = true
+        onSidebarSafeTop?(sidebarSafeTop)
     }
-    override func resizeSubviews(withOldSize oldSize: NSSize) { adjustSubviews() }
-    func splitView(_ splitView: NSSplitView, constrainMinCoordinate proposedMinimumPosition: CGFloat, ofSubviewAt dividerIndex: Int) -> CGFloat { expanded ? 230 : 0 }
-    func splitView(_ splitView: NSSplitView, constrainMaxCoordinate proposedMaximumPosition: CGFloat, ofSubviewAt dividerIndex: Int) -> CGFloat { expanded ? maximumWidth : 0 }
-    func splitView(_ splitView: NSSplitView, canCollapseSubview subview: NSView) -> Bool { false }
-    func splitView(_ splitView: NSSplitView, shouldHideDividerAt dividerIndex: Int) -> Bool { position <= 0 }
-    func splitViewDidResizeSubviews(_ notification: Notification) {
-        guard !applying, transition?.isAnimating != true, expanded, subviews.count == 2 else { return }
-        transition?.stop(); transition = nil
-        position = min(maximumWidth, max(230, subviews[0].frame.width))
-        rememberedWidth = position; adjustSubviews(); onWidthChanged?(position)
-    }
-}
-
-@MainActor
-private final class SidebarWidthAnimation: NSAnimation {
-    private let from: CGFloat, to: CGFloat
-    private let update: @MainActor @Sendable (CGFloat, Bool) -> Void
-    init(from: CGFloat, to: CGFloat, duration: TimeInterval, update: @escaping @MainActor @Sendable (CGFloat, Bool) -> Void) {
-        self.from = from; self.to = to; self.update = update
-        super.init(duration: duration, animationCurve: .easeInOut)
-        animationBlockingMode = .nonblocking; frameRate = 60
-    }
-    required init?(coder: NSCoder) { fatalError("Use init()") }
-    override var currentProgress: NSAnimation.Progress {
-        get { super.currentProgress }
-        set {
-            super.currentProgress = newValue
-            let callback = update, width = from + (to - from) * CGFloat(currentValue)
-            MainActor.assumeIsolated { callback(width, newValue >= 1) }
+    var sidebarSafeTop: CGFloat { max(0, sidebarClip.bounds.maxY - sidebarClip.safeAreaRect.maxY) }
+    override func adjustSubviews() { super.adjustSubviews(); layoutPanes() }
+    override func layout() {
+        super.layout(); layoutPanes()
+        guard trackingDivider, expanded, sidebarItem != nil else { return }
+        let width = sidebarClip.frame.width
+        if width >= 230, width <= 360, abs(width - rememberedWidth) > 0.5 {
+            rememberedWidth = width; onWidthChanged?(width)
         }
     }
+    override func mouseDown(with event: NSEvent) {
+        trackingDivider = true; defer { trackingDivider = false }
+        super.mouseDown(with: event)
+        layoutSubtreeIfNeeded(); layout()
+    }
+    func detach() { presentationSequence &+= 1; onWidthChanged = nil; onViewportWidth = nil; onTransitionCompleted = nil; onSidebarSafeTop = nil }
 }

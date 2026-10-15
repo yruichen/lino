@@ -19,7 +19,7 @@ final class DocumentWindows {
     func reopen() -> EditorWindowController? {
         guard !quitting else { return nil }
         let document = active.flatMap { $0.documents.closed ? nil : $0 } ?? controllers.first { !$0.documents.closed } ?? create()
-        if document.documents.ready, let window = document.window {
+        if document.documents.ready || document.isPreviewing, let window = document.window {
             window.tabGroup?.selectedWindow?.deminiaturize(nil)
             window.deminiaturize(nil)
             window.tabGroup?.selectedWindow = window
@@ -29,9 +29,9 @@ final class DocumentWindows {
     }
 
     @discardableResult
-    func create(path: String? = nil, offerRecovery: Bool = false, line: Int? = nil, anchor: String? = nil, tabOrigin: EditorWindowController? = nil) -> EditorWindowController {
+    func create(path: String? = nil, offerRecovery: Bool = false, line: Int? = nil, anchor: String? = nil, tabOrigin: EditorWindowController? = nil, filePreview: NativeFilePreview? = nil) -> EditorWindowController {
         let origin = tabOrigin ?? active
-        let controller = EditorWindowController(verifying: verifying, backend: backend, initialPath: path, offerRecovery: offerRecovery, navigation: navigation)
+        let controller = EditorWindowController(verifying: verifying, backend: backend, initialPath: path, offerRecovery: offerRecovery, navigation: navigation, filePreview: filePreview)
         controller.window?.tabbingMode = verifying ? .disallowed : .automatic
         controller.pendingNavigationLine = line
         controller.pendingNavigationAnchor = anchor
@@ -51,7 +51,7 @@ final class DocumentWindows {
             guard let self, let controller else { return }
             openPaths[ObjectIdentifier(controller)] = path
             navigation.updateOpenFiles(controllers.compactMap { openPaths[ObjectIdentifier($0)] })
-            if let path { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
+            if let path, !verifying { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
         }
         controller.onOpenDocumentLink = { [weak self] path, anchor in Task { await self?.open(path: path, anchor: anchor) } }
         let useTabs = tabOrigin != nil || NSWindow.userTabbingPreference == .always
@@ -66,7 +66,7 @@ final class DocumentWindows {
                     }
                     controller.showWindow(nil); controller.window?.makeKeyAndOrderFront(nil)
                     if controller.isActiveDocument && !controller.quickOpen.visible { _ = try await controller.bridge.call("focusEditor"); controller.window?.makeFirstResponder(controller.webView) }
-                    if let path { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
+                    if let path, self?.verifying == false { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
                     if let line = controller.pendingNavigationLine { _ = try await controller.bridge.call("navigateLine", arguments: [line]); controller.pendingNavigationLine = nil }
                     if let anchor = controller.pendingNavigationAnchor { _ = try await controller.bridge.call("navigateAnchor", arguments: [anchor]); controller.pendingNavigationAnchor = nil }
                 } catch {
@@ -76,6 +76,13 @@ final class DocumentWindows {
                     } else { controller.showWindow(nil); controller.showError(userFacingError(error)) }
                 }
             }
+        }
+        if filePreview != nil {
+            if useTabs, let old = origin?.window, let next = controller.window {
+                next.setFrame(old.frame, display: false); old.addTabbedWindow(next, ordered: .above); next.tabGroup?.selectedWindow = next
+            }
+            controller.showFilePreview()
+            return controller
         }
         // The first visible frame already contains the configured editor page.
         // Loading and wallpaper preparation happen before window/tab presentation.
@@ -88,6 +95,21 @@ final class DocumentWindows {
             pending.pendingNavigationLine = line; pending.pendingNavigationAnchor = anchor; return
         }
         do {
+            if NativeFilePreview.accepts(path) {
+                let resolved = URL(fileURLWithPath: path).standardizedFileURL.resolvingSymlinksInPath()
+                if let existing = controllers.first(where: { $0.filePreview?.url.resolvingSymlinksInPath() == resolved }) {
+                    existing.window?.tabGroup?.selectedWindow = existing.window
+                    existing.showWindow(nil); existing.window?.makeKeyAndOrderFront(nil)
+                    await navigation.noteFile(existing.filePreview!.url.path)
+                } else {
+                    let preview = try NativeFilePreview(url: resolved)
+                    let canonical = await navigation.noteFile(resolved.path) ?? resolved.path
+                    preview.bindCanonicalURL(URL(fileURLWithPath: canonical))
+                    create(path: canonical, tabOrigin: origin, filePreview: preview)
+                }
+                if !verifying { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
+                return
+            }
             try await backend.perform { try $0.validateDocumentFile(path: path) }
             if let session = try await backend.perform({ try $0.fileSession(path: path) }),
                let existing = controllers.first(where: { $0.documents.sessionId == session }) {
@@ -134,8 +156,8 @@ final class DocumentWindows {
         guard !quitting else { return false }
         quitting = true
         defer { quitting = false }
-        let targets = controllers.filter { !$0.documents.closed }
-        var paths: [String] = []
+        let targets = controllers.filter { !$0.isPreviewing && !$0.documents.closed }
+        var paths = controllers.compactMap { $0.filePreview?.url.path }
         let closed = await closeDocumentGroup(targets.map { $0.documents! }) {
             // Save decisions may bind previously untitled documents. Capture
             // restoration paths after preparation, while all views are frozen.

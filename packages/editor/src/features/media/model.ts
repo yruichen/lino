@@ -5,7 +5,7 @@ import { codeBlockFromNode, codeContents } from '../code/model.ts';
 import { MAX_PREVIEW_TEXT } from '../../renderers/previews.ts';
 import { markdownUnescape as unescape, markdownDestination as destination, linkDefinitions as references, referenceKey, escapedLabel, escapedDestination, escapedTitle } from '../markdown/urls.ts';
 
-export interface PreviewSource { kind: 'image' | 'math' | 'diagram'; from: number; to: number; block: boolean; text: string; tooLarge?: boolean; alt?: string; title?: string; reference?: boolean }
+export interface PreviewSource { kind: 'image' | 'math' | 'diagram'; from: number; to: number; block: boolean; text: string; tooLarge?: boolean; alt?: string; title?: string; caption?: string; reference?: boolean }
 type Node = ReturnType<typeof syntaxTree>['topNode'];
 export function sourceNode(state: EditorState, node: Node, refs?: ReturnType<typeof references>): PreviewSource | undefined {
   if (node.name === 'InlineMath' || node.name === 'MathBlock') {
@@ -26,11 +26,12 @@ export function sourceNode(state: EditorState, node: Node, refs?: ReturnType<typ
   const marks = node.getChildren('LinkMark'), url = node.getChild('URL'), label = node.getChild('LinkLabel'), title = node.getChild('LinkTitle');
   const closing = marks.find(mark => state.sliceDoc(mark.from, mark.to) === ']');
   if (!closing) return undefined;
-  const alt = unescape(state.sliceDoc(node.from + 2, closing.from));
+  const altSource = state.sliceDoc(node.from + 2, closing.from), alt = unescape(altSource);
   const ref = url ? undefined : (refs ?? references(state)).get(referenceKey(label ? state.sliceDoc(label.from + 1, label.to - 1) : alt));
   const text = url ? destination(state.sliceDoc(url.from, url.to)) : ref?.url;
   if (text === undefined) return undefined;
-  return { kind: 'image', from: node.from, to: node.to, block: false, text, alt, title: title ? unescape(state.sliceDoc(title.from + 1, title.to - 1)) : ref?.title, reference: !url };
+  const titleSource = title ? state.sliceDoc(title.from + 1, title.to - 1) : ref?.titleSource;
+  return { kind: 'image', from: node.from, to: node.to, block: false, text, alt, title: titleSource === undefined ? undefined : unescape(titleSource), caption: titleSource || altSource, reference: !url };
 }
 export function previewSources(state: EditorState): PreviewSource[] {
   const items: PreviewSource[] = [], refs = references(state);

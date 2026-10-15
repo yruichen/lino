@@ -14,7 +14,7 @@ class LanguageWidget extends WidgetType {
   constructor(bodyFrom: number, language: string, label: string, plain: string) { super(); this.bodyFrom = bodyFrom; this.language = language; this.label = label; this.plain = plain; }
   override eq(other: LanguageWidget): boolean { return this.bodyFrom === other.bodyFrom && this.language === other.language && this.label === other.label && this.plain === other.plain; }
   override toDOM(view: EditorView): HTMLElement {
-    const anchor = document.createElement('div'); anchor.className = 'ot-code-language-anchor';
+    const anchor = document.createElement('div'); anchor.className = 'ot-code-language-anchor'; anchor.dataset.codeBodyFrom = String(this.bodyFrom);
     const button = anchor.appendChild(document.createElement('button')); button.type = 'button'; button.className = 'ot-code-language';
     button.textContent = this.language || this.plain; button.setAttribute('aria-label', this.label);
     button.addEventListener('click', () => {

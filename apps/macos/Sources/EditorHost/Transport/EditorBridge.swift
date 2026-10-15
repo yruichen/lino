@@ -17,7 +17,7 @@ final class EditorBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate
     var sessionId: String?
     var onAssetOperation: ((String, String, String, String?, String?) -> Void)?
     var onImageDrop: (([String], Double, Double) -> Void)?
-    var onContextMenu: ((String, Double, Double) -> Void)?
+    var onContextMenu: ((String, Double, Double, Double?) -> Void)?
 
     func beginNavigation(viewportWidth: CGFloat) {
         generation += 1
@@ -55,7 +55,9 @@ final class EditorBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate
             if let status = body["status"] as? [String: Any] { onStatus?(status) }
         case "context-menu":
             guard let context = body["context"] as? String, let x = body["x"] as? Double, let y = body["y"] as? Double, x.isFinite, y.isFinite else { return }
-            onContextMenu?(context, x, y)
+            let scale = body["imageScale"] as? Double
+            if let scale, !scale.isFinite || !(0.25...2).contains(scale) { return }
+            onContextMenu?(context, x, y, scale)
         case "clipboard-write":
             guard let id = body["requestId"] as? String,
                   let text = body["text"] as? String,

@@ -1,4 +1,5 @@
-import { type Language, StreamLanguage } from '@codemirror/language';
+import { languages } from '@codemirror/language-data';
+import { type Language, LanguageDescription, StreamLanguage } from '@codemirror/language';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import { rust } from '@codemirror/lang-rust';
@@ -34,7 +35,25 @@ export const isPlainCode = (name: string): boolean => !name || ['text', 'txt', '
 export function languageForCode(info: string): Language | null {
   const name = info.trim().split(/\s+/, 1)[0].toLowerCase();
   const entry = codeLanguages.find(item => item.id === name || item.aliases.includes(name));
-  if (!entry) return null;
+  if (!entry) return extraLanguage(info)?.support?.language ?? null;
   if (!cache.has(entry.id)) cache.set(entry.id, entry.create());
   return cache.get(entry.id)!;
 }
+
+function extraLanguage(info: string): LanguageDescription | null {
+  return LanguageDescription.matchLanguageName(languages, info.trim().split(/\s+/, 1)[0], false);
+}
+export function codeLanguageForMarkdown(info: string): Language | LanguageDescription | null {
+  return languageForCode(info) ?? extraLanguage(info);
+}
+export async function loadCodeLanguage(info: string): Promise<Language | null> {
+  const existing = languageForCode(info); if (existing) return existing;
+  return (await extraLanguage(info)?.load())?.language ?? null;
+}
+export const codeLanguageChoices = [
+  { id: 'text', name: 'Plain text', aliases: ['txt', 'plaintext'] },
+  ...codeLanguages,
+  ...languages.filter(language => !codeLanguages.some(existing => existing.id === language.name.toLowerCase() || language.alias.includes(existing.id)))
+    .map(language => ({ id: language.alias[0] ?? language.name.toLowerCase(), name: language.name, aliases: language.alias })),
+  { id: 'mermaid', name: 'Mermaid', aliases: [] },
+];

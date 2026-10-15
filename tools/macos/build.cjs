@@ -61,7 +61,7 @@ for (const entry of fs.readdirSync(nativeResources)) {
 require('./icon.cjs').writeAppIcon(path.join(root, 'assets/brand/lino.png'), path.join(contents, 'Resources/AppIcon.icns'));
 require('./licenses.cjs').writeLicenses(root, path.join(contents, 'Resources/Licenses'));
 const sources = fs.readdirSync(path.join(root, 'apps/macos/Sources'), { recursive: true }).filter(file => file.endsWith('.swift')).sort().map(file => path.join(root, 'apps/macos/Sources', file));
-run('xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', '-O', '-target', `${process.arch === 'arm64' ? 'arm64' : 'x86_64'}-apple-macosx14.0`, '-framework', 'AppKit', '-framework', 'WebKit', '-I', generated, '-Xcc', `-fmodule-map-file=${path.join(generated, 'lino_ffiFFI.modulemap')}`, path.join(generated, 'lino_ffi.swift'), path.join(rustBuild, 'release/liblino_ffi.a'), ...sources, '-o', path.join(contents, 'MacOS/Lino')]);
+run('xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', '-O', '-target', `${process.arch === 'arm64' ? 'arm64' : 'x86_64'}-apple-macosx14.0`, '-framework', 'AppKit', '-framework', 'WebKit', '-framework', 'PDFKit', '-I', generated, '-Xcc', `-fmodule-map-file=${path.join(generated, 'lino_ffiFFI.modulemap')}`, path.join(generated, 'lino_ffi.swift'), path.join(rustBuild, 'release/liblino_ffi.a'), ...sources, '-o', path.join(contents, 'MacOS/Lino')]);
 fs.writeFileSync(path.join(contents, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>

@@ -10,8 +10,9 @@ import { imageScale, imageSizes, mediaContextChanged, mediaHost } from './state.
 import { previewSources, type PreviewSource } from './model.ts';
 import { componentMenu } from '../../controls/components.ts';
 import { presentationSelection, presentationSelectionChanged } from '../../controls/pointer.ts';
+import { presentInline } from '../markdown/inline-reading.ts';
 
-const bindings = new WeakMap<HTMLElement, { widget: PreviewWidget; view: EditorView; abort: AbortController; refresh(): void; cancel(): void; result?: RenderResult }>();
+const bindings = new WeakMap<HTMLElement, { widget: PreviewWidget; view: EditorView; abort: AbortController; refresh(): void; cancel(): void; cancelCaption?: () => void; result?: RenderResult }>();
 const nodes = new WeakMap<EditorView, Set<HTMLElement>>();
 type LabelKey = Exclude<Extract<MessageKey, `media.${string}`>, 'media.failed' | 'media.orphan'>;
 export function selectedPreview(view: EditorView, command: 'refresh' | 'cancel'): boolean {
@@ -28,13 +29,25 @@ export function currentPreviewResult(view: EditorView, from: number): RenderResu
   return undefined;
 }
 class PreviewWidget extends WidgetType {
+  readonly geometry: { height: number };
   readonly source: PreviewSource; readonly raw: string; readonly dark: boolean; readonly locale: Locale; readonly context: number; readonly scale: number;
-  constructor(source: PreviewSource, raw: string, dark: boolean, locale: Locale, context: number, scale: number) { super(); this.source = source; this.raw = raw; this.dark = dark; this.locale = locale; this.context = context; this.scale = scale; }
+  constructor(source: PreviewSource, raw: string, dark: boolean, locale: Locale, context: number, scale: number, previous?: PreviewWidget) {
+    super(); this.source = source; this.raw = raw; this.dark = dark; this.locale = locale; this.context = context; this.scale = scale;
+    this.geometry = previous && previous.raw === raw && previous.dark === dark && previous.scale === scale && previous.context === context
+      ? previous.geometry : { height: -1 };
+  }
+  override get estimatedHeight(): number { return this.geometry.height; }
   override eq(other: PreviewWidget): boolean { return this.source.from === other.source.from && this.source.to === other.source.to && this.raw === other.raw && this.dark === other.dark && this.locale === other.locale && this.context === other.context && this.scale === other.scale; }
   override updateDOM(dom: HTMLElement): boolean {
     const binding = bindings.get(dom), previous = binding?.widget;
-    if (!binding || !previous || this.raw !== previous.raw || this.source.kind !== previous.source.kind || this.source.block !== previous.source.block || this.dark !== previous.dark || this.locale !== previous.locale || this.context !== previous.context || this.scale !== previous.scale) return false;
+    if (!binding || !previous || this.raw !== previous.raw || this.source.kind !== previous.source.kind || this.source.block !== previous.source.block || this.dark !== previous.dark || this.locale !== previous.locale || (this.source.kind === 'image' && this.context !== previous.context)) return false;
     binding.widget = this;
+    if (this.source.kind === 'image') {
+      const image = dom.querySelector('img');
+      if (image?.naturalWidth) image.style.width = `${image.naturalWidth * this.scale}px`;
+      dom.dataset.imageScale = String(this.scale);
+      binding.view.requestMeasure();
+    }
     dom.dataset.previewFrom = String(this.source.from); dom.dataset.previewTo = String(this.source.to);
     return true;
   }
@@ -75,8 +88,22 @@ class PreviewWidget extends WidgetType {
       event.preventDefault(); edit();
     });
     root.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.isComposing) { event.preventDefault(); edit(); } });
-    root.addEventListener('contextmenu', event => { edit(); componentMenu(view, binding.widget.source.kind, event); });
-    const binding = { widget: this, view, abort: new AbortController(), refresh: () => {}, cancel: () => {}, result: undefined as RenderResult | undefined };
+    root.addEventListener('contextmenu', event => { edit(); componentMenu(view, binding.widget.source.kind, event, binding.widget.source.kind === 'image' ? binding.widget.scale : undefined); });
+    const binding = { widget: this, view, abort: new AbortController(), refresh: () => {}, cancel: () => {}, cancelCaption: undefined as (() => void) | undefined, result: undefined as RenderResult | undefined };
+    const rememberSize = () => view.requestMeasure({ key: root,
+      read: () => root.isConnected ? root.getBoundingClientRect().height / view.scaleY : -1,
+      write: height => { if (height > 0) binding.widget.geometry.height = height; },
+    });
+    const input = source.kind === 'image' ? undefined : { kind: source.kind, text: source.text, block: source.block, dark: this.dark };
+    const applyResult = (result: RenderResult, controller: AbortController) => {
+      // Commit in CM's write phase, after it has captured the old layout's
+      // reading anchor. Mutating before that measurement loses the anchor.
+      view.requestMeasure({ key: binding, read: () => undefined, write: () => {
+        if (!alive() || controller.signal.aborted) return;
+        binding.result = result; content.innerHTML = result.html; root.dataset.previewState = 'ready'; status.textContent = '';
+        rememberSize();
+      } });
+    };
     const render = (fresh = false) => {
       binding.abort.abort(); binding.abort = new AbortController(); binding.result = undefined; root.dataset.previewState = 'loading'; status.textContent = say(source.kind === 'image' ? 'media.loadingImage' : 'media.loading'); content.replaceChildren();
       if (source.kind === 'image') {
@@ -85,8 +112,8 @@ class PreviewWidget extends WidgetType {
         image.addEventListener('load', () => {
           if (!alive() || controller.signal.aborted) return;
           if (image.naturalWidth * image.naturalHeight > 64_000_000) { image.removeAttribute('src'); report(new PreviewError('limit')); return; }
-          if (this.scale !== 1 && image.naturalWidth) image.style.width = `${image.naturalWidth * this.scale}px`;
-          root.dataset.previewState = 'ready'; status.textContent = ''; view.requestMeasure();
+          if (image.naturalWidth) image.style.width = `${image.naturalWidth * binding.widget.scale}px`;
+          root.dataset.previewState = 'ready'; status.textContent = ''; rememberSize();
         });
         image.addEventListener('error', () => { if (!controller.signal.aborted) report(new Error(`${say('media.imageFailed')} ${source.text}`)); });
         const start = () => {
@@ -108,9 +135,9 @@ class PreviewWidget extends WidgetType {
       }
       const controller = binding.abort;
       if (source.tooLarge) { report(new PreviewError('limit')); return; }
-      void previewRenderer.request({ kind: source.kind, text: source.text, block: source.block, dark: this.dark }, controller.signal).then(result => {
+      void previewRenderer.request(input!, controller.signal).then(result => {
         if (!alive() || controller.signal.aborted) return;
-        binding.result = result; content.innerHTML = result.html; root.dataset.previewState = 'ready'; status.textContent = ''; view.requestMeasure();
+        applyResult(result, controller);
       }, error => { if (!controller.signal.aborted) report(error); });
     };
     binding.refresh = () => render(true);
@@ -118,25 +145,36 @@ class PreviewWidget extends WidgetType {
     bindings.set(root, binding); const set = nodes.get(view) ?? new Set<HTMLElement>(); set.add(root); nodes.set(view, set);
     if (source.kind === 'image') {
       root.dataset.imageScale = String(this.scale);
+      const caption = root.appendChild(document.createElement('span'));
+      caption.className = 'ot-image-caption'; binding.cancelCaption = presentInline(caption, source.caption ?? '', this.dark, rememberSize);
     }
     // toDOM runs before insertion. Start in a microtask so async callbacks can
     // verify the mounted widget; no timer controls document state.
-    queueMicrotask(() => { if (alive()) render(); }); return root;
+    let cached: RenderResult | undefined;
+    try { cached = input && !source.tooLarge ? previewRenderer.cached(input) ?? previewRenderer.immediate(input) : undefined; }
+    catch (error) { queueMicrotask(() => report(error)); return root; }
+    if (cached) {
+      binding.result = cached; content.innerHTML = cached.html; root.dataset.previewState = 'ready';
+      queueMicrotask(() => { if (alive()) rememberSize(); });
+    } else queueMicrotask(() => { if (alive()) render(); });
+    return root;
   }
-  override destroy(dom: HTMLElement): void { const binding = bindings.get(dom); binding?.abort.abort(); if (binding) nodes.get(binding.view)?.delete(dom); bindings.delete(dom); }
+  override destroy(dom: HTMLElement): void { const binding = bindings.get(dom); binding?.abort.abort(); binding?.cancelCaption?.(); if (binding) nodes.get(binding.view)?.delete(dom); bindings.delete(dom); }
   override ignoreEvent(): boolean { return true; }
 }
-interface Previews { decorations: DecorationSet; context: number; sources: readonly PreviewSource[] }
-function build(state: import('@codemirror/state').EditorState, context: number, sources: readonly PreviewSource[] = previewSources(state)): Previews {
-  if (state.field(modeState) === 'source') return { decorations: Decoration.none, context, sources };
+interface Previews { decorations: DecorationSet; context: number; sources: readonly PreviewSource[]; widgets: ReadonlyMap<number, PreviewWidget> }
+function build(state: import('@codemirror/state').EditorState, context: number, sources: readonly PreviewSource[] = previewSources(state), previous?: ReadonlyMap<number, PreviewWidget>): Previews {
+  const widgets = new Map<number, PreviewWidget>();
+  if (state.field(modeState) === 'source') return { decorations: Decoration.none, context, sources, widgets };
   const ranges: ReturnType<Decoration['range']>[] = [];
   for (const source of sources) {
     const active = presentationSelection(state).ranges.some(range => range.from <= source.to && range.to >= source.from);
-    const widget = new PreviewWidget(source, state.sliceDoc(source.from, Math.min(source.to, source.from + MAX_PREVIEW_TEXT + 2)), state.facet(EditorView.darkTheme), state.facet(localeFacet), context, state.field(imageSizes, false)?.get(source.from)?.scale ?? 1);
+    const widget = new PreviewWidget(source, state.sliceDoc(source.from, Math.min(source.to, source.from + MAX_PREVIEW_TEXT + 2)), state.facet(EditorView.darkTheme), state.facet(localeFacet), context, state.field(imageSizes, false)?.get(source.from)?.scale ?? 1, previous?.get(source.from));
+    widgets.set(source.from, widget);
     if (active) ranges.push(Decoration.widget({ widget, block: source.block, side: 1 }).range(source.to));
     else ranges.push(Decoration.replace({ widget, block: source.block }).range(source.from, source.to));
   }
-  return { decorations: Decoration.set(ranges, true), context, sources };
+  return { decorations: Decoration.set(ranges, true), context, sources, widgets };
 }
 export const mediaPresentation = StateField.define<Previews>({
   create: state => build(state, 0),
@@ -146,7 +184,10 @@ export const mediaPresentation = StateField.define<Previews>({
     if (tr.docChanged || presentationSelectionChanged(tr.startState, tr.state) || tr.effects.some(effect => effect.is(imageScale)) || context !== value.context || tr.startState.field(modeState) !== tr.state.field(modeState)
       || tr.startState.field(compositionState) !== tr.state.field(compositionState) || tr.startState.facet(localeFacet) !== tr.state.facet(localeFacet)
       || tr.startState.facet(EditorView.darkTheme) !== tr.state.facet(EditorView.darkTheme)
-      || syntaxChanged) return build(tr.state, context, syntaxChanged ? previewSources(tr.state) : value.sources);
+      || syntaxChanged) {
+      const previous = tr.docChanged ? new Map([...value.widgets].map(([from, widget]) => [tr.changes.mapPos(from, 1), widget])) : value.widgets;
+      return build(tr.state, context, syntaxChanged ? previewSources(tr.state) : value.sources, previous);
+    }
     return value;
   }, provide: field => EditorView.decorations.from(field, value => value.decorations),
 });

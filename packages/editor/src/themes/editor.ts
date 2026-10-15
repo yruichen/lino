@@ -26,8 +26,8 @@ export function themeConfiguration(dark: boolean): Extension {
       '&': { color: 'var(--ot-text)', backgroundColor: 'var(--ot-background)' },
       // Layout belongs to the editor theme, which has precedence over CM's
       // base theme. A bare .cm-content stylesheet rule loses to .ͼ1 .cm-content.
-      '.cm-scroller': { fontFamily: 'inherit', lineHeight: 'inherit', justifyContent: 'center' },
-      '.cm-content': {
+      '& > .cm-scroller': { fontFamily: 'inherit', lineHeight: 'inherit', justifyContent: 'center' },
+      '& > .cm-scroller > .cm-content': {
         caretColor: 'var(--ot-caret)', width: '100%', maxWidth: 'var(--ot-reading-width)',
         minWidth: '0', flexGrow: '0', flexShrink: '1', margin: '0 auto',
         padding: '32px clamp(24px, 4vw, 56px) 120px', boxSizing: 'border-box',
