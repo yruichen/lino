@@ -31,6 +31,8 @@ final class NavigationObserver: WorkspaceListener, @unchecked Sendable {
 /// serialized here; Rust owns revisions, validation, storage and search indexes.
 @MainActor
 final class NavigationCoordinator {
+    let sidebar = SidebarPresentation()
+    lazy var contentSearch = NavigationContentSearch(backend: backend)
     let backend: DocumentBackend
     private(set) var snapshot: NavigationSnapshot?
     private(set) var services: [String: WorkspaceService] = [:]
@@ -48,6 +50,7 @@ final class NavigationCoordinator {
     func removeObserver(_ id: UUID) { listeners.removeValue(forKey: id) }
     private func publish(_ root: String? = nil) { for listener in Array(listeners.values) { listener(root) } }
     func configure(verifying: Bool) async throws {
+        sidebar.configure(verifying: verifying)
         let directory: URL
         if verifying {
             directory = FileManager.default.temporaryDirectory.appendingPathComponent("lino-navigation-\(UUID().uuidString)")
@@ -93,10 +96,16 @@ final class NavigationCoordinator {
             return values.locations.contains(canonical) ? canonical : nil
         } catch { onError?(userFacingError(error)); return nil }
     }
-    func noteFile(_ path: String) async {
+    @discardableResult
+    func noteFile(_ path: String) async -> String? {
+        var canonical: String?
         await enqueue { [self] in
-            snapshot = try decode(await backend.perform { try $0.noteNavigationFile(path: path) }); publish()
+            let next = try decode(await backend.perform { try $0.noteNavigationFile(path: path) })
+            canonical = next.recent.first
+            let changed = next.revision != snapshot?.revision
+            snapshot = next; if changed { publish() }
         }
+        return canonical
     }
     func updateOpenFiles(_ paths: [String]) { if paths != openFiles { openFiles = paths; publish() } }
     private func reconcileServices() async {
@@ -131,6 +140,7 @@ final class NavigationCoordinator {
     }
     func refresh() async { await reconcileServices(); try? await backend.perform { $0.invalidateNavigation() }; publish("") }
     func detach() {
+        contentSearch.cancel()
         for task in directoryUpdates.values { task.cancel() }
         for service in services.values { Task.detached { service.unwatch() } }
         services.removeAll(); watchers.removeAll(); listeners.removeAll()

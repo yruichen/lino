@@ -18,7 +18,7 @@ test('fixed HTML renders structure, shared images, footnotes, TOC, actual math a
   assert.equal(doc.title, '测试.md'); assert(doc.querySelector('h1#标题')); assert.equal(doc.querySelector('.contents a')?.getAttribute('href'), '#标题');
   assert(doc.querySelector('mark strong')); assert.equal(doc.querySelector('mark sup')?.textContent, '上标'); assert(doc.querySelector('mark math')); assert(doc.querySelector('sub'));
   assert.equal(doc.querySelectorAll('input[type=checkbox]').length, 2); assert.equal(doc.querySelectorAll('input[checked]').length, 1);
-  assert(doc.querySelector('table')); assert.equal(doc.querySelector('img')?.getAttribute('src'), svg);
+  assert(doc.querySelector('table')); assert.equal(doc.querySelector('img')?.getAttribute('src'), svg); assert.equal(doc.querySelector('.image-caption')?.textContent, 'Title');
   assert.equal(doc.querySelector('.footnote-item p')?.textContent?.includes('First note'), true); assert(!doc.body.textContent!.includes('Ignored duplicate'));
   assert(!doc.body.textContent!.includes('title: hidden')); assert.equal(doc.querySelectorAll('script').length, 0);
   assert(doc.querySelector('pre code')?.textContent!.includes('$literal$')); assert(doc.querySelector('pre .tok-keyword'));
@@ -53,4 +53,40 @@ test('export keeps the selected palette, font and table formatting in both appea
     assert.equal(doc.querySelector('td strong')!.textContent, 'Ours'); assert.equal(doc.querySelector('td u')!.textContent, '37.5');
     assert(html.includes('print-color-adjust:exact'));
   }
+});
+
+
+test('export captures captions, image sizes, reading width and an embedded backdrop', async () => {
+  const text = 'before ![Alt](a.png "Caption") after', from = text.indexOf('![');
+  const plan = new ExportPlan(source(text), undefined, { fontSize: 21, contentWidth: 760, padding: 24, imageScales: new Map([[from, .8]]) });
+  const data = 'data:image/png;base64,AAAA';
+  const html = await plan.render({ 'a.png': data }, '', data, { 'a.png': 400 });
+  const doc = new fixture.dom.window.DOMParser().parseFromString(html, 'text/html');
+  assert.equal(doc.querySelector('.image-caption')?.textContent, 'Caption');
+  assert.equal(doc.querySelector('.export-image img')?.getAttribute('style'), 'width:320px');
+  assert(html.includes('font-size:21px')); assert(html.includes('max-width:760px'));
+  assert(html.includes('data:image/png;base64,AAAA')); assert.equal(doc.querySelectorAll('script').length, 0);
+  assert.equal(plan.source.text, text);
+});
+
+test('official language catalogue highlights additional languages during export', async () => {
+  const html = await new ExportPlan(source('```swift\nlet message = "hello"\n```')).render({});
+  assert.match(html, /tok-keyword/); assert.match(html, /tok-string/);
+});
+
+test('captions export the same Markdown, escaped literals and actual inline math even when the only formula is in a caption', async () => {
+  const caption = '**bold** *italic* ~~deleted~~ `code` \\*literal\\* <u>underlined</u> $x^2$ ![nested](https://example.invalid/image.png) <script>alert(1)</script>';
+  const raw = `![alt](a.png "${caption}")\n\n![**fallback**](b.png)\n\n![reference][pic]\n\n[pic]: c.png "**Reference caption**"`;
+  const plan = new ExportPlan(source(raw), new PreviewRenderer(math));
+  assert.deepEqual(plan.images, ['a.png', 'b.png', 'c.png']);
+  const data = 'data:image/png;base64,AAAA';
+  const html = await plan.render({ 'a.png': data, 'b.png': data, 'c.png': data }, '/* caption-only-math-style */');
+  const doc = new fixture.dom.window.DOMParser().parseFromString(html, 'text/html'), captions = doc.querySelectorAll('.image-caption'), first = captions[0];
+  assert.equal(first.querySelector('strong')?.textContent, 'bold'); assert.equal(first.querySelector('em')?.textContent, 'italic');
+  assert.equal(first.querySelector('s')?.textContent, 'deleted'); assert.equal(first.querySelector('code')?.textContent, 'code');
+  assert.equal(first.querySelector('u')?.textContent, 'underlined'); assert(first.querySelector('.katex math'));
+  assert(first.textContent?.includes('*literal*')); assert.equal(first.querySelectorAll('img,script').length, 0);
+  assert.equal(captions[1].querySelector('strong')?.textContent, 'fallback');
+  assert.equal(captions[2].querySelector('strong')?.textContent, 'Reference caption');
+  assert(html.includes('caption-only-math-style')); assert.equal(plan.source.text, raw);
 });

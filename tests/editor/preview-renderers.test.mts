@@ -28,6 +28,17 @@ test('preview queue serializes renderer config, rejects saturation and never cac
   await queue.request(input('a', true), new AbortController().signal); assert.equal(calls, old + 2);
   await assert.rejects(queue.request(input('x'.repeat(50_001)), new AbortController().signal));
 });
+test('scrolling through more than 32 small formulas retains synchronous cached markup within the memory budget', async () => {
+  let calls = 0;
+  const renderer = new PreviewRenderer(async value => { calls++; return { html: `<span>${value.text}</span>` }; });
+  for (let index = 0; index < 80; index++) await renderer.request(input(`x_${index}`), new AbortController().signal);
+  assert.equal(renderer.cached(input('x_0'))?.html, '<span>x_0</span>');
+  await renderer.request(input('x_0'), new AbortController().signal); assert.equal(calls, 80);
+  const bounded = new PreviewRenderer(async () => ({ html: 'x'.repeat(3 * 1024 * 1024) }));
+  await bounded.request(input('first'), new AbortController().signal);
+  await bounded.request(input('second'), new AbortController().signal);
+  assert.equal(bounded.cached(input('first')), undefined); assert(bounded.cached(input('second')));
+});
 test('real Mermaid renders SVG for flow and sequence, strips navigation and cleans up errors (synthetic geometry only)', async () => {
   const win = fixture.dom.window;
   for (const name of ['DOMParser', 'XMLSerializer', 'SVGElement', 'SVGSVGElement', 'DocumentFragment', 'CSSStyleSheet', 'getComputedStyle'] as const) {

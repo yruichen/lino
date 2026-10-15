@@ -1,3 +1,4 @@
+import { EditorView } from '@codemirror/view';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { setupDOM, settleDOM } from './dom.mts';
@@ -32,12 +33,14 @@ test('code language control changes actual Markdown, preserves a draft across lo
     e.select(e.view.state.doc.toString().indexOf('const'));
     assert.equal(mount.querySelector('.ot-code-tools'), null);
     mount.querySelector<HTMLButtonElement>('.ot-code-language')!.click();
-    let input = mount.querySelector<HTMLInputElement>('input[name=code-language]')!;
-    assert(input); input.focus(); input.value = 'python'; input.setSelectionRange(2, 4); input.dispatchEvent(new Event('input', { bubbles: true }));
+    let input = mount.querySelector<HTMLElement>('[data-code-language-input]')!;
+    assert(input); const picker = EditorView.findFromDOM(input)!; picker.focus(); picker.dispatch({ changes: { from: 0, to: picker.state.doc.length, insert: 'python' }, selection: { anchor: 2, head: 4 } });
+    assert.equal(getComputedStyle(picker.contentDOM).paddingBottom, '5px');
+    assert.equal(getComputedStyle(e.view.contentDOM).paddingBottom, '120px');
     setLocale('zh-Hans'); await settleDOM();
-    input = mount.querySelector<HTMLInputElement>('input[name=code-language]')!;
-    assert.equal(input.value, 'python'); assert.equal(e.read(), '```js title\nconst x = 1;\n```');
-    assert.equal(document.activeElement, input); assert.equal(input.selectionStart, 2); assert.equal(input.selectionEnd, 4);
+    input = mount.querySelector<HTMLElement>('[data-code-language-input]')!;
+    assert.equal(picker.state.doc.toString(), 'python'); assert.equal(e.read(), '```js title\nconst x = 1;\n```');
+    assert.equal(document.activeElement, input); assert.equal(picker.state.selection.main.from, 2); assert.equal(picker.state.selection.main.to, 4);
     assert.equal(undoDepth(e.view.state), 0);
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     assert.equal(e.read(), '```python title\nconst x = 1;\n```');
@@ -66,14 +69,15 @@ test('copy failure is observable, and native indentation cannot edit behind an a
   try {
     e.select(6);
     e.command('code-language');
-    const input = mount.querySelector<HTMLInputElement>('input[name=code-language]')!;
+    const input = mount.querySelector<HTMLElement>('[data-code-language-input]')!;
     input.focus(); assert.equal(e.command('code-indent'), false); assert.equal(e.read(), '```js\na\n```');
     assert(e.command('code-copy')); await settleDOM();
     assert(mount.querySelector('.ot-code-tools output')!.textContent!.includes('fixture clipboard failure'));
-    input.value = 'bad\nlanguage'; input.dispatchEvent(new Event('input', { bubbles: true }));
-    // Text inputs strip newlines. Spaces still cannot inject another info token.
-    input.value = 'bad language'; input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.form!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    const picker = EditorView.findFromDOM(input)!;
+    picker.dispatch({ changes: { from: 0, to: picker.state.doc.length, insert: 'bad\nlanguage' } });
+    assert.equal(picker.state.doc.toString(), 'js');
+    picker.dispatch({ changes: { from: 0, to: picker.state.doc.length, insert: 'bad language' } });
+    input.closest('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     assert.equal(e.read(), '```js\na\n```'); assert.equal(undoDepth(e.view.state), 0);
   } finally { e.destroy(); mount.remove(); }
 });

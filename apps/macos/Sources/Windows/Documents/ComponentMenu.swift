@@ -1,7 +1,7 @@
 import AppKit
 
 extension EditorWindowController {
-    func showComponentMenu(_ context: String, x: Double, y: Double) {
+    func showComponentMenu(_ context: String, x: Double, y: Double, imageScale: Double? = nil) {
         guard documents.ready, isActiveDocument, x >= 0, y >= 0, x <= webView.bounds.width, y <= webView.bounds.height else { return }
         let commands: [String]
         switch context {
@@ -22,6 +22,10 @@ extension EditorWindowController {
         }
         collect(source)
         let menu = NSMenu()
+        if context == "image", let scale = imageScale {
+            let ratio = NSMenuItem(title: localized("format.imageScale", Int((scale * 100).rounded())), action: nil, keyEquivalent: "")
+            ratio.isEnabled = false; menu.addItem(ratio); menu.addItem(.separator())
+        }
         for command in commands {
             if let item = indexed[command]?.copy() as? NSMenuItem { menu.addItem(item) }
         }

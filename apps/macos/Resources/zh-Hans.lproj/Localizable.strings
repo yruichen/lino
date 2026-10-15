@@ -255,7 +255,7 @@
 "workspace.trashTitle" = "将 %@ 移到废纸篓？";
 "workspace.trashDetail" = "可在废纸篓中恢复。";
 "workspace.fileDetails" = "%llu 字节 · 修改时间 %@";
-"settings.adaptiveWidth" = "随窗口伸缩";
+"settings.adaptiveWidth" = "黄金比例（61.8%）";
 "format.textStyle" = "文字样式";
 "format.linkOptions" = "链接操作";
 "format.list" = "列表";
@@ -405,7 +405,7 @@
 "settings.layout" = "写作画布";
 "settings.fixedWidth" = "自定义宽度";
 "settings.fixedWidthValue" = "最大宽度（像素）";
-"settings.widthDetail" = "适应窗口使用主题的阅读宽度，并随窗口缩小。字号以像素为单位，行距为百分比。";
+"settings.widthDetail" = "窄屏沿用主题阅读宽度和左右留白，宽屏最大宽度为正文可用区域的 61.8%，保持居中；也可指定像素上限。字号以像素为单位，行距为百分比。";
 "settings.input" = "输入";
 "settings.code" = "代码块";
 "settings.codeDetail" = "这些选项只调整代码的显示，不修改 Markdown 内容。";
@@ -444,3 +444,11 @@
 "export.imageUnavailable" = "导出时无法读取图片：%@。请确认图片存在且可以打开。";
 
 "settings.preview" = "外观预览";
+
+"preview.readOnly" = "只读预览";
+"preview.smaller" = "缩小";
+"preview.larger" = "放大";
+"preview.fit" = "适合窗口";
+"preview.invalid" = "无法将此文件读取为图片或 PDF。文件可能已损坏或不可用。";
+
+"format.imageScale" = "图片大小：%d%%";

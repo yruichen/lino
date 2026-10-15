@@ -20,7 +20,7 @@
   --ot-keyword: light-dark(#8a2775, #e9a8ef);
   --ot-string: light-dark(#216334, #a2d99a);
   --ot-number: light-dark(#915b17, #f0c18a);
-  --ot-reading-width: 70rem;
+  --ot-reading-width: max(720px, calc(100% / 1.618033988749895));
   background: var(--ot-background); color: var(--ot-text);
 }
 .cm-editor[data-appearance=light] { color-scheme: light; }

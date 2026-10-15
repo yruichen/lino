@@ -8,7 +8,7 @@ use lino_adapters::{
     workspace::{navigation_path, FileWorkspace},
 };
 use lino_application::{
-    navigation::{file_score, supported_document_extension, NavigationPreferences},
+    navigation::{file_score, supported_browsing_extension, NavigationPreferences},
     workspace::WorkspacePort,
 };
 use lino_protocol::{ErrorCode, WireError};
@@ -438,7 +438,7 @@ fn build_index(
             }
             if !Path::new(&entry.name)
                 .extension()
-                .is_some_and(|ext| supported_document_extension(&ext.to_string_lossy()))
+                .is_some_and(|ext| supported_browsing_extension(&ext.to_string_lossy()))
             {
                 continue;
             }

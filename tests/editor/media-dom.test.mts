@@ -160,3 +160,51 @@ test('image drop maps its captured location, imports the actual path, cancels wi
     assert(originalSelection);
   } finally { editor.destroy(); mount.remove(); }
 });
+
+
+test('image captions stay in the document and scale is sent only to the native image menu', async () => {
+  const raw = 'before ![Alt text](assets/a.png "A caption") after';
+  const menus: { imageScale?: number }[] = [];
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, event => { if (event.kind === 'context-menu') menus.push(event); }, () => {}, async () => {}, {
+    imageURL: source => `ot-image://local/image?source=${encodeURIComponent(source)}`, request: async () => null,
+  });
+  try {
+    await settleDOM();
+    const image = mount.querySelector<HTMLImageElement>('.ot-preview-image img')!;
+    Object.defineProperty(image, 'naturalWidth', { value: 400 }); image.dispatchEvent(new Event('load'));
+    assert.equal(mount.querySelector('.ot-image-caption')?.textContent, 'A caption');
+    editor.select(raw.indexOf('Alt')); assert(editor.command('image-smaller')); await settleDOM();
+    assert.equal(mount.querySelector('.ot-preview-image img'), image);
+    assert.equal(image.style.width, '320px'); assert.equal(mount.querySelector('.ot-image-scale'), null);
+    mount.querySelector('.ot-preview-image')!.dispatchEvent(new fixture.dom.window.MouseEvent('contextmenu', { bubbles: true, clientX: 100, clientY: 100 }));
+    assert.equal(menus.at(-1)?.imageScale, .8);
+    assert.equal(editor.read(), raw); assert.equal(undoDepth(editor.view.state), 0);
+  } finally { editor.destroy(); mount.remove(); }
+});
+
+test('image captions render inline Markdown and math from titles, references and alt without changing source or loading nested images', async () => {
+  const math = await import('../../packages/editor/src/renderers/math.ts');
+  const win = fixture.dom.window as unknown as { LinoMath?: typeof math };
+  win.LinoMath = math;
+  const title = '**粗体** *斜体* ~~删除~~ \\*literal\\* <u>下划线</u> $x^2$ `code` [link](https://example.invalid) ![nested](https://example.invalid/a.png) <script>alert(1)</script>';
+  const raw = `before\n\n![Alt](assets/a.png "${title}")\n\n![**备用** *图注*](assets/b.png)\n\n![引用][pic]\n\n[pic]: assets/c.png "**引用标题**"\n\n![\\*literal\\*](assets/d.png)`;
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {}, () => {}, async () => {}, {
+    imageURL: source => `ot-image://local/image?source=${encodeURIComponent(source)}`, request: async () => null,
+  });
+  try {
+    await settleDOM();
+    const captions = mount.querySelectorAll('.ot-image-caption'), first = captions[0];
+    assert.equal(captions.length, 4);
+    assert.equal(first.querySelector('strong')?.textContent, '粗体');
+    assert.equal(first.querySelector('em')?.textContent, '斜体');
+    assert.equal(first.querySelector('s')?.textContent, '删除');
+    assert.equal(first.querySelector('u')?.textContent, '下划线'); assert.equal(first.querySelector('code')?.textContent, 'code');
+    assert(first.querySelector('.katex math')); assert(first.textContent?.includes('*literal*'));
+    assert.equal(first.querySelector('a')?.getAttribute('href'), 'https://example.invalid');
+    assert.equal(first.querySelectorAll('script,img').length, 0);
+    assert.equal(captions[1].querySelector('strong')?.textContent, '备用');
+    assert.equal(captions[2].querySelector('strong')?.textContent, '引用标题');
+    assert.equal(captions[3].textContent, '*literal*'); assert.equal(captions[3].querySelector('em'), null);
+    assert.equal(editor.read(), raw); assert.equal(undoDepth(editor.view.state), 0);
+  } finally { editor.destroy(); mount.remove(); delete win.LinoMath; }
+});

@@ -1,7 +1,7 @@
 import AppKit
 
 /// Native navigation presentation. Directory and mutation semantics stay in Rust;
-/// expansion/scroll/selection are private to this window.
+/// sidebar presentation is shared; headings belong to the active document.
 @MainActor
 final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate, NSMenuDelegate {
     let view = NSStackView()
@@ -38,7 +38,10 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     private var tasks: [String: Task<Void, Never>] = [:]
     private var auxiliaryServices: [String: WorkspaceService] = [:]
     private var contextItem: NavigationItem?
-    private var stateKey: String?
+    private var searchObserver: UUID?
+    private var presentationObserver: UUID?
+    private var applyingPresentation = false
+    private var lastPresentation = SidebarPresentation.Values()
     private var disposed = false
     private var rebuilding = false
     private var applyingExpansion = false
@@ -51,7 +54,6 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     private(set) var showingOutline = false
     var currentRoot: String? {
         if let selectedRoot, navigation.values.locations.contains(selectedRoot) { return selectedRoot }
-        if let currentFile, let root = navigation.values.locations.filter({ currentFile == $0 || currentFile.hasPrefix($0 + "/") }).max(by: { $0.count < $1.count }) { return root }
         return navigation.values.locations.first
     }
     var onOpen: ((String, Int?) -> Void)?
@@ -122,26 +124,48 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         contentSearch.onOpen = { [weak self] path, line in self?.onOpen?(path, line) }
         contentSearch.onClose = { [weak self] in self?.hideContentSearch() }
         observer = navigation.observe { [weak self] root in self?.navigationChanged(root) }
-        scrollObserver = NotificationCenter.default.addObserver(forName: NSScrollView.willStartLiveScrollNotification, object: scroll, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.browsingOutline = true }
+        scroll.contentView.postsBoundsChangedNotifications = true
+        scrollObserver = NotificationCenter.default.addObserver(forName: NSView.boundsDidChangeNotification, object: scroll.contentView, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, !self.applyingPresentation, !self.rebuilding, !self.searching else { return }
+                self.browsingOutline = true
+                self.pageOrigins[self.showingOutline] = self.scroll.contentView.bounds.origin; self.saveWindowState(persist: false)
+            }
         }
+        searchObserver = navigation.contentSearch.observe { [weak self] in
+            guard let self, searching != navigation.contentSearch.active else { return }
+            if navigation.contentSearch.active { presentContentSearch() } else { hideContentSearch() }
+        }
+        applyPresentation(navigation.sidebar.values)
+        presentationObserver = navigation.sidebar.observe { [weak self] value in self?.applyPresentation(value) }
+        if navigation.contentSearch.active { presentContentSearch() }
         relocalize(); rebuild()
     }
-    func restoreWindowState(_ key: String) {
-        guard !verifying else { return }; stateKey = key
-        selectedRoot = UserDefaults.standard.string(forKey: key + ":workspace")
-        expanded = Set(UserDefaults.standard.stringArray(forKey: key + ":expanded") ?? [])
-        collapsedSections = Set(UserDefaults.standard.stringArray(forKey: key + ":collapsedSections") ?? [])
-        showingOutline = UserDefaults.standard.bool(forKey: key + ":outline")
-        switcher.selectedSegment = showingOutline ? 1 : 0; rebuild()
+    private func applyPresentation(_ value: SidebarPresentation.Values) {
+        guard value != lastPresentation else { return }
+        let structureChanged = selectedRoot != value.workspace || expanded != value.expanded || collapsedSections != value.collapsedSections || showingOutline != value.outline
+        let changedPage = showingOutline != value.outline
+        applyingPresentation = true
+        selectedRoot = value.workspace; expanded = value.expanded; collapsedSections = value.collapsedSections
+        showingOutline = value.outline; switcher.selectedSegment = value.outline ? 1 : 0
+        pageOrigins[false] = NSPoint(x: value.filesX, y: value.filesY)
+        pageOrigins[true] = NSPoint(x: value.outlineX, y: value.outlineY)
+        lastPresentation = value
+        if structureChanged { rebuild(); if searching { contentSearch.rebind(root: currentRoot) } }
+        if changedPage { onOutlineVisibility?(showingOutline) }
+        if !searching {
+            scroll.contentView.scroll(to: pageOrigins[showingOutline] ?? .zero)
+            scroll.reflectScrolledClipView(scroll.contentView)
+        }
+        applyingPresentation = false
     }
-    func rebindWindowState(_ key: String) { guard !verifying else { return }; stateKey = key; saveWindowState() }
-    private func saveWindowState() {
-        guard let stateKey, !verifying else { return }
-        UserDefaults.standard.set(selectedRoot, forKey: stateKey + ":workspace")
-        UserDefaults.standard.set(Array(expanded), forKey: stateKey + ":expanded")
-        UserDefaults.standard.set(Array(collapsedSections), forKey: stateKey + ":collapsedSections")
-        UserDefaults.standard.set(showingOutline, forKey: stateKey + ":outline")
+    private func saveWindowState(persist: Bool = true) {
+        guard !applyingPresentation else { return }
+        navigation.sidebar.change(persist: persist) {
+            $0.workspace = selectedRoot; $0.expanded = expanded; $0.collapsedSections = collapsedSections; $0.outline = showingOutline
+            if let origin = pageOrigins[false] { $0.filesX = origin.x; $0.filesY = origin.y }
+            if let origin = pageOrigins[true] { $0.outlineX = origin.x; $0.outlineY = origin.y }
+        }
     }
     func relocalize() {
         switcher.setLabel(localized("navigation.files"), forSegment: 0); switcher.setLabel(localized("writing.outline"), forSegment: 1)
@@ -198,6 +222,7 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         scroll.contentView.scroll(to: pageOrigins[value] ?? .zero); scroll.reflectScrolledClipView(scroll.contentView)
     }
     func setCurrentFile(_ path: String?) {
+        guard currentFile != path else { return }
         currentFile = path; rebuild()
         if navigation.values.follow_active, !showingOutline, let path {
             // Follow only already-visible rows; never reopen a deliberately collapsed tree.
@@ -257,6 +282,12 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     }
     @objc private func continueOutline() { onContinueOutline?() }
     private func navigationChanged(_ root: String?) {
+        // Removing a location revokes its pending listing even when the update
+        // is a configuration publication rather than a directory invalidation.
+        let roots = Set(navigation.values.locations + navigation.values.favorites)
+        for id in Array(tasks.keys) {
+            if let owner = nodes[id]?.root, !roots.contains(owner) { tasks.removeValue(forKey: id)?.cancel() }
+        }
         if let root {
             for node in nodes.values where root.isEmpty || node.root == root { node.loaded = false; node.loading = false; node.children = [] }
             for task in tasks.values { task.cancel() }; tasks.removeAll()
@@ -307,8 +338,8 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
             }
         }
         if !showingOutline { continueButton.isHidden = true; notice.isHidden = true }
-        empty.isHidden = showingOutline || !items.isEmpty
-        scroll.isHidden = !showingOutline && items.isEmpty
+        empty.isHidden = showingOutline || !items.isEmpty || searching
+        scroll.isHidden = (!showingOutline && items.isEmpty) || searching
         if !showingOutline, !values.show_root { items = items.flatMap { $0.section == "locations" ? $0.children : [$0] } }
         outline.selectionHighlightStyle = .regular
         outline.rowHeight = showingOutline ? 29 : values.compact ? 24 : 29
@@ -321,7 +352,6 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
             if let selectedID, let item = nodes[selectedID], outline.row(forItem: item) >= 0 { outline.selectRowIndexes(IndexSet(integer: outline.row(forItem: item)), byExtendingSelection: false) }
         }
         applyingExpansion = false
-        if !showingOutline { empty.isHidden = !items.isEmpty; scroll.isHidden = items.isEmpty }
         scroll.contentView.scroll(to: scrollOrigin); scroll.reflectScrolledClipView(scroll.contentView)
         if searching { empty.isHidden = true; scroll.isHidden = true; notice.isHidden = true; continueButton.isHidden = true }
     }
@@ -417,17 +447,23 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     func quickOpen() { onQuickOpen?() }
     func searchWorkspace() { onContentSearch?() }
     func showContentSearch() {
+        navigation.contentSearch.show(root: currentRoot)
+        presentContentSearch(); contentSearch.show(root: currentRoot, window: window)
+    }
+    private func presentContentSearch() {
         if !searching { browseOrigin = scroll.contentView.bounds.origin }
         searching = true; pages.isHidden = true; empty.isHidden = true; scroll.isHidden = true; notice.isHidden = true; continueButton.isHidden = true
         contentSearch.view.isHidden = false
-        contentSearch.show(root: currentRoot, window: window)
     }
     private func hideContentSearch() {
         searching = false; contentSearch.view.isHidden = true; pages.isHidden = false; rebuild()
         scroll.contentView.scroll(to: browseOrigin); scroll.reflectScrolledClipView(scroll.contentView)
     }
     func detach() {
-        saveWindowState(); contentSearch.cancel()
+        navigation.sidebar.save()
+        if let presentationObserver { navigation.sidebar.removeObserver(presentationObserver); self.presentationObserver = nil }
+        if let searchObserver { navigation.contentSearch.removeObserver(searchObserver); self.searchObserver = nil }
+        contentSearch.detach()
         if let scrollObserver { NotificationCenter.default.removeObserver(scrollObserver); self.scrollObserver = nil }
         disposed = true; for task in tasks.values { task.cancel() }; tasks.removeAll()
         if let observer { navigation.removeObserver(observer) }; observer = nil

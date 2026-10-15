@@ -24,7 +24,7 @@ import { editorLocalization } from '../localization/editor.ts';
 import { t } from '../localization/index.ts';
 import { editorTheme, preferredAppearance, themePreferences } from '../themes/editor.ts';
 import { bodyFont, selectedTheme } from '../themes/catalog.ts';
-import { languageForCode } from '../features/code/languages.ts';
+import { codeLanguageForMarkdown } from '../features/code/languages.ts';
 import { codeBlockAt, selectedCodeLines } from '../features/code/model.ts';
 import { codeControls, runCodeCommand, setCodeClipboard, type WriteClipboard } from '../features/code/controls.ts';
 import { codeOptions, changeCodeOptions } from '../features/code/state.ts';
@@ -94,11 +94,11 @@ export class MarkdownEditor {
           { key: 'Tab', run: view => !!codeBlockAt(view.state) && runCodeCommand(view, 'code-indent'), shift: view => !!codeBlockAt(view.state) && runCodeCommand(view, 'code-outdent') },
           ...historyKeymap, ...defaultKeymap.filter(binding => binding.key !== 'Mod-/')]),
         this.preferences.of([Prec.high(keymap.of(markdownKeymap)), EditorView.contentAttributes.of({ spellcheck: 'false' })]),
-        markdown({ base: markdownLanguage, addKeymap: false, codeLanguages: languageForCode, extensions: [mathSyntax, referenceSyntax] }), editorTheme(),
+        markdown({ base: markdownLanguage, addKeymap: false, codeLanguages: codeLanguageForMarkdown, extensions: [mathSyntax, referenceSyntax] }), editorTheme(),
         modeState, compositionState, pointerPresentation, editorLocalization(), contextualViewport, documentSearch, lineNavigation, tableControls, tableView, markdownPresentation,
         codeOptions, codeControls, codePresentation, importAnchor, imageSizes, mediaControls, mediaPresentation, writingOptions, zoomLayout(), capabilities.nativeAnalysis ? [statistics, nativeAnalysisUI.of(true), analysisEmitter.of(emit), nativeAnalysisView] : documentAnalysis, writingPresentation, EditorView.lineWrapping,
         referenceIndex, referenceControls, referencePanels, referencePresentation, referenceInteraction, taskPresentation,
-        componentMenus.of((context, x, y) => this.emit({ kind: 'context-menu', context, x, y })),
+        componentMenus.of((context, x, y, imageScale) => this.emit({ kind: 'context-menu', context, x, y, imageScale })),
         nativeSearchUI.of(!!capabilities.nativeSearch),
         EditorView.updateListener.of(update => { this.publish(); this.onChange(update.docChanged); }),
         EditorView.domEventHandlers({
@@ -168,7 +168,7 @@ export class MarkdownEditor {
       themePreferences.of(values),
       ...(values.continue_lists ? [Prec.high(keymap.of(markdownKeymap))] : []),
       EditorView.contentAttributes.of({ spellcheck: String(values.spell_check) }),
-      EditorView.theme({ '.cm-content': { fontFamily: bodyFont(values), fontSize: `calc(${size}px * var(--ot-editor-scale, 1))`, lineHeight: String(height / 100), maxWidth: values.content_width === 'fixed' ? `${values.page_width}px` : 'var(--ot-reading-width)' } }),
+      EditorView.theme({ '& > .cm-scroller > .cm-content': { fontFamily: bodyFont(values), fontSize: `calc(${size}px * var(--ot-editor-scale, 1))`, lineHeight: String(height / 100), maxWidth: values.content_width === 'fixed' ? `${values.page_width}px` : 'var(--ot-reading-width)' } }),
     ]), changeCodeOptions.of({ wrap: values.code_wrap, numbers: values.code_numbers })] });
   }
   composing(): boolean { return this.view.composing || this.view.state.field(compositionState); }
@@ -178,6 +178,7 @@ export class MarkdownEditor {
   appearance(): 'light' | 'dark' { return this.view.state.facet(EditorView.darkTheme) ? 'dark' : 'light'; }
   setViewportWidth(width: number): void {
     if (!Number.isFinite(width) || width <= 0) return;
+    if (this.view.dom.style.width === `${width}px`) return;
     this.view.dom.style.width = `${width}px`;
     this.view.dom.style.marginInline = 'auto';
     this.view.requestMeasure();

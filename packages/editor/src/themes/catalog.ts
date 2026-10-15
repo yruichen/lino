@@ -3,6 +3,10 @@ import type { EditorPreferences } from '../../../protocol/src/generated/EditorPr
 import type { ThemeDefinition } from '../../../protocol/src/generated/ThemeDefinition.ts';
 
 export const builtinThemes: readonly ThemeDefinition[] = definitions;
+const goldenReadingWidth = `${100 / ((1 + Math.sqrt(5)) / 2)}%`;
+export function defaultReadingWidth(theme: ThemeDefinition): string {
+  return `max(${theme.reading_width}px, ${goldenReadingWidth})`;
+}
 export function selectedTheme(values?: EditorPreferences): ThemeDefinition {
   return [...builtinThemes, ...(values?.custom_themes ?? [])].find(t => t.id === (values?.theme_family ?? 'paper')) ?? builtinThemes[0];
 }
@@ -14,5 +18,5 @@ export function applyThemeTokens(element: HTMLElement, definition: ThemeDefiniti
   const colors = (dark ? definition.dark : definition.light).colors;
   for (const [role, color] of Object.entries(colors)) element.style.setProperty(`--ot-${role}`, color);
   for (const [css, role] of Object.entries(roles)) element.style.setProperty(`--ot-${css}`, colors[role]);
-  element.style.setProperty('--ot-reading-width', `${definition.reading_width}px`);
+  element.style.setProperty('--ot-reading-width', defaultReadingWidth(definition));
 }

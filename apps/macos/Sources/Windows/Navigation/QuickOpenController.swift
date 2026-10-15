@@ -14,10 +14,12 @@ struct QuickResults: Decodable, Sendable { let files: [QuickFile]; let truncated
 /// A transient control inside the document window. It never edits the document,
 /// changes sidebar visibility or changes scope implicitly from a selected row.
 @MainActor
-final class QuickOpenController: NSObject, NSSearchFieldDelegate, NSTableViewDataSource, NSTableViewDelegate, NSPopoverDelegate {
+final class QuickOpenController: NSObject, NSSearchFieldDelegate, NSTableViewDataSource, NSTableViewDelegate {
     private weak var window: NSWindow?
     private let navigation: NavigationCoordinator
-    private let popover = NSPopover()
+    private let floating = QuickOpenPanel(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)
+    private var outsideMonitor: Any?
+    private var deactivateObserver: NSObjectProtocol?
     private let panel = NSView()
     private let stack = NSStackView()
     let field = NSSearchField()
@@ -58,9 +60,13 @@ final class QuickOpenController: NSObject, NSSearchFieldDelegate, NSTableViewDat
         let separator = NSBox(); separator.boxType = .separator
         for child in [field, header, scroll, notice, separator, hints] { stack.addArrangedSubview(child) }
         stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 9
-        let controller = NSViewController(); controller.view = panel
-        popover.contentViewController = controller; popover.behavior = .transient
-        popover.animates = false; popover.delegate = self
+        let material = NativeMaterialSurface(radius: 16)
+        material.install(panel); floating.contentView = material
+        floating.isOpaque = false; floating.backgroundColor = .clear; floating.hasShadow = true
+        floating.isReleasedWhenClosed = false
+        deactivateObserver = NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.dismiss() }
+        }
         stack.translatesAutoresizingMaskIntoConstraints = false; panel.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 16),
@@ -74,33 +80,42 @@ final class QuickOpenController: NSObject, NSSearchFieldDelegate, NSTableViewDat
         height = scroll.heightAnchor.constraint(equalToConstant: 48 * 8); height.isActive = true
         relocalize()
     }
+    func owns(_ window: NSWindow?) -> Bool { visible && window === floating }
     func show() {
-        guard let window, let container = window.contentView else { return }
+        guard let window else { return }
         if visible { dismiss() }
         previousResponder = window.firstResponder
         scope = currentWorkspace?()
         field.stringValue = ""; results = []; visible = true; notice.isHidden = true
         resize(); relocalize()
-        let guide = window.contentLayoutGuide as! NSLayoutGuide
-        let anchor = NSRect(x: guide.frame.midX - 1, y: guide.frame.maxY - 12, width: 2, height: 1)
-        popover.show(relativeTo: anchor, of: container, preferredEdge: .minY)
-        field.window?.makeFirstResponder(field)
+        window.addChildWindow(floating, ordered: .above)
+        floating.makeKeyAndOrderFront(nil); floating.makeFirstResponder(field)
+        outsideMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            MainActor.assumeIsolated { if event.window !== self?.floating { self?.dismiss() } }
+            return event
+        }
         refreshSearch()
     }
     func resize() {
         let guide = window?.contentLayoutGuide as? NSLayoutGuide
         let available = (guide?.frame.height ?? 420) - 190
         height.constant = min(CGFloat(min(8, max(1, results.count))) * 48, max(48, available))
-        popover.contentSize = NSSize(width: min(560, max(280, (guide?.frame.width ?? 592) - 32)), height: stack.fittingSize.height + 27)
+        let size = NSSize(width: min(560, max(280, (guide?.frame.width ?? 592) - 32)), height: stack.fittingSize.height + 27)
+        floating.setContentSize(size)
+        if let window, let container = window.contentView, let guide {
+            let top = window.convertPoint(toScreen: container.convert(NSPoint(x: guide.frame.midX, y: guide.frame.maxY - 12), to: nil))
+            floating.setFrameOrigin(NSPoint(x: top.x - size.width / 2, y: top.y - size.height))
+        }
     }
     func dismiss() {
-        if popover.isShown { popover.performClose(nil) }
+        floating.parent?.removeChildWindow(floating); floating.orderOut(nil)
         endPresentation()
     }
-    func popoverDidClose(_ notification: Notification) { endPresentation() }
     private func endPresentation() {
         guard visible else { return }
         visible = false; cancel()
+        if let outsideMonitor { NSEvent.removeMonitor(outsideMonitor); self.outsideMonitor = nil }
+        window?.makeKey()
         if let previousResponder { window?.makeFirstResponder(previousResponder) }
         previousResponder = nil
     }
@@ -181,5 +196,11 @@ final class QuickOpenController: NSObject, NSSearchFieldDelegate, NSTableViewDat
         cell.configure(name: file.name, directory: false, excerpt: detail); cell.toolTip = file.path
         return cell
     }
-    func detach() { dismiss(); cancel(); service = nil }
+    func detach() { dismiss(); cancel(); service = nil; if let deactivateObserver { NotificationCenter.default.removeObserver(deactivateObserver); self.deactivateObserver = nil } }
+}
+
+@MainActor
+private final class QuickOpenPanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 }

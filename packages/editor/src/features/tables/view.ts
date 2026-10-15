@@ -11,7 +11,7 @@ import { runTableCommand, type TableCommand } from './commands.ts';
 import { TableError, type TableErrorCode } from './errors.ts';
 import { focusTableCell, restoreCellFocus, tableCellFocus, tableWritable } from './state.ts';
 import { componentMenu } from '../../controls/components.ts';
-import { presentCell } from './presentation.ts';
+import { presentInline } from '../markdown/inline-reading.ts';
 
 interface CellPresentation { element: HTMLElement; source: string; dark: boolean; cancel(): void }
 interface Binding { table: MarkdownTable; inputs: HTMLInputElement[][]; cells: CellPresentation[][]; view: EditorView; status: HTMLOutputElement; errorCode?: TableErrorCode }
@@ -53,7 +53,7 @@ class TableWidget extends WidgetType {
         cell.style.textAlign = this.alignment(column);
         const preview = cell.appendChild(document.createElement('div')); preview.className = 'table-cell-preview'; preview.setAttribute('aria-hidden', 'true');
         const source = row.cells[column]?.text ?? '';
-        binding.cells[rowIndex].push({ element: preview, source, dark: this.dark, cancel: presentCell(preview, source, this.dark, () => view.requestMeasure()) });
+        binding.cells[rowIndex].push({ element: preview, source, dark: this.dark, cancel: presentInline(preview, source, this.dark, () => view.requestMeasure()) });
         const input = cell.appendChild(document.createElement('input'));
         input.value = row.cells[column]?.text ?? ''; input.readOnly = this.readOnly;
         input.dataset.row = String(rowIndex); input.dataset.column = String(column); input.style.textAlign = 'inherit';
@@ -120,7 +120,7 @@ class TableWidget extends WidgetType {
       const cell = binding.cells[r][c], source = row.cells[c]?.text ?? '';
       if (cell.source !== source || cell.dark !== this.dark) {
         cell.cancel(); cell.source = source; cell.dark = this.dark;
-        cell.cancel = presentCell(cell.element, source, this.dark, () => binding.view.requestMeasure());
+        cell.cancel = presentInline(cell.element, source, this.dark, () => binding.view.requestMeasure());
       }
     }));
     return true;

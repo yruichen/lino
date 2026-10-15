@@ -255,7 +255,7 @@
 "workspace.trashTitle" = "Move %@ to Trash?";
 "workspace.trashDetail" = "You can restore it from the Trash.";
 "workspace.fileDetails" = "%llu bytes · modified %@";
-"settings.adaptiveWidth" = "Fit window";
+"settings.adaptiveWidth" = "Golden ratio (61.8%)";
 "format.textStyle" = "Text Style";
 "format.linkOptions" = "Link Actions";
 "format.list" = "Lists";
@@ -405,7 +405,7 @@
 "settings.layout" = "Writing canvas";
 "settings.fixedWidth" = "Custom width";
 "settings.fixedWidthValue" = "Maximum width (px)";
-"settings.widthDetail" = "Fit window uses the theme’s reading width and shrinks with the window. Text size is in pixels; line spacing is a percentage.";
+"settings.widthDetail" = "Narrow windows keep the theme’s reading width and side padding. Wide windows use a centered maximum width of 61.8% of the document area. You can also set a pixel limit. Text size is in pixels; line spacing is a percentage.";
 "settings.input" = "While typing";
 "settings.code" = "Code blocks";
 "settings.codeDetail" = "These options change how code looks. They do not change your Markdown.";
@@ -444,3 +444,11 @@
 "export.imageUnavailable" = "An image could not be read for export: %@. Check that it exists and can be opened.";
 
 "settings.preview" = "Appearance preview";
+
+"preview.readOnly" = "Read-only preview";
+"preview.smaller" = "Zoom out";
+"preview.larger" = "Zoom in";
+"preview.fit" = "Fit";
+"preview.invalid" = "The file could not be read as an image or PDF. It may be damaged or unavailable.";
+
+"format.imageScale" = "Image Size: %d%%";

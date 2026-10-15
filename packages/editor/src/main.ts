@@ -15,13 +15,16 @@ import { verifySearch } from './features/search/verification.ts';
 import { verifyMarkdown } from './features/markdown/verification.ts';
 import { verifyNavigation } from './features/navigation/verification.ts';
 import { verifyTheme } from './themes/verification.ts';
+import { verifyMediaLayout } from './features/media/verification.ts';
 import { verifyTableInsertion } from './features/tables/verification.ts';
 import { currentLocale, setLocale, t } from './localization/index.ts';
 import { formatError } from './localization/errors.ts';
 import { linePosition, navigateSourcePosition } from './features/navigation/line.ts';
 import { previewSources } from './features/media/model.ts';
 import { openLink } from './features/references/commands.ts';
-import { ExportPlan } from './export/html.ts';
+import { imageSizes } from './features/media/state.ts';
+import { selectedTheme } from './themes/catalog.ts';
+import { ExportPlan, type ExportPresentation } from './export/html.ts';
 import './styles/editor.css';
 
 setLocale(currentLocale());
@@ -35,6 +38,7 @@ let autosave = false;
 let preferences: PreferenceSnapshot | undefined;
 let exportPlan: ExportPlan | undefined;
 let exportAppearance: 'light' | 'dark' = 'light';
+let exportPresentation: ExportPresentation = {};
 // Window geometry belongs to the host view, and survives document replacement.
 let viewportWidth = (window as Window & { __linoViewportWidth?: number }).__linoViewportWidth;
 let viewportSequence = -1n;
@@ -84,8 +88,12 @@ const api = {
     const owner = current();
     try {
       // Input stays editable; pause only acceptance until Rust captures R.
-      await owner.captureExport();
+      const capture = owner.captureExport();
       exportAppearance = editor.appearance();
+      const style = getComputedStyle(editor.view.contentDOM), rect = editor.view.contentDOM.getBoundingClientRect();
+      exportPresentation = { fontSize: parseFloat(style.fontSize), contentWidth: rect.width, padding: parseFloat(style.paddingLeft),
+        imageScales: new Map([...editor.view.state.field(imageSizes)].map(([from, entry]) => [from, entry.scale])) };
+      await capture;
       const { session_id, epoch, revision } = owner.status; return { session_id, epoch, revision };
     } catch (error) { owner.endExportCapture(); throw error; }
   },
@@ -93,13 +101,13 @@ const api = {
   prepareExport(json: string) {
     const source = JSON.parse(json);
     source.preferences.theme = exportAppearance;
-    exportPlan?.cancel(); exportPlan = new ExportPlan(source);
-    return { job_id: exportPlan.source.job_id, images: exportPlan.images };
+    exportPlan?.cancel(); exportPlan = new ExportPlan(source, undefined, exportPresentation);
+    return { job_id: exportPlan.source.job_id, images: exportPlan.images, background_color: selectedTheme(source.preferences)[exportAppearance].colors.bg };
   },
-  async renderExport(job: string, resources: string, mathCSS: string): Promise<string> {
+  async renderExport(job: string, resources: string, mathCSS: string, background = '', widths = '{}'): Promise<string> {
     const plan = exportPlan;
     if (!plan || plan.source.job_id !== job) throw new Error(t('export.cancelled'));
-    const html = await plan.render(JSON.parse(resources), mathCSS);
+    const html = await plan.render(JSON.parse(resources), mathCSS, background, JSON.parse(widths));
     if (plan !== exportPlan) throw new Error(t('export.cancelled'));
     exportPlan = undefined; return html;
   },
@@ -181,9 +189,9 @@ const api = {
     await editor.settleResources();
     await editor.settleComposition();
     const target: SaveTarget | null = targetJson === null ? null : JSON.parse(targetJson);
+    const binding = current().status.file_ref;
     await current().save(target);
-    assets.invalidate();
-    editor.refreshResources();
+    if (binding !== current().status.file_ref) editor.refreshResources();
   },
   setAutosave(enabled: boolean): void {
     autosave = enabled; session?.persistence.setAutosave(enabled);
@@ -223,6 +231,7 @@ const api = {
       failed: [...editorResult.failed, ...searchResult.failed, ...markdownResult.failed, ...navigationResult.failed, ...tableInsertionResult.failed, ...themeResult.failed] };
   },
   verifyDocumentEdit: () => verifyDocumentEdit(editor),
+  verifyMediaLayout,
 };
 Object.assign(window, { lino: api });
 window.addEventListener('error', event => report(event.message));

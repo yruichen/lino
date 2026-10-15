@@ -27,18 +27,22 @@ enum AppearanceImage {
         bookmark = value; data = nil; image = nil; name = ""; failure = nil
         guard !value.isEmpty else { return }
         do {
-            let parts = value.split(separator: ":", maxSplits: 1)
-            guard parts.count == 2, UUID(uuidString: String(parts[0])) != nil, let token = Data(base64Encoded: String(parts[1])) else { throw ImageDataError.invalid }
-            var stale = false
-            let url = try URL(resolvingBookmarkData: token, options: .withoutUI, relativeTo: nil, bookmarkDataIsStale: &stale)
-            let scoped = url.startAccessingSecurityScopedResource()
-            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-            let bytes = try read(url)
-            try ImageData.validate(bytes, mime: "image/raster")
-            guard let picture = NSImage(data: bytes), let source = CGImageSourceCreateWithData(bytes as CFData, nil), let kind = CGImageSourceGetType(source) else { throw ImageDataError.invalid }
+            let (bytes, kind, picture, url) = try snapshot(value)
             data = bytes; image = picture; name = url.lastPathComponent
             mime = UTType(kind as String)?.preferredMIMEType ?? "image/png"
         } catch { failure = localized("settings.backgroundUnavailable") }
+    }
+    static func snapshot(_ value: String) throws -> (Data, String, NSImage, URL) {
+        let parts = value.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2, UUID(uuidString: String(parts[0])) != nil, let token = Data(base64Encoded: String(parts[1])) else { throw ImageDataError.invalid }
+        var stale = false
+        let url = try URL(resolvingBookmarkData: token, options: .withoutUI, relativeTo: nil, bookmarkDataIsStale: &stale)
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        let bytes = try read(url)
+        try ImageData.validate(bytes, mime: "image/raster")
+        guard let picture = NSImage(data: bytes), let source = CGImageSourceCreateWithData(bytes as CFData, nil), let kind = CGImageSourceGetType(source) else { throw ImageDataError.invalid }
+        return (bytes, kind as String, picture, url)
     }
     private static func read(_ url: URL) throws -> Data {
         let handle = try FileHandle(forReadingFrom: url)

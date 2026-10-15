@@ -33,3 +33,24 @@ func verifyWindowLayout(_ controller: EditorWindowController) async throws -> [S
     }
     return ["native-minimum-window-editor-layout", "native-search-command-and-panel-layout"]
 }
+
+
+/// Compose a layout diagnostic from a native view cache and WebKit snapshot.
+/// This is not a WindowServer screenshot: inactive/headless native materials
+/// may render differently. Use it for geometry, not visual acceptance of chrome.
+@MainActor
+func captureFixtureWindow(_ controller: EditorWindowController, destination: URL) async throws {
+    guard let frame = controller.window?.contentView?.superview,
+          let bitmap = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) else { throw ImageDataError.invalid }
+    frame.cacheDisplay(in: frame.bounds, to: bitmap)
+    let image = NSImage(size: frame.bounds.size); image.addRepresentation(bitmap)
+    let pane = controller.navigationSplit.editorPane
+    let rect = controller.webView.convert(pane.bounds, from: pane).intersection(controller.webView.bounds)
+    if !rect.isEmpty {
+        let configuration = WKSnapshotConfiguration(); configuration.rect = rect
+        let content = try await controller.webView.takeSnapshot(configuration: configuration)
+        image.lockFocus(); content.draw(in: frame.convert(rect, from: controller.webView)); image.unlockFocus()
+    }
+    guard let data = image.tiffRepresentation.flatMap({ NSBitmapImageRep(data: $0)?.representation(using: .png, properties: [:]) }) else { throw ImageDataError.invalid }
+    try data.write(to: destination)
+}

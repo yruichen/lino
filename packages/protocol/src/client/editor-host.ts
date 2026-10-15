@@ -30,7 +30,7 @@ export interface EditorStatus {
   search: SearchProjection;
 }
 export type EditorHostEvent =
-  | { kind: 'context-menu'; context: ComponentContext; x: number; y: number }
+  | { kind: 'context-menu'; context: ComponentContext; x: number; y: number; imageScale?: number }
   | { kind: 'ready' }
   | { kind: 'image-drop'; names: string[]; x: number; y: number }
   | { kind: 'outline'; token: string; entries?: { id: string; from: number; to: number; level: number; title: string }[]; current: number | null; complete: boolean; truncated: boolean; exhausted: boolean }

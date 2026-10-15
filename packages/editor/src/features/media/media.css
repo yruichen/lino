@@ -22,3 +22,9 @@
 .ot-preview output:empty { display: none; }
 
 .ot-preview[data-preview-state="error"] output { color: var(--ot-error); }
+
+.ot-preview-diagram .ot-preview-content { display: flex; justify-content: safe center; }
+.ot-preview-image { display: flex; align-items: center; position: relative; width: 100%; }
+.ot-preview-image img { max-height: none; }
+.ot-image-caption { display: block; margin-top: 10px; color: var(--ot-muted); font-size: .85em; line-height: 1.5; white-space: normal; text-align: center; }
+.ot-image-caption:empty { display: none; }

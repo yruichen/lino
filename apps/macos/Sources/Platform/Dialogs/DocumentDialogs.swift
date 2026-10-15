@@ -7,7 +7,7 @@ enum DocumentDialogs {
         let panel = NSOpenPanel()
         panel.title = localized("dialog.openTitle"); panel.prompt = localized("dialog.openPrompt")
         panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.plainText, .text]
+        panel.allowedContentTypes = [.plainText, .text, .image, .pdf]
         panel.allowsOtherFileTypes = true
         let response: NSApplication.ModalResponse
         if let window { response = await panel.beginSheetModal(for: window) }

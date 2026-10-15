@@ -16,6 +16,7 @@ final class EditorViewport {
         width = value; revision += 1; deliver()
     }
     func setAvailable(_ value: Bool) {
+        guard value != available else { return }
         available = value
         if !value { lifetime += 1; delivered = nil; task?.cancel(); task = nil }
         else { deliver() }

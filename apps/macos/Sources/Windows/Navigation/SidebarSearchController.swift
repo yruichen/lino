@@ -9,11 +9,9 @@ final class SidebarSearchController: NSObject, NSSearchFieldDelegate, NSTableVie
     private let notice = NSTextField(wrappingLabelWithString: "")
     private let back = NSButton()
     private let navigation: NavigationCoordinator
-    private var service: WorkspaceService?
-    private var task: Task<Void, Never>?
-    private var sequence: UInt64 = 0
-    private var hits: [WorkspaceHit] = []
-    private var root: String?
+    private var observer: UUID?
+    private var hits: [WorkspaceHit] { navigation.contentSearch.hits }
+    private var root: String? { navigation.contentSearch.root }
     var onClose: (() -> Void)?
     var onOpen: ((String, Int?) -> Void)?
     init(navigation: NavigationCoordinator) {
@@ -37,39 +35,26 @@ final class SidebarSearchController: NSObject, NSSearchFieldDelegate, NSTableVie
             view.addArrangedSubview(child); child.translatesAutoresizingMaskIntoConstraints = false
             child.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         }
-        relocalize()
+        observer = navigation.contentSearch.observe { [weak self] in self?.apply() }
+        relocalize(); apply()
     }
     func relocalize() {
         field.placeholderString = localized("navigation.searchContents"); field.setAccessibilityLabel(field.placeholderString)
         back.toolTip = localized("navigation.backToBrowse"); back.setAccessibilityLabel(back.toolTip)
         table.setAccessibilityLabel(localized("navigation.contentResults"))
     }
+    private func apply() {
+        let owner = navigation.contentSearch
+        if field.stringValue != owner.query { field.stringValue = owner.query }
+        table.reloadData(); notice.stringValue = owner.notice
+    }
     func show(root: String?, window: NSWindow?) {
-        self.root = root; field.stringValue = ""; hits = []; table.reloadData()
-        notice.stringValue = localized(root == nil ? "navigation.chooseWorkspace" : "navigation.enterContentQuery")
-        window?.makeFirstResponder(field)
+        navigation.contentSearch.show(root: root); window?.makeFirstResponder(field)
     }
-    func rebind(root: String?) { self.root = root; controlTextDidChange(Notification(name: NSControl.textDidChangeNotification)) }
-    func cancel() { service?.cancel(queryId: sequence); sequence &+= 1; task?.cancel(); task = nil }
-    @objc private func close() { cancel(); onClose?() }
-    func controlTextDidChange(_ obj: Notification) {
-        cancel(); let expected = sequence, query = field.stringValue
-        guard let root, !query.isEmpty else { hits = []; table.reloadData(); notice.stringValue = localized(root == nil ? "navigation.chooseWorkspace" : "navigation.enterContentQuery"); return }
-        task = Task { [weak self] in
-            guard let self else { return }
-            do {
-                try await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled else { return }
-                let service = try await navigation.backend.perform { try $0.openWorkspace(path: root) }
-                guard !Task.isCancelled, expected == sequence else { return }; self.service = service
-                let options = WorkspaceSearchOptions(text: query, content: true, caseSensitive: false, regex: false, wholeWord: false, includeHidden: false)
-                let result = try await Task.detached { try service.search(queryId: expected, options: options) }.value
-                guard !Task.isCancelled, expected == sequence, !result.cancelled else { return }
-                hits = result.hits; table.reloadData()
-                notice.stringValue = result.truncated ? localized("navigation.partial") : hits.isEmpty ? localized("navigation.noResults") : ""
-            } catch { guard !Task.isCancelled, expected == sequence else { return }; notice.stringValue = userFacingError(error) }
-        }
-    }
+    func rebind(root: String?) { navigation.contentSearch.rebind(root: root) }
+    func detach() { if let observer { navigation.contentSearch.removeObserver(observer); self.observer = nil } }
+    @objc private func close() { navigation.contentSearch.close(); onClose?() }
+    func controlTextDidChange(_ obj: Notification) { navigation.contentSearch.changeQuery(field.stringValue) }
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
         if selector == #selector(NSResponder.cancelOperation(_:)) { close(); return true }
         if selector == #selector(NSResponder.insertNewline(_:)) { openSelected(); return true }

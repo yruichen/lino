@@ -86,7 +86,7 @@ test('theme families, both appearances and a DIY palette keep the same writing s
     for (const family of builtinThemes) for (const appearance of ['light', 'dark']) {
       await editor.applyPreferences({ ...values, theme: appearance, theme_family: family.id, use_theme_font_size: true, use_theme_line_height: true }); await settleDOM();
       assert.equal(editor.view.dom.style.getPropertyValue('--ot-background'), (appearance === 'dark' ? family.dark : family.light).colors.bg);
-      assert.equal(editor.view.dom.style.getPropertyValue('--ot-reading-width'), `${family.reading_width}px`);
+      assert.equal(editor.view.dom.style.getPropertyValue('--ot-reading-width'), `max(${family.reading_width}px, 61.80339887498948%)`);
       assert.equal(editor.read(), raw); assert.deepEqual(editor.view.state.selection.toJSON(), selection); assert.equal(undoDepth(editor.view.state), history);
     }
     const custom = structuredClone(builtinThemes[0]); custom.id = 'custom-writing'; custom.name = 'Writing'; custom.dark.colors.bg = '#123456';

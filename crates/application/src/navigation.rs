@@ -66,6 +66,15 @@ impl NavigationPreferences {
 pub fn supported_document_extension(extension: &str) -> bool {
     ["md", "markdown", "mdown", "mkd", "txt"].contains(&extension.to_lowercase().as_str())
 }
+/// Browsable files include native, read-only media; editable documents remain UTF-8.
+pub fn supported_browsing_extension(extension: &str) -> bool {
+    supported_document_extension(extension)
+        || [
+            "pdf", "png", "jpg", "jpeg", "gif", "webp", "tif", "tiff", "bmp", "svg", "heic",
+            "heif", "avif",
+        ]
+        .contains(&extension.to_lowercase().as_str())
+}
 pub fn file_score(query: &str, name: &str, _title: &str, path: &str) -> Option<u32> {
     let query = query.trim().to_lowercase();
     if query.is_empty() {
