@@ -12,7 +12,7 @@ Visual editing. Native Mac windows and tabs. Your own Markdown files.
 [![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.0.4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**Download**](https://github.com/yruichen/lino/releases/download/v0.0.4/Lino-v0.0.4-macos-arm64.zip) · [Features](#features) · [Build](#build-from-source) · [Report an issue](https://github.com/yruichen/lino/issues) · [简体中文](README.zh-CN.md)
+[**Download**](https://github.com/yruichen/lino/releases/download/v0.0.4/Lino-v0.0.4-macos-arm64.zip) · [Homebrew](#homebrew) · [Features](#features) · [Build](#build-from-source) · [Report an issue](https://github.com/yruichen/lino/issues) · [简体中文](README.zh-CN.md)
 
 </div>
 
@@ -37,9 +37,19 @@ The interface supports **English and Simplified Chinese**.
 
 ## Download
 
+Requires **macOS 14 or later on Apple Silicon**.
+
+### Homebrew
+
+```bash
+brew install --cask yruichen/tap/lino
+```
+
+### Direct download
+
 **[Download Lino v0.0.4 Beta for macOS →](https://github.com/yruichen/lino/releases/download/v0.0.4/Lino-v0.0.4-macos-arm64.zip)**
 
-Requires **macOS 14 or later on Apple Silicon**. Unzip the download and move **Lino.app** to **Applications**. Release notes and checksums are on the [release page](https://github.com/yruichen/lino/releases/tag/v0.0.4).
+Unzip the download and move **Lino.app** to **Applications**. Release notes and checksums are on the [release page](https://github.com/yruichen/lino/releases/tag/v0.0.4).
 
 The Beta is ad-hoc signed and **not notarized**. If macOS blocks the first launch, use **System Settings → Privacy & Security → Open Anyway** to approve the app.
 
