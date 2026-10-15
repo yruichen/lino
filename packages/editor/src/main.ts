@@ -239,6 +239,13 @@ const api = {
       if (view) view.coordsAtPos(view.viewport.from);
     }
   },
+  setCodeLanguageDraftForVerification(text: string) {
+    const input = document.querySelector<HTMLElement>('[data-code-language-input]');
+    const picker = input && EditorView.findFromDOM(input);
+    if (!picker) throw new Error('Code language picker is not open');
+    picker.dispatch({ changes: { from: 0, to: picker.state.doc.length, insert: text },
+      selection: { anchor: text.length }, userEvent: 'input.type' });
+  },
   verifyDocumentEdit: () => verifyDocumentEdit(editor),
   verifyMediaLayout,
 };

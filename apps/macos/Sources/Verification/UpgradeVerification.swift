@@ -65,8 +65,8 @@ func verifyUpgrade(_ windows: DocumentWindows) async throws -> [String] {
         [...document.querySelectorAll('.ot-code-language')].find(b=>b.textContent==='swift').click();
         const end=Date.now()+5000;
         const field=document.querySelector('[data-code-language-input]');field.focus();
-        document.execCommand('selectAll');document.execCommand('insertText',false,'py');
-        while(Date.now()<end){window.lino.measureDocumentForVerification();const item=[...document.querySelectorAll('.cm-tooltip-autocomplete li')].find(n=>n.textContent.includes('Python'));if(item){item.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));await new Promise(r=>setTimeout(r,20));return window.lino.snapshot().text.includes('```python');}await new Promise(r=>setTimeout(r,20));}return false;
+        window.lino.setCodeLanguageDraftForVerification('py');
+        while(Date.now()<end){window.lino.measureDocumentForVerification();const item=[...document.querySelectorAll('.cm-tooltip-autocomplete li')].find(n=>n.textContent.includes('Python'));if(item){item.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));await new Promise(r=>setTimeout(r,20));return window.lino.snapshot().text.includes('```python');}await new Promise(r=>setTimeout(r,20));}throw new Error(JSON.stringify({draft:field.textContent,suggestions:[...document.querySelectorAll('.cm-tooltip-autocomplete li')].map(n=>n.textContent)}));
         """, arguments: [:], in: nil, contentWorld: .page) as? Bool == true
     try check("native-official-language-completion-applies-to-markdown-through-one-undo", language)
     _ = try await document.bridge.call("command", arguments: ["undo"])
