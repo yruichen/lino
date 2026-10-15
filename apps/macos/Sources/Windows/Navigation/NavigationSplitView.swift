@@ -11,6 +11,7 @@ final class NavigationSplitView: NSSplitView {
     private weak var sidebarContent: NSView?
     private weak var editorContent: NSView?
     private weak var footer: NSView?
+    private var editorFrameObserver: NSObjectProtocol?
     private var fixedBacking = true
     private var trackingDivider = false
     private var presentationSequence: UInt64 = 0
@@ -46,6 +47,12 @@ final class NavigationSplitView: NSSplitView {
         let detail = NSSplitViewItem(viewController: detailController)
         detail.minimumThickness = 320
         controller.addSplitViewItem(sidebarItem); controller.addSplitViewItem(detail)
+        // AppKit's collapse animation resizes the pane between split-view
+        // layout passes. Keep its backing and viewport in that same frame.
+        editorClip.postsFrameChangedNotifications = true
+        editorFrameObserver = NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: editorClip, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.layoutPanes() }
+        }
     }
     func configure(width: CGFloat, expanded: Bool) {
         rememberedWidth = min(360, max(230, width)); self.expanded = expanded
@@ -108,5 +115,9 @@ final class NavigationSplitView: NSSplitView {
         super.mouseDown(with: event)
         layoutSubtreeIfNeeded(); layout()
     }
-    func detach() { presentationSequence &+= 1; onWidthChanged = nil; onViewportWidth = nil; onTransitionCompleted = nil; onSidebarSafeTop = nil }
+    func detach() {
+        presentationSequence &+= 1
+        if let editorFrameObserver { NotificationCenter.default.removeObserver(editorFrameObserver); self.editorFrameObserver = nil }
+        onWidthChanged = nil; onViewportWidth = nil; onTransitionCompleted = nil; onSidebarSafeTop = nil
+    }
 }

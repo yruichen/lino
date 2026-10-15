@@ -17,6 +17,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     CloseIntent::export_all(&config)?;
     RecoveryEntry::export_all(&config)?;
     PreferenceSnapshot::export_all(&config)?;
+    lino_protocol::UpdateCheck::export_all(&config)?;
+    std::fs::write(
+        std::path::Path::new(&output).join("shortcuts.json"),
+        serde_json::to_string_pretty(lino_protocol::MARKDOWN_SHORTCUTS)?,
+    )?;
     lino_protocol::ExportSource::export_all(&config)?;
     std::fs::write(std::path::Path::new(&output).join("version.ts"), format!(
         "// Generated from crates/protocol. Do not edit.\nexport const PROTOCOL_VERSION = {PROTOCOL_VERSION};\nexport const RESOURCE_VERSION = {RESOURCE_VERSION:?};\nexport const CAPABILITIES = {:?} as const;\n", CAPABILITIES))?;

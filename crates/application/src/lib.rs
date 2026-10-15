@@ -12,3 +12,4 @@ pub mod themes;
 pub mod workspace;
 
 pub mod navigation;
+pub mod updates;

@@ -1,8 +1,8 @@
 import { Compartment, EditorSelection, EditorState, Prec } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap, redo, redoDepth, undo, undoDepth, indentMore, indentLess } from '@codemirror/commands';
-import { markdown, markdownLanguage, markdownKeymap } from '@codemirror/lang-markdown';
+import { markdown, markdownLanguage, markdownKeymap, insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown';
 import { EditorView, keymap } from '@codemirror/view';
-import { codeCommands, mediaCommands, referenceCommands, type ReferenceCommand, type MediaCommand, type CodeCommand, type EditorCommand, type EditorHostEvent, type EditorStatus } from '@lino/protocol/editor-host';
+import { codeCommands, mediaCommands, referenceCommands, markdownShortcuts, type ReferenceCommand, type MediaCommand, type CodeCommand, type EditorCommand, type EditorHostEvent, type EditorStatus } from '@lino/protocol/editor-host';
 import type { AssetPort } from '@lino/protocol/assets';
 import type { EditorPreferences } from '@lino/protocol/generated/EditorPreferences';
 import type { SaveTarget } from '@lino/protocol/generated/SaveTarget';
@@ -61,6 +61,11 @@ import '../features/search/search.css';
 import '../features/tables/tables.css';
 import '../features/navigation/navigation.css';
 
+// Enter on an empty continued item exits its list level. The library default
+// instead expands a two-item tight list by inserting an extra blank line.
+const continuingMarkdownKeymap = markdownKeymap.map(binding => binding.key === 'Enter'
+  ? { ...binding, run: insertNewlineContinueMarkupCommand({ nonTightLists: false }) } : binding);
+
 export class MarkdownEditor {
   readonly view: EditorView;
   continueOutline(): void { this.view.plugin(nativeAnalysisView)?.resume(); }
@@ -90,10 +95,14 @@ export class MarkdownEditor {
       doc: this.source.doc,
       extensions: [
         this.writable.of(EditorState.readOnly.of(false)), this.source.extension, history(),
+        Prec.highest(keymap.of(markdownShortcuts.map(shortcut => ({
+          key: [...shortcut.modifiers.map(modifier => ({ command: 'Mod', shift: 'Shift', option: 'Alt', control: 'Ctrl' })[modifier]), shortcut.key].join('-'),
+          run: () => this.command(shortcut.command as EditorCommand), preventDefault: true,
+        })))),
         keymap.of([{ key: 'Mod-/', run: () => { this.command('toggle-source'); return true; }, preventDefault: true },
           { key: 'Tab', run: view => !!codeBlockAt(view.state) && runCodeCommand(view, 'code-indent'), shift: view => !!codeBlockAt(view.state) && runCodeCommand(view, 'code-outdent') },
           ...historyKeymap, ...defaultKeymap.filter(binding => binding.key !== 'Mod-/')]),
-        this.preferences.of([Prec.high(keymap.of(markdownKeymap)), EditorView.contentAttributes.of({ spellcheck: 'false' })]),
+        this.preferences.of([Prec.high(keymap.of(continuingMarkdownKeymap)), EditorView.contentAttributes.of({ spellcheck: 'false' })]),
         markdown({ base: markdownLanguage, addKeymap: false, codeLanguages: codeLanguageForMarkdown, extensions: [mathSyntax, referenceSyntax] }), editorTheme(),
         modeState, compositionState, pointerPresentation, editorLocalization(), contextualViewport, documentSearch, lineNavigation, tableControls, tableView, markdownPresentation,
         codeOptions, codeControls, codePresentation, importAnchor, imageSizes, mediaControls, mediaPresentation, writingOptions, zoomLayout(), capabilities.nativeAnalysis ? [statistics, nativeAnalysisUI.of(true), analysisEmitter.of(emit), nativeAnalysisView] : documentAnalysis, writingPresentation, EditorView.lineWrapping,
@@ -166,7 +175,7 @@ export class MarkdownEditor {
     this.view.dispatch({ effects: [this.preferences.reconfigure([
       preferredAppearance.of(values.theme),
       themePreferences.of(values),
-      ...(values.continue_lists ? [Prec.high(keymap.of(markdownKeymap))] : []),
+      ...(values.continue_lists ? [Prec.high(keymap.of(continuingMarkdownKeymap))] : []),
       EditorView.contentAttributes.of({ spellcheck: String(values.spell_check) }),
       EditorView.theme({ '& > .cm-scroller > .cm-content': { fontFamily: bodyFont(values), fontSize: `calc(${size}px * var(--ot-editor-scale, 1))`, lineHeight: String(height / 100), maxWidth: values.content_width === 'fixed' ? `${values.page_width}px` : 'var(--ot-reading-width)' } }),
     ]), changeCodeOptions.of({ wrap: values.code_wrap, numbers: values.code_numbers })] });
@@ -227,6 +236,9 @@ export class MarkdownEditor {
     }
     if (command === 'find' || command === 'replace' || command === 'find-next' || command === 'find-previous' || command === 'toggle-find' || command === 'close-find') return runSearchCommand(this.view, command);
     if (writingCommand(this.view, command)) return true;
+    const focused = this.view.dom.ownerDocument.activeElement;
+    if (focused instanceof HTMLElement && focused !== this.view.contentDOM && this.view.dom.contains(focused)
+      && focused.matches('input, textarea, select, [contenteditable="true"]') && markdownShortcuts.some(shortcut => shortcut.command === command)) return false;
     if (command === 'goto-line') return goToLine(this.view);
     if (command === 'link' || (referenceCommands as readonly string[]).includes(command)) return runReferenceCommand(this.view, command as ReferenceCommand | 'link');
     if ((mediaCommands as readonly string[]).includes(command)) return runMediaCommand(this.view, command as MediaCommand);

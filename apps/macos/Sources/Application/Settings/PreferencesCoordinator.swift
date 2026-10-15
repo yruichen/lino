@@ -15,6 +15,8 @@ struct EditorPreferences: Codable, Sendable, Equatable {
     var use_theme_font_size: Bool
     var use_theme_line_height: Bool
     var auto_save: Bool
+    var automatic_update_checks: Bool
+    var include_prerelease_updates: Bool
     var font_size: UInt32
     var line_height: UInt32
     var page_width: UInt32

@@ -7,9 +7,15 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
     private let apply: (EditorPreferences) async throws -> Void
     private let selectLanguage: (InterfaceLanguage) async throws -> Void
     private let navigation: NavigationCoordinator
+    private let updates: UpdateCoordinator
+    private var updateObserver: UUID?
+    private let updateStatus = NSTextField(wrappingLabelWithString: "")
+    private let updateDate = NSTextField(labelWithString: "")
+    private let updateButton = NSButton()
+    private let releaseButton = NSButton()
     private lazy var customization = SidebarCustomizationController(navigation: navigation)
-    private let categories = ["general", "appearance", "writing", "editing", "files", "navigation"]
-    private let symbols = ["gearshape", "circle.lefthalf.filled", "line.3.horizontal", "pencil", "doc", "sidebar.left"]
+    private let categories = ["general", "appearance", "writing", "editing", "files", "navigation", "updates"]
+    private let symbols = ["gearshape", "circle.lefthalf.filled", "line.3.horizontal", "pencil", "doc", "sidebar.left", "arrow.triangle.2.circlepath"]
     private let table = NSTableView()
     private let page = NSScrollView()
     private let body = SettingsPageStack()
@@ -22,8 +28,8 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
 
     init(selectLanguage: @escaping (InterfaceLanguage) async throws -> Void,
          values: @escaping () -> EditorPreferences?, apply: @escaping (EditorPreferences) async throws -> Void,
-         navigation: NavigationCoordinator) {
-        self.selectLanguage = selectLanguage; self.values = values; self.apply = apply; self.navigation = navigation
+         navigation: NavigationCoordinator, updates: UpdateCoordinator) {
+        self.selectLanguage = selectLanguage; self.values = values; self.apply = apply; self.navigation = navigation; self.updates = updates
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 700), styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false; window.minSize = NSSize(width: 740, height: 560); window.center()
         window.titlebarAppearsTransparent = true; window.titlebarSeparatorStyle = .none
@@ -49,9 +55,17 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
         ])
         errorLabel.font = .systemFont(ofSize: 12); errorLabel.textColor = ThemePalette.color("error"); errorLabel.identifier = .init("theme-error")
         languageControl.target = self; languageControl.action = #selector(languageChanged(_:))
+        updateButton.target = self; updateButton.action = #selector(checkUpdates); updateButton.bezelStyle = .rounded; updateButton.identifier = .init("check-updates")
+        releaseButton.target = self; releaseButton.action = #selector(openRelease); releaseButton.bezelStyle = .rounded
+        updateStatus.font = .systemFont(ofSize: 13); updateStatus.identifier = .init("update-status"); updateDate.font = .systemFont(ofSize: 11); updateDate.textColor = .secondaryLabelColor
+        updateObserver = updates.observe { [weak self] in self?.refreshUpdateStatus() }
         relocalize(); table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
     }
     required init?(coder: NSCoder) { fatalError("Use init(selectLanguage:values:apply:navigation:)") }
+    func selectCategory(_ category: String) {
+        guard let index = categories.firstIndex(of: category) else { return }
+        table.selectRowIndexes(IndexSet(integer: index), byExtendingSelection: false)
+    }
     func numberOfRows(in tableView: NSTableView) -> Int { categories.count }
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cell = NSTableCellView(), label = NSTextField(labelWithString: localized("settings." + categories[row]))
@@ -150,10 +164,36 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
             let addFolder = NSButton(title: localized("navigation.addFolder"), target: self, action: #selector(addNavigationFolder)); addFolder.bezelStyle = .rounded
             let sourceControls = NSStackView(views: [addFolder, sources]); sourceControls.spacing = 8
             add(SettingsForm.group("settings.locations", [sourceControls], detail: "settings.locationsDetail"))
+        case "updates":
+            let version = NSTextField(labelWithString: localized("updates.currentVersion", updates.currentVersion)); version.font = .monospacedDigitSystemFont(ofSize: 13, weight: .regular)
+            let controls = NSStackView(views: [updateButton, releaseButton]); controls.spacing = 8
+            add(SettingsForm.group("updates.version", [version, updateStatus, updateDate, controls], detail: "updates.source"))
+            add(SettingsForm.group("updates.preferences", [check("updates.automatic", value.automatic_update_checks, \EditorPreferences.automatic_update_checks), check("updates.includeBeta", value.include_prerelease_updates, \EditorPreferences.include_prerelease_updates)], detail: "updates.preferencesDetail"))
+            refreshUpdateStatus()
         default: break
         }
         errorLabel.stringValue = lastError ?? ""; errorLabel.isHidden = lastError == nil; add(errorLabel)
         window?.backgroundColor = ThemePalette.color("bg")
+    }
+    @objc private func checkUpdates() { updates.check() }
+    @objc private func openRelease() { updates.openRelease() }
+    private func refreshUpdateStatus() {
+        updateButton.title = localized("updates.checkNow"); updateButton.isEnabled = true
+        releaseButton.title = localized("updates.browseReleases"); releaseButton.isHidden = false
+        updateStatus.textColor = .labelColor
+        switch updates.state {
+        case .idle: updateStatus.stringValue = localized("updates.ready")
+        case .checking: updateStatus.stringValue = localized("updates.checking"); updateButton.isEnabled = false
+        case .checked(let result):
+            if let release = result.release {
+                updateStatus.stringValue = result.newer ? localized("updates.available", release.version) : localized("updates.current")
+                releaseButton.title = localized("updates.viewRelease")
+            } else { updateStatus.stringValue = localized("updates.noReleases") }
+        case .failed(let message): updateStatus.stringValue = message; updateStatus.textColor = ThemePalette.color("error")
+        }
+        if let date = updates.lastChecked { updateDate.stringValue = localized("updates.lastChecked", DateFormatter.localizedString(from: date, dateStyle: .medium, timeStyle: .short)) }
+        else { updateDate.stringValue = "" }
+        updateDate.isHidden = updateDate.stringValue.isEmpty
     }
     private func bind(_ control: NSControl, _ change: @escaping (NSControl, inout EditorPreferences) -> Void) {
         control.target = self; control.action = #selector(preferenceChanged(_:)); control.isEnabled = !applyingLanguage
@@ -174,6 +214,7 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
     }
     private func check(_ key: String, _ value: Bool, _ path: WritableKeyPath<EditorPreferences, Bool>) -> NSButton {
         let button = NSButton(checkboxWithTitle: localized(key), target: nil, action: nil); button.state = value ? .on : .off
+        button.identifier = .init(key)
         bind(button) { control, next in next[keyPath: path] = (control as! NSButton).state == .on }; return button
     }
     private func percentage(_ value: UInt32, _ path: WritableKeyPath<EditorPreferences, UInt32>) -> NSView {

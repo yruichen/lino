@@ -15,7 +15,7 @@ class BulletWidget extends WidgetType {
   override ignoreEvent(): boolean { return false; }
 }
 function decorations(view: EditorView): DecorationSet {
-  if (view.state.field(modeState) === 'source' || view.state.field(compositionState)) return Decoration.none;
+  if (view.state.field(modeState) === 'source') return Decoration.none;
   const ranges: ReturnType<Decoration['range']>[] = [];
   const tree = syntaxTree(view.state), lines = new Map<number, Set<string>>();
   const active = (from: number, to: number) => presentationSelection(view.state).ranges.some(range => range.from <= to && range.to >= from);
@@ -58,6 +58,11 @@ export const markdownPresentation = ViewPlugin.fromClass(class {
   decorations: DecorationSet;
   constructor(view: EditorView) { this.decorations = decorations(view); }
   update(update: ViewUpdate) {
+    // Keep layout and the IME's editable DOM stable until its final input flush.
+    // Mapping preserves display offsets without rebuilding provisional markup.
+    if (update.state.field(compositionState) && update.state.field(modeState) === 'visual') {
+      this.decorations = this.decorations.map(update.changes); return;
+    }
     if (update.docChanged || update.selectionSet || update.viewportChanged || update.transactions.some(t => t.effects.length) || syntaxTree(update.startState) !== syntaxTree(update.state)) {
       this.decorations = decorations(update.view);
     }

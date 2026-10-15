@@ -31,7 +31,7 @@ class TaskWidget extends WidgetType {
   override ignoreEvent(): boolean { return true; }
 }
 function build(view: EditorView): DecorationSet {
-  if (view.state.field(modeState) === 'source' || view.state.field(compositionState)) return Decoration.none;
+  if (view.state.field(modeState) === 'source') return Decoration.none;
   const ranges: ReturnType<Decoration['range']>[] = [];
   for (const visible of view.visibleRanges) syntaxTree(view.state).iterate({ from: visible.from, to: visible.to, enter(node) {
     if (node.name !== 'TaskMarker' || presentationSelection(view.state).ranges.some(range => range.from <= node.to && range.to >= node.from)) return;
@@ -42,6 +42,9 @@ export const taskPresentation = ViewPlugin.fromClass(class {
   decorations: DecorationSet;
   constructor(view: EditorView) { this.decorations = build(view); }
   update(update: ViewUpdate) {
+    if (update.state.field(compositionState) && update.state.field(modeState) === 'visual') {
+      this.decorations = this.decorations.map(update.changes); return;
+    }
     if (update.docChanged || update.selectionSet || update.viewportChanged || update.transactions.some(tr => tr.effects.length) || syntaxTree(update.startState) !== syntaxTree(update.state)) this.decorations = build(update.view);
   }
 }, { decorations: value => value.decorations });

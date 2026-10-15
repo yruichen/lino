@@ -7,7 +7,7 @@ import { inlineFormat, type InlineFormat } from './inline.ts';
 import { selectionTree } from './selection.ts';
 import { clearInlineFormatting } from './clear.ts';
 
-export const formatCommands = ['bold', 'italic', 'strikethrough', 'inline-code', 'link', 'highlight', 'superscript', 'subscript', 'clear-formatting', 'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6', 'bullet-list', 'ordered-list', 'task-list', 'blockquote', 'code-block'] as const;
+export const formatCommands = ['paragraph', 'bold', 'italic', 'strikethrough', 'inline-code', 'link', 'highlight', 'superscript', 'subscript', 'clear-formatting', 'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6', 'bullet-list', 'ordered-list', 'task-list', 'blockquote', 'code-block'] as const;
 export type FormatCommand = InlineFormat | BlockFormat | 'clear-formatting';
 export function formattingTransaction(state: EditorState, command: FormatCommand): TransactionSpec | undefined {
   if (state.readOnly || state.field(compositionState, false)) return undefined;

@@ -1,5 +1,6 @@
 // AppKit interface strings. User document content and filenames are not translated.
 "link.open" = "打开链接";
+"link.properties" = "编辑链接属性…";
 "link.copy" = "复制链接地址";
 "link.remove" = "移除链接";
 "link.definition" = "编辑共享链接定义…";
@@ -452,3 +453,38 @@
 "preview.invalid" = "无法将此文件读取为图片或 PDF。文件可能已损坏或不可用。";
 
 "format.imageScale" = "图片大小：%d%%";
+
+"button.done" = "完成";
+"navigation.customizeDetail" = "更改会立即应用到所有窗口。";
+"navigation.sectionOrderDetail" = "勾选要显示的分组，使用右侧箭头调整顺序。";
+"navigation.customizeNoLocations" = "添加文件夹后，即可浏览和搜索其中的文件。";
+"navigation.removeLocationDetail" = "选中文件夹后可排序或移除。移除位置不会删除磁盘文件。";
+"navigation.displayOptions" = "显示与行为";
+"settings.updates" = "更新";
+"settings.updatesDetail" = "检查 GitHub 上发布的 Lino 版本。";
+"updates.version" = "Lino 版本";
+"updates.currentVersion" = "当前版本：%@";
+"updates.source" = "更新来自 GitHub 上的 yruichen/lino。";
+"updates.preferences" = "更新偏好";
+"updates.automatic" = "自动检查更新";
+"updates.includeBeta" = "包括 Beta 和预发布版本";
+"updates.preferencesDetail" = "自动检查会在 Lino 启动或激活时进行，每天最多一次。发现新版本后，可前往 GitHub 下载并安装。";
+"updates.checkNow" = "立即检查";
+"updates.checkMenu" = "检查更新…";
+"updates.viewRelease" = "查看发布说明与下载";
+"updates.browseReleases" = "查看发布页";
+"updates.ready" = "可检查是否有新版本。";
+"updates.checking" = "正在检查更新…";
+"updates.available" = "发现新版本：%@";
+"updates.current" = "当前已是最新版本。";
+"updates.noReleases" = "当前更新渠道尚无已发布版本。";
+"updates.lastChecked" = "上次检查：%@";
+"updates.rateLimited" = "GitHub 暂时限制了请求，请稍后重试。";
+"updates.invalidResponse" = "无法读取发布信息，请稍后重试。";
+"updates.httpError" = "GitHub 返回错误（%ld），请重试。";
+"updates.networkError" = "无法检查更新，请检查网络连接后重试。";
+"format.paragraph" = "正文段落";
+"navigation.customizeTitle" = "自定义侧栏";
+"navigation.visibleGroups" = "侧栏分组";
+"navigation.locationUp" = "上移文件夹";
+"navigation.locationDown" = "下移文件夹";

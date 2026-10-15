@@ -54,6 +54,7 @@ fs.mkdirSync(resources, { recursive: true });
 fs.cpSync(path.join(root, 'packages/editor/dist'), resources, { recursive: true });
 fs.copyFileSync(path.join(root, 'packages/editor/index.html'), path.join(resources, 'index.html'));
 fs.cpSync(path.join(root, 'assets/themes'), path.join(contents, 'Resources/Themes'), { recursive: true });
+fs.copyFileSync(path.join(root, 'packages/protocol/src/generated/shortcuts.json'), path.join(contents, 'Resources/EditorShortcuts.json'));
 const nativeResources = path.join(root, 'apps/macos/Resources');
 for (const entry of fs.readdirSync(nativeResources)) {
   fs.cpSync(path.join(nativeResources, entry), path.join(contents, 'Resources', entry), { recursive: true });

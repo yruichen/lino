@@ -50,6 +50,10 @@ pub struct EditorPreferences {
     #[serde(default)]
     pub use_theme_line_height: bool,
     pub auto_save: bool,
+    #[serde(default)]
+    pub automatic_update_checks: bool,
+    #[serde(default = "include_prereleases")]
+    pub include_prerelease_updates: bool,
     pub font_size: u32,
     /// Percentage, so configuration has no floating-point rounding ambiguity.
     pub line_height: u32,
@@ -64,6 +68,9 @@ pub struct EditorPreferences {
 }
 fn adaptive_width() -> String {
     "adaptive".into()
+}
+fn include_prereleases() -> bool {
+    true
 }
 fn paper_family() -> String {
     "paper".into()

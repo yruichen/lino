@@ -9,6 +9,63 @@ const fixture = setupDOM();
 const { MarkdownEditor } = await import('../../packages/editor/src/engine/editor.ts');
 after(() => fixture.dom.window.close());
 
+test('repeated composition keeps heading sizes and surrounding rendered Markdown stable while mapping input', async () => {
+  const raw = '# Heading\n\n> Quote\n\n- Bullet\n\n- [ ] Task\n\n---\n\n[label](https://example.com) and [^note]\n\n[^note]: Footnote\n\n[TOC]\n\nbody';
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {});
+  try {
+    assert(forceParsing(editor.view, editor.view.state.doc.length, 50));
+    editor.select(raw.indexOf('Heading') + 'Heading'.length);
+    const classes = () => [...mount.querySelectorAll('.cm-line')].map(line => line.className);
+    const baseline = classes();
+    for (const character of ['甲', '🙂', '乙']) {
+      const task = mount.querySelector<HTMLInputElement>('.ot-task-checkbox');
+      const rule = mount.querySelector('hr.ot-horizontal-rule');
+      const note = mount.querySelector('.ot-footnote-ref');
+      const toc = mount.querySelector('.ot-document-toc');
+      assert(task && rule && note && toc);
+      editor.view.contentDOM.dispatchEvent(new fixture.dom.window.CompositionEvent('compositionstart', { bubbles: true }));
+      assert.equal(editor.composing(), true);
+      assert.deepEqual(classes(), baseline);
+      const from = editor.view.state.selection.main.head;
+      editor.view.dispatch({ changes: { from, insert: character }, selection: { anchor: from + character.length }, userEvent: 'input.type.compose' });
+      assert.deepEqual(classes(), baseline);
+      assert(mount.querySelector('.ot-task-checkbox') === task, 'task DOM survives provisional input');
+      assert(mount.querySelector('hr.ot-horizontal-rule') === rule, 'rule DOM survives provisional input');
+      assert(mount.querySelector('.ot-footnote-ref') === note, 'footnote DOM survives provisional input');
+      assert(mount.querySelector('.ot-document-toc') === toc, 'TOC DOM survives provisional input');
+      assert(!editor.view.contentDOM.textContent!.includes('https://example.com'));
+      editor.view.contentDOM.dispatchEvent(new fixture.dom.window.CompositionEvent('compositionend', { bubbles: true, data: character }));
+      await settleDOM();
+      assert.equal(editor.composing(), false);
+      assert.deepEqual(classes(), baseline);
+      assert.equal(editor.view.state.selection.main.head, from + character.length);
+    }
+    assert.equal(editor.read(), raw.replace('Heading', 'Heading甲🙂乙'));
+    // The checkbox callback must use its new source offset after composition.
+    mount.querySelector<HTMLInputElement>('.ot-task-checkbox')!.click();
+    assert.equal(editor.read(), raw.replace('Heading', 'Heading甲🙂乙').replace('[ ]', '[x]'));
+    assert(editor.command('undo'));
+    assert.equal(editor.read(), raw.replace('Heading', 'Heading甲🙂乙'));
+  } finally { editor.destroy(); mount.remove(); }
+});
+
+test('composition defers new Markdown structure until commit and source mode stays literal', () => {
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, 'title', () => {});
+  try {
+    editor.view.dispatch({ effects: changeComposition.of(true) });
+    editor.view.dispatch({ changes: { from: 0, insert: '# ' }, selection: { anchor: 2 }, userEvent: 'input.type.compose' });
+    assert.equal(mount.querySelector('.ot-heading'), null);
+    editor.view.dispatch({ effects: changeComposition.of(false) });
+    assert(mount.querySelector('.ot-heading-1'));
+    editor.command('source');
+    editor.view.dispatch({ effects: changeComposition.of(true) });
+    assert.equal(mount.querySelector('.ot-heading'), null);
+    assert.equal(editor.view.contentDOM.textContent, '# title');
+    editor.view.dispatch({ effects: changeComposition.of(false) });
+    assert.equal(mount.querySelector('.ot-heading'), null);
+  } finally { editor.destroy(); mount.remove(); }
+});
+
 test('visual headings, quotes, lists and rules render while source mode and literal code retain their actual text', () => {
   const raw = 'start\n\n# Title\n\n## Subtitle\n\n> Quoted text\n\n- Bullet\n\n---\n\n```text\n# literal\n> literal\n```';
   const mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {});

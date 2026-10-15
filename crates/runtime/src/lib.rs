@@ -11,6 +11,7 @@ mod recovery;
 mod scheduler;
 mod sessions;
 mod shutdown;
+mod updates;
 
 pub use composition::DocumentRuntime;
 pub use external::DocumentWatch;

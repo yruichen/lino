@@ -1,0 +1,278 @@
+[
+  {
+    "command": "heading-1",
+    "key": "1",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "heading-2",
+    "key": "2",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "heading-3",
+    "key": "3",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "heading-4",
+    "key": "4",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "heading-5",
+    "key": "5",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "heading-6",
+    "key": "6",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "paragraph",
+    "key": "0",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "bold",
+    "key": "b",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "italic",
+    "key": "i",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "strikethrough",
+    "key": "x",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "inline-code",
+    "key": "e",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "highlight",
+    "key": "h",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "superscript",
+    "key": "=",
+    "modifiers": [
+      "command",
+      "control"
+    ]
+  },
+  {
+    "command": "subscript",
+    "key": "-",
+    "modifiers": [
+      "command",
+      "control"
+    ]
+  },
+  {
+    "command": "clear-formatting",
+    "key": "\\",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "link",
+    "key": "k",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "link-properties",
+    "key": "k",
+    "modifiers": [
+      "command",
+      "option"
+    ]
+  },
+  {
+    "command": "ordered-list",
+    "key": "7",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "bullet-list",
+    "key": "8",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "task-list",
+    "key": "9",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "toggle-task",
+    "key": "l",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "indent",
+    "key": "]",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "outdent",
+    "key": "[",
+    "modifiers": [
+      "command"
+    ]
+  },
+  {
+    "command": "blockquote",
+    "key": "b",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "code-block",
+    "key": "k",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "code-language",
+    "key": "l",
+    "modifiers": [
+      "command",
+      "option"
+    ]
+  },
+  {
+    "command": "horizontal-rule",
+    "key": "h",
+    "modifiers": [
+      "command",
+      "option"
+    ]
+  },
+  {
+    "command": "insert-table",
+    "key": "t",
+    "modifiers": [
+      "command",
+      "option"
+    ]
+  },
+  {
+    "command": "image-import",
+    "key": "i",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "math-inline",
+    "key": "m",
+    "modifiers": [
+      "command",
+      "control"
+    ]
+  },
+  {
+    "command": "math-block",
+    "key": "m",
+    "modifiers": [
+      "command",
+      "shift"
+    ]
+  },
+  {
+    "command": "insert-diagram",
+    "key": "m",
+    "modifiers": [
+      "command",
+      "option"
+    ]
+  },
+  {
+    "command": "insert-footnote",
+    "key": "r",
+    "modifiers": [
+      "command",
+      "option"
+    ]
+  },
+  {
+    "command": "goto-footnote",
+    "key": "r",
+    "modifiers": [
+      "command",
+      "control"
+    ]
+  },
+  {
+    "command": "insert-toc",
+    "key": "t",
+    "modifiers": [
+      "command",
+      "control"
+    ]
+  },
+  {
+    "command": "insert-frontmatter",
+    "key": "f",
+    "modifiers": [
+      "command",
+      "option",
+      "control"
+    ]
+  }
+]

@@ -7,6 +7,7 @@ mod exports;
 mod external;
 mod handles;
 mod preferences;
+mod updates;
 
 pub use exports::{BridgeError, DocumentService};
 uniffi::setup_scaffolding!();
