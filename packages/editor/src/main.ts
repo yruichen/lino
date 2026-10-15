@@ -1,3 +1,4 @@
+import { EditorView } from '@codemirror/view';
 import { editorCommands, type EditorCommand } from '@lino/protocol/editor-host';
 import { hostGeneration, notifyHost } from '@lino/protocol/webkit';
 import { DocumentClient } from '@lino/protocol/documents';
@@ -229,6 +230,14 @@ const api = {
     const themeResult = await verifyTheme();
     return { ...editorResult, passed: [...editorResult.passed, ...searchResult.passed, ...markdownResult.passed, ...navigationResult.passed, ...tableInsertionResult.passed, ...themeResult.passed],
       failed: [...editorResult.failed, ...searchResult.failed, ...markdownResult.failed, ...navigationResult.failed, ...tableInsertionResult.failed, ...themeResult.failed] };
+  },
+  // Hidden WKWebViews suspend animation frames. Coordinate reads flush the
+  // same pending CM measurements that a visible frame normally performs.
+  measureDocumentForVerification() {
+    for (const dom of document.querySelectorAll<HTMLElement>('.cm-editor')) {
+      const view = EditorView.findFromDOM(dom);
+      if (view) view.coordsAtPos(view.viewport.from);
+    }
   },
   verifyDocumentEdit: () => verifyDocumentEdit(editor),
   verifyMediaLayout,

@@ -38,10 +38,11 @@ func verifyUpgrade(_ windows: DocumentWindows) async throws -> [String] {
     let media = try await document.webView.callAsyncJavaScript("""
         for(const image of document.images) image.loading='eager';
         const deadline=Date.now()+10000;
-        while(Date.now()<deadline){const image=document.querySelector('.ot-preview-image img'), diagram=document.querySelector('.ot-preview-diagram');if(image?.complete&&image.naturalWidth===400&&diagram?.dataset.previewState==='ready')break;await new Promise(r=>setTimeout(r,20));}
+        while(Date.now()<deadline){window.lino.measureDocumentForVerification();const image=document.querySelector('.ot-preview-image img'), diagram=document.querySelector('.ot-preview-diagram');if(image?.complete&&image.naturalWidth===400&&diagram?.dataset.previewState==='ready')break;await new Promise(r=>setTimeout(r,20));}
         const image=document.querySelector('.ot-preview-image img'), root=image?.closest('.ot-preview-image'), diagram=document.querySelector('.ot-preview-diagram'), svg=diagram?.querySelector('svg');
         window.upgradeImage=image; window.upgradeDiagram=svg;
         const r=diagram?.getBoundingClientRect(), s=svg?.getBoundingClientRect();
+        window.upgradeDiagramGeometry={preview:r?.toJSON(),svg:s?.toJSON(),state:diagram?.dataset.previewState,visibility:document.visibilityState,content:diagram?.querySelector('.ot-preview-content')?.getBoundingClientRect().toJSON()};
         const range=document.createRange(), line=root?.closest('.cm-line');
         const before=[...line.childNodes].find(n=>n.nodeType===3&&n.textContent.includes('Text before'));
         const after=[...line.childNodes].find(n=>n.nodeType===3&&n.textContent.includes('text after'));
@@ -49,7 +50,11 @@ func verifyUpgrade(_ windows: DocumentWindows) async throws -> [String] {
         return {caption:root?.querySelector('.ot-image-caption')?.textContent==='A useful caption',scale:root?.dataset.imageScale==='1'&&!root.querySelector('.ot-image-scale'),flow,centered:!!r&&!!s&&Math.abs(r.left+r.width/2-s.left-s.width/2)<1};
         """, arguments: [:], in: nil, contentWorld: .page) as? [String: Bool] ?? [:]
     try check("native-inline-image-breaks-text-flow-with-caption-and-no-size-label", media["caption"] == true && media["scale"] == true && media["flow"] == true)
-    try check("native-mermaid-svg-is-centered-in-its-preview", media["centered"] == true)
+    if media["centered"] != true {
+        let geometry = try await document.webView.callAsyncJavaScript("return JSON.stringify(window.upgradeDiagramGeometry);", arguments: [:], in: nil, contentWorld: .page) as? String ?? "missing geometry"
+        throw NSError(domain: "UpgradeVerification", code: 1, userInfo: [NSLocalizedDescriptionKey: "native-mermaid-svg-is-centered-in-its-preview: " + geometry])
+    }
+    try check("native-mermaid-svg-is-centered-in-its-preview", true)
     _ = try await document.bridge.call("navigateLine", arguments: [3])
     // Select the image through its rendered widget before invoking the native command.
     _ = try await document.webView.callAsyncJavaScript("document.querySelector('.ot-preview-image').dispatchEvent(new MouseEvent('click',{bubbles:true}));return true;", arguments: [:], in: nil, contentWorld: .page)
@@ -61,7 +66,7 @@ func verifyUpgrade(_ windows: DocumentWindows) async throws -> [String] {
         const end=Date.now()+5000;
         const field=document.querySelector('[data-code-language-input]');field.focus();
         document.execCommand('selectAll');document.execCommand('insertText',false,'py');
-        while(Date.now()<end){const item=[...document.querySelectorAll('.cm-tooltip-autocomplete li')].find(n=>n.textContent.includes('Python'));if(item){item.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));await new Promise(r=>setTimeout(r,20));return window.lino.snapshot().text.includes('```python');}await new Promise(r=>setTimeout(r,20));}return false;
+        while(Date.now()<end){window.lino.measureDocumentForVerification();const item=[...document.querySelectorAll('.cm-tooltip-autocomplete li')].find(n=>n.textContent.includes('Python'));if(item){item.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));await new Promise(r=>setTimeout(r,20));return window.lino.snapshot().text.includes('```python');}await new Promise(r=>setTimeout(r,20));}return false;
         """, arguments: [:], in: nil, contentWorld: .page) as? Bool == true
     try check("native-official-language-completion-applies-to-markdown-through-one-undo", language)
     _ = try await document.bridge.call("command", arguments: ["undo"])
