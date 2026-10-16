@@ -488,3 +488,27 @@
 "navigation.visibleGroups" = "Sidebar groups";
 "navigation.locationUp" = "Move Folder Up";
 "navigation.locationDown" = "Move Folder Down";
+
+/* Installation and first use */
+"setup.title" = "Welcome to Lino";
+"setup.intro" = "A few optional steps, then a quiet place to write. You can return to this guide from Settings.";
+"setup.install" = "1. Keep Lino in Applications";
+"setup.applications" = "Open Applications";
+"setup.installDetail" = "Drag Lino.app into Applications, eject the downloaded disk image, then open the installed copy. Homebrew handles installation for you.";
+"setup.installed" = "This copy is in Applications.";
+"setup.moveFirst" = "This copy is outside Applications. Move it there before setting a default app.";
+"setup.association" = "2. Open Markdown files with Lino";
+"setup.makeDefault" = "Set as Default for Markdown…";
+"setup.associationDetail" = "Optional. This applies to .md, .markdown, .mdown and .mkd files. Other text files keep their current app. You can also use Finder → Get Info → Open with → Change All to change it later.";
+"setup.defaultAlready" = "This copy of Lino is the default Markdown app.";
+"setup.defaultOptional" = "Choose Lino as the default to open Markdown files by double-clicking them.";
+"setup.defaultUnchanged" = "The default has not changed. You can try again or use Finder → Get Info → Open with → Change All.";
+"setup.defaultFailed" = "macOS did not change the default app. Try again, or select Lino in Finder → Get Info → Open with → Change All.";
+"setup.access" = "3. Choose what to open";
+"setup.openFile" = "Open a Markdown File…";
+"setup.openFolder" = "Open a Folder…";
+"setup.permissions" = "File Access in System Settings…";
+"setup.accessDetail" = "Lino needs no account, Accessibility access or Full Disk Access. Choose a file or folder when needed; macOS may ask for access to protected locations. If access was denied, allow it in Privacy & Security → Files and Folders and reopen the location. The system lists permissions only after a request.";
+"setup.start" = "Start Writing";
+"setup.openGuide" = "Installation & First Steps…";
+"setup.settingsDetail" = "Set the default Markdown app, open files or folders, and review macOS file access.";

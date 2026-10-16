@@ -13,6 +13,7 @@
     "check:architecture": "node tools/check-architecture.cjs",
     "editor:check": "npm run typecheck --workspace @lino/editor && node --test tests/editor/*.test.mts",
     "app:build": "node tools/macos/build.cjs",
+    "app:package": "node tools/macos/package.cjs",
     "app:verify": "node tools/macos/verify.cjs",
     "app:verify:navigation": "node tools/macos/verify.cjs --navigation",
     "macos:check": "node tools/macos/check.cjs",

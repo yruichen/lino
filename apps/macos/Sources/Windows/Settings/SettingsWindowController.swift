@@ -100,7 +100,10 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
         add(SettingsForm.label("settings." + selectedCategory + "Detail", size: 12))
         guard let value = values() else { return }
         switch selectedCategory {
-        case "general": add(SettingsForm.group("settings.interface", [SettingsForm.row("settings.language", languageControl)], detail: "settings.languageDetail"))
+        case "general":
+            add(SettingsForm.group("settings.interface", [SettingsForm.row("settings.language", languageControl)], detail: "settings.languageDetail"))
+            let setup = NSButton(title: localized("setup.openGuide"), target: NSApp.delegate, action: #selector(EditorApplication.showSetup)); setup.bezelStyle = .rounded
+            add(SettingsForm.group("setup.association", [setup], detail: "setup.settingsDetail"))
         case "appearance":
             let mode = popup([("language.system", "system"), ("settings.light", "light"), ("settings.dark", "dark")], selected: value.theme) { control, next in next.theme = (control as! NSPopUpButton).selectedItem?.representedObject as? String ?? next.theme }
             add(SettingsForm.group("settings.appearance", [SettingsForm.row("settings.appearanceMode", mode)]))

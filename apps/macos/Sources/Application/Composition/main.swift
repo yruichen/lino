@@ -8,6 +8,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     private var currentController: EditorWindowController? { verifying ? controller : windows.active }
     private var controller: EditorWindowController?
     private var settingsController: SettingsWindowController?
+    private var setupController: SetupWindowController?
     private var finished = false
     private var verificationStage = "startup"
     private var changingLanguage = false
@@ -43,6 +44,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             if let startupError { windows.controllers.first?.showError(startupError) }
             NSApp.activate(ignoringOtherApps: true)
             updates.checkAutomatically()
+            if paths.isEmpty, !UserDefaults.standard.bool(forKey: "setup.hasSeenWelcome") { showSetup() }
             return
         }
         let controller = EditorWindowController(verifying: verifying, backend: windows.backend, navigation: windows.navigation)
@@ -214,6 +216,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         installEditorMenus(target: self)
         for document in verifying ? [controller].compactMap({ $0 }) : windows.controllers { document.relocalize() }
         settingsController?.relocalize()
+        setupController?.relocalize()
         var errors: [String] = []
         for document in verifying ? [controller].compactMap({ $0 }) : windows.controllers where document.documents.ready {
             do {
@@ -232,6 +235,13 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         }, values: { [weak self] in self?.preferences.snapshot?.values }, apply: { [weak self] values in try await self?.setPreferences(values) }, navigation: windows.navigation, updates: updates)
         settingsController = settings
         return settings
+    }
+    @objc func showSetup() {
+        if setupController == nil {
+            setupController = SetupWindowController(openFile: { [weak self] in self?.openDocument() }, openFolder: { [weak self] in self?.openFolder() })
+        }
+        if !verifying { UserDefaults.standard.set(true, forKey: "setup.hasSeenWelcome") }
+        setupController?.relocalize(); setupController?.showWindow(nil)
     }
     @objc func showSettings() { settingsWindow().showWindow(nil) }
     @objc func checkForUpdates() { let settings = settingsWindow(); settings.selectCategory("updates"); settings.showWindow(nil); updates.check() }

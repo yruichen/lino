@@ -24,6 +24,7 @@ func installEditorMenus(target: AnyObject) {
     application.addItem(.separator())
     _ = action(application, localized("menu.settings"), #selector(EditorApplication.showSettings), ",")
     _ = action(application, localized("updates.checkMenu"), #selector(EditorApplication.checkForUpdates))
+    _ = action(application, localized("setup.openGuide"), #selector(EditorApplication.showSetup))
     application.addItem(.separator())
     application.addItem(withTitle: localized("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     let file = section(localized("menu.file"))

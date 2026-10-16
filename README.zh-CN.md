@@ -45,6 +45,10 @@ Lino 将 Markdown 视觉编辑与原生 Mac 工作区结合在一起。在同一
 brew install --cask yruichen/tap/lino
 ```
 
+首次启动的「安装与首次使用」会说明安装、Markdown 默认打开方式和文件访问。之后可从 **Lino → 安装与首次使用…** 或 **设置 → 通用** 重新打开。默认应用设置只影响 Markdown，安装不会自动接管现有文件关联；也可在 Finder 中选中 `.md` 文件，通过 **显示简介 → 打开方式 → Lino → 全部更改** 设置。
+
+用 **⌘O** 打开文件，**⇧⌘O** 打开文件夹。访问受保护的位置时，macOS 可能请求权限；如果曾拒绝，可检查 **系统设置 → 隐私与安全性 → 文件与文件夹**，再重新打开。无需账号、辅助功能或完全磁盘访问权限。
+
 ### 直接下载
 
 **[下载 Lino v0.0.4 Beta macOS 版 →](https://github.com/yruichen/lino/releases/download/v0.0.4/Lino-v0.0.4-macos-arm64.zip)**
