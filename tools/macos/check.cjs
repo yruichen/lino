@@ -5,12 +5,17 @@ if (process.platform !== 'darwin') throw new Error('Native lifecycle checks requ
 const root = path.resolve(__dirname, '../..');
 const output = path.join(root, '.local/validation/macos');
 fs.mkdirSync(output, { recursive: true });
-for (const [name, sources] of [
+const checks = [
+  ['application-installer', ['apps/macos/Sources/Platform/Installation/ApplicationInstaller.swift', 'tests/macos/application-installer.swift']],
   ['close-group', ['apps/macos/Sources/Application/Documents/CloseGroup.swift', 'tests/macos/close-group.swift']],
   ['release-feed', ['apps/macos/Sources/Platform/Updates/ReleaseFeedClient.swift', 'tests/macos/release-feed.swift']],
   ['image-data', ['apps/macos/Sources/Platform/Images/ImageData.swift', 'tests/macos/image-data.swift']],
   ['search-toolbar', ['apps/macos/Sources/Windows/Documents/SearchToolbarView.swift', 'tests/macos/search-toolbar.swift']],
-]) {
+];
+const only = process.argv.find(value => value.startsWith('--only='))?.slice(7).split(',');
+if (only?.some(name => !checks.some(check => check[0] === name))) throw new Error('Unknown native check.');
+for (const [name, sources] of checks) {
+  if (only && !only.includes(name)) continue;
   const executable = path.join(output, name);
   for (const [command, args] of [
     ['xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', ...sources, '-o', executable]],

@@ -20,7 +20,21 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     private let verifying = CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Task { await start() }
+        LanguagePreferences.shared.configure(verifying: verifying)
+        if !verifying, !InstallationServices().installed { showInstaller() }
+        else { Task { await start() } }
+    }
+    private func showInstaller() {
+        let menu = NSMenu(), application = NSMenu(), item = NSMenuItem()
+        item.submenu = application; menu.addItem(item)
+        let quit = application.addItem(withTitle: localized("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"); quit.target = NSApp; NSApp.mainMenu = menu
+        let installation = InstallationServices()
+        setupController = SetupWindowController(installation: installation, mode: .install, openFile: {}, finish: { NSApp.terminate(nil) }, install: { [weak self] in
+            guard let self else { return }
+            try await installation.installAndOpen(paths: pendingOpenPaths.map { URL(fileURLWithPath: $0) })
+            NSApp.terminate(nil)
+        }, tryWithoutInstalling: { [weak self] in Task { await self?.start() } })
+        setupController?.showWindow(nil); NSApp.activate(ignoringOtherApps: true)
     }
     private func start() async {
         LanguagePreferences.shared.configure(verifying: verifying)
@@ -31,6 +45,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             startupError = userFacingError(error)
         }
         windows.navigation.onError = { [weak self] message in self?.currentController?.showError(message) }
+        windows.onDocumentPresented = { [weak self] in self?.setupController?.documentPresented() }
         applyNativePreferences()
         if let values = preferences.snapshot?.values { updates.configure(values) }
         if preferences.snapshot?.storage_warning != nil { startupError = localized("settings.notDurable") }
@@ -39,12 +54,18 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             installEditorMenus(target: self)
             let paths = pendingOpenPaths.isEmpty ? windows.restorationPaths : pendingOpenPaths
             pendingOpenPaths = []
-            if paths.isEmpty { windows.create(offerRecovery: true) }
+            let welcome = paths.isEmpty && !UserDefaults.standard.bool(forKey: "setup.hasSeenWelcome")
+            if paths.isEmpty && !welcome { windows.create(offerRecovery: true) }
             else { for path in paths { await windows.open(path: path) } }
             if let startupError { windows.controllers.first?.showError(startupError) }
             NSApp.activate(ignoringOtherApps: true)
             updates.checkAutomatically()
-            if paths.isEmpty, !UserDefaults.standard.bool(forKey: "setup.hasSeenWelcome") { showSetup() }
+            if welcome {
+                showSetup()
+                if let startupError, let window = setupController?.window {
+                    let alert = NSAlert(); alert.messageText = startupError; alert.addButton(withTitle: localized("button.ok")); alert.beginSheetModal(for: window) { _ in }
+                }
+            }
             return
         }
         let controller = EditorWindowController(verifying: verifying, backend: windows.backend, navigation: windows.navigation)
@@ -105,6 +126,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
                     return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
                 }
                 if focused {
+                    await run("setup") { try await verifySetupFlow() }
                     await run("interface") { try await verifyInterface(controller) }
                     await run("upgrade") { try await verifyUpgrade(self.windows) }
                     await run("media-output") { try await verifyMediaOutput(self.windows) }
@@ -185,6 +207,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         return verifying
     }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if !verifying, starting { return .terminateNow }
         if verifying { verificationLifecycle.append("termination-request:\(verificationStage)") }
         if !verifying { Task { NSApp.reply(toApplicationShouldTerminate: await windows.terminate()) }; return .terminateLater }
         guard let controller, !controller.documents.closed else { return .terminateNow }
@@ -237,9 +260,11 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         return settings
     }
     @objc func showSetup() {
-        if setupController == nil {
-            setupController = SetupWindowController(openFile: { [weak self] in self?.openDocument() }, openFolder: { [weak self] in self?.openFolder() })
-        }
+        if let setupController, setupController.window?.isVisible == true { setupController.showWindow(nil); return }
+        setupController = SetupWindowController(newDocument: { [weak self] in self?.newDocument() }, openFile: { [weak self] in
+            guard let self else { return }
+            Task { await windows.openDialog(in: setupController?.window) }
+        }, finish: { [weak self] in if self?.windows.controllers.isEmpty == true { self?.windows.create(offerRecovery: true) } })
         if !verifying { UserDefaults.standard.set(true, forKey: "setup.hasSeenWelcome") }
         setupController?.relocalize(); setupController?.showWindow(nil)
     }

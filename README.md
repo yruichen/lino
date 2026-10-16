@@ -51,7 +51,7 @@ brew install --cask yruichen/tap/lino
 
 Unzip the download and move **Lino.app** to **Applications**. Release notes and checksums are on the [release page](https://github.com/yruichen/lino/releases/tag/v0.1.0).
 
-On first launch, the setup guide explains installation, optional Markdown file associations, and file access. Reopen it from **Lino → Installation & First Steps…** or **Settings → General**. The default-app action applies only to Markdown files; installing Lino does not take over existing associations. You can also select a `.md` file in Finder, choose **Get Info → Open with → Lino → Change All**.
+In development builds, the welcome window offers New Document and Open File; reopen it from **Lino → Welcome to Lino…**. Downloaded copies also offer Install and Open Lino, without moving files manually. The published v0.1.0 still uses the previous setup guide. Optional Markdown file associations are in **Settings → General**. Installing Lino does not take over existing associations. You can also select a `.md` file in Finder, choose **Get Info → Open with → Lino → Change All**.
 
 Use **⌘O** for a file or **⇧⌘O** for a folder. macOS may request access to protected locations when you open them. If you previously denied access, review **System Settings → Privacy & Security → Files and Folders**, then reopen the location. Lino does not require an account, Accessibility access or Full Disk Access.
 

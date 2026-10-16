@@ -492,24 +492,27 @@
 
 /* Installation and first use */
 "setup.title" = "Welcome to Lino";
-"setup.intro" = "A few optional steps, then a quiet place to write. You can return to this guide from Settings.";
-"setup.install" = "1. Keep Lino in Applications";
-"setup.applications" = "Open Applications";
-"setup.installDetail" = "Drag Lino.app into Applications, eject the downloaded disk image, then open the installed copy. Homebrew handles installation for you.";
-"setup.installed" = "This copy is in Applications.";
-"setup.moveFirst" = "This copy is outside Applications. Move it there before setting a default app.";
-"setup.association" = "2. Open Markdown files with Lino";
 "setup.makeDefault" = "Set as Default for Markdown…";
-"setup.associationDetail" = "Optional. This applies to .md, .markdown, .mdown and .mkd files. Other text files keep their current app. You can also use Finder → Get Info → Open with → Change All to change it later.";
 "setup.defaultAlready" = "This copy of Lino is the default Markdown app.";
 "setup.defaultOptional" = "Choose Lino as the default to open Markdown files by double-clicking them.";
 "setup.defaultUnchanged" = "The default has not changed. You can try again or use Finder → Get Info → Open with → Change All.";
 "setup.defaultFailed" = "macOS did not change the default app. Try again, or select Lino in Finder → Get Info → Open with → Change All.";
-"setup.access" = "3. Choose what to open";
-"setup.openFile" = "Open a Markdown File…";
-"setup.openFolder" = "Open a Folder…";
-"setup.permissions" = "File Access in System Settings…";
-"setup.accessDetail" = "Lino needs no account, Accessibility access or Full Disk Access. Choose a file or folder when needed; macOS may ask for access to protected locations. If access was denied, allow it in Privacy & Security → Files and Folders and reopen the location. The system lists permissions only after a request.";
-"setup.start" = "Start Writing";
-"setup.openGuide" = "Installation & First Steps…";
-"setup.settingsDetail" = "Set the default Markdown app, open files or folders, and review macOS file access.";
+"setup.openFile" = "Open File…";
+"setup.openGuide" = "Welcome to Lino…";
+
+/* First-run actions */
+"setup.installTitle" = "Install Lino";
+"setup.installSubtitle" = "Install in Applications and open automatically.";
+"setup.installAndOpen" = "Install & Open Lino";
+"setup.newDocument" = "New Document";
+"setup.writeSubtitle" = "Start with a blank page, or open something you’re working on.";
+"setup.tryFirst" = "Try without Installing";
+"setup.returnToLino" = "Show Running Lino";
+"setup.installing" = "Installing…";
+"setup.retryInstall" = "Try Again";
+"setup.quitExisting" = "Lino is already open. Save your work and quit that copy, then try again.";
+"setup.installFailed" = "Lino couldn’t finish installing. You can try again or use this copy for now.";
+"setup.defaultApplication" = "Default Markdown App";
+"setup.defaultNeedsInstall" = "This is a trial copy. Open Lino again and choose Install & Open Lino before setting a default.";
+"setup.showBackup" = "Show Previous Copy in Finder";
+"setup.restoreFailed" = "The installation folder changed. Your previous copy is kept safely; you can find it in Finder.";

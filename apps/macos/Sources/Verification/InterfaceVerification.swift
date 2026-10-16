@@ -28,10 +28,10 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
         passed.append(name)
     }
     func views(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(views) }
-    func wait(_ condition: () -> Bool) async throws {
+    func wait(_ condition: () async throws -> Bool) async throws {
         let deadline = ContinuousClock.now.advanced(by: .seconds(5))
-        while !condition(), ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
-        try check("interface-request-settles", condition())
+        while try await !condition(), ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
+        try check("interface-request-settles", try await condition())
     }
     func capture(_ view: NSView, _ name: String) throws {
         view.layoutSubtreeIfNeeded()
@@ -40,24 +40,6 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
             if let png = bitmap.representation(using: .png, properties: [:]) { try png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/" + name + ".png")) }
         }
     }
-    let bundle = Bundle.main.infoDictionary ?? [:]
-    let types = bundle["CFBundleDocumentTypes"] as? [[String: Any]] ?? []
-    try check("bundle-declares-markdown-as-editor-without-taking-default", types.contains { ($0["LSItemContentTypes"] as? [String])?.contains("net.daringfireball.markdown") == true && $0["CFBundleTypeRole"] as? String == "Editor" && $0["LSHandlerRank"] as? String == "Alternate" })
-    let home = URL(fileURLWithPath: "/Users/fixture", isDirectory: true)
-    try check("installation-recognizes-system-and-user-applications-only", InstallationServices.isInstalled(URL(fileURLWithPath: "/Applications/Lino.app"), home: home) && InstallationServices.isInstalled(home.appendingPathComponent("Applications/Lino.app"), home: home) && !InstallationServices.isInstalled(URL(fileURLWithPath: "/Volumes/Lino/Lino.app"), home: home) && !InstallationServices.isInstalled(home.appendingPathComponent("Downloads/Lino.app"), home: home))
-    var openedFixture = false
-    let setup = SetupWindowController(installation: InstallationServices(applicationURL: home.appendingPathComponent("Downloads/Lino.app")), openFile: { openedFixture = true }, openFolder: {})
-    setup.showWindow(nil); setup.window?.alphaValue = 0
-    if let root = setup.window?.contentView {
-        root.layoutSubtreeIfNeeded()
-        let controls = views(root).compactMap { $0 as? NSButton }
-        try check("welcome-does-not-change-associations-before-installation", controls.first { $0.identifier?.rawValue == "setup.makeDefault" }?.isEnabled == false)
-        try check("welcome-explains-permissions-and-reaches-real-file-entry", controls.contains { $0.identifier?.rawValue == "setup.permissions" })
-        try capture(root, "installation-guide")
-        controls.first { $0.identifier?.rawValue == "setup.openFile" }?.performClick(nil)
-        try check("welcome-open-file-routes-action-and-closes-guide", openedFixture && setup.window?.isVisible == false)
-    } else { try check("welcome-has-content", false) }
-    setup.close()
     if let menu = NSApp.mainMenu {
         func items(_ menu: NSMenu) -> [NSMenuItem] { menu.items + menu.items.flatMap { $0.submenu.map(items) ?? [] } }
         let formats = items(menu).filter { $0.representedObject is String }
@@ -70,10 +52,12 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
             guard let event = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: controller.window?.windowNumber ?? 0, context: nil, characters: key, charactersIgnoringModifiers: key, isARepeat: false, keyCode: code) else { throw CocoaError(.coderInvalidValue) }
             try check("native-markdown-shortcut-dispatched-" + key, menu.performKeyEquivalent(with: event))
         }
-        try press("1", 18); try await Task.sleep(for: .milliseconds(50))
+        try press("1", 18)
+        try await wait { (try await controller.bridge.call("snapshot") as? [String: Any])?["text"] as? String == "# " + (original["text"] as? String ?? "") }
         let heading = try await controller.bridge.call("snapshot") as? [String: Any] ?? [:]
         try check("native-cmd-1-sets-heading-without-changing-mode", (heading["text"] as? String)?.hasPrefix("# ") == true && heading["mode"] as? String == original["mode"] as? String)
-        try press("0", 29); try await Task.sleep(for: .milliseconds(50))
+        try press("0", 29)
+        try await wait { (try await controller.bridge.call("snapshot") as? [String: Any])?["text"] as? String == original["text"] as? String }
         let paragraph = try await controller.bridge.call("snapshot") as? [String: Any] ?? [:]
         try check("native-cmd-0-restores-paragraph", paragraph["text"] as? String == original["text"] as? String)
     }
