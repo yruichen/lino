@@ -192,7 +192,10 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
                 updateStatus.stringValue = result.newer ? localized("updates.available", release.version) : localized("updates.current")
                 releaseButton.title = localized("updates.viewRelease")
             } else { updateStatus.stringValue = localized("updates.noReleases") }
-        case .failed(let message): updateStatus.stringValue = message; updateStatus.textColor = ThemePalette.color("error")
+        case .failed(let message):
+            updateStatus.stringValue = message
+            if let previous = updates.lastResult?.release { updateStatus.stringValue += "\n" + localized("updates.previousResult", previous.version) }
+            updateStatus.textColor = ThemePalette.color("error")
         }
         if let date = updates.lastChecked { updateDate.stringValue = localized("updates.lastChecked", DateFormatter.localizedString(from: date, dateStyle: .medium, timeStyle: .short)) }
         else { updateDate.stringValue = "" }

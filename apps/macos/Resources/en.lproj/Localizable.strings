@@ -464,7 +464,7 @@
 "settings.updatesDetail" = "Check published versions of Lino on GitHub.";
 "updates.version" = "Lino version";
 "updates.currentVersion" = "Installed version: %@";
-"updates.source" = "Releases are provided by yruichen/lino on GitHub.";
+"updates.source" = "Checks use Lino’s public website. No GitHub account is needed. Downloads are hosted on GitHub Releases.";
 "updates.preferences" = "Update preferences";
 "updates.automatic" = "Automatically check for updates";
 "updates.includeBeta" = "Include Beta and prerelease versions";
@@ -479,7 +479,8 @@
 "updates.current" = "You are up to date.";
 "updates.noReleases" = "No published versions match this update channel.";
 "updates.lastChecked" = "Last checked: %@";
-"updates.rateLimited" = "GitHub is limiting requests. Please try again later.";
+"updates.rateLimited" = "The update service is busy. Please try again later.";
+"updates.previousResult" = "Previously checked: %@. This is not a fresh update result.";
 "updates.invalidResponse" = "The release information could not be read. Please try again later.";
 "updates.httpError" = "GitHub returned an error (%ld). Please try again.";
 "updates.networkError" = "Could not check for updates. Check your connection and try again.";

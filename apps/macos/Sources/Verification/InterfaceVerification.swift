@@ -11,6 +11,15 @@ private actor ReleaseAttemptFixture {
     }
 }
 
+private actor ReleaseSuccessThenFailureFixture {
+    private var attempts = 0
+    func fetch() throws -> String {
+        attempts += 1
+        if attempts > 1 { throw URLError(.notConnectedToInternet) }
+        return "[{\"tag_name\":\"v9.0.0\",\"prerelease\":true,\"draft\":false}]"
+    }
+}
+
 @MainActor
 func verifyInterface(_ controller: EditorWindowController) async throws -> [String] {
     var passed: [String] = []
@@ -174,6 +183,15 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
     try await wait { if case .checked = failed.state { return true }; return false }
     try check("failed-update-check-can-be-retried", failed.lastChecked != nil)
     failed.cancel()
+    let cachedAttempts = ReleaseSuccessThenFailureFixture()
+    let retained = UpdateCoordinator(backend: controller.bridge.backend, defaults: nil, currentVersion: "0.0.4", fetch: { _ in try await cachedAttempts.fetch() })
+    retained.check()
+    try await wait { if case .checked = retained.state { return true }; return false }
+    let lastSuccess = retained.lastChecked
+    retained.check()
+    try await wait { if case .failed = retained.state { return true }; return false }
+    try check("failed-refresh-retains-previous-release-and-success-time", retained.lastResult?.release?.version == "v9.0.0" && retained.lastChecked == lastSuccess)
+    retained.cancel()
     let delayed = UpdateCoordinator(backend: controller.bridge.backend, defaults: nil, currentVersion: "0.0.4", fetch: { _ in try? await Task.sleep(for: .milliseconds(80)); return releaseJSON })
     delayed.configure(snapshot.values); delayed.check()
     var changedChannel = snapshot.values; changedChannel.include_prerelease_updates.toggle(); delayed.configure(changedChannel)

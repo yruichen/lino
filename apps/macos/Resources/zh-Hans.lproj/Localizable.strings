@@ -464,7 +464,7 @@
 "settings.updatesDetail" = "检查 GitHub 上发布的 Lino 版本。";
 "updates.version" = "Lino 版本";
 "updates.currentVersion" = "当前版本：%@";
-"updates.source" = "更新来自 GitHub 上的 yruichen/lino。";
+"updates.source" = "通过 Lino 官网公开清单检查更新，无需 GitHub 账号。安装包托管在 GitHub Releases。";
 "updates.preferences" = "更新偏好";
 "updates.automatic" = "自动检查更新";
 "updates.includeBeta" = "包括 Beta 和预发布版本";
@@ -479,7 +479,8 @@
 "updates.current" = "当前已是最新版本。";
 "updates.noReleases" = "当前更新渠道尚无已发布版本。";
 "updates.lastChecked" = "上次检查：%@";
-"updates.rateLimited" = "GitHub 暂时限制了请求，请稍后重试。";
+"updates.rateLimited" = "更新服务暂时繁忙，请稍后重试。";
+"updates.previousResult" = "上次检查的版本：%@，并非本次检查结果。";
 "updates.invalidResponse" = "无法读取发布信息，请稍后重试。";
 "updates.httpError" = "GitHub 返回错误（%ld），请重试。";
 "updates.networkError" = "无法检查更新，请检查网络连接后重试。";

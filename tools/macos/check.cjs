@@ -7,6 +7,7 @@ const output = path.join(root, '.local/validation/macos');
 fs.mkdirSync(output, { recursive: true });
 for (const [name, sources] of [
   ['close-group', ['apps/macos/Sources/Application/Documents/CloseGroup.swift', 'tests/macos/close-group.swift']],
+  ['release-feed', ['apps/macos/Sources/Platform/Updates/ReleaseFeedClient.swift', 'tests/macos/release-feed.swift']],
   ['image-data', ['apps/macos/Sources/Platform/Images/ImageData.swift', 'tests/macos/image-data.swift']],
   ['search-toolbar', ['apps/macos/Sources/Windows/Documents/SearchToolbarView.swift', 'tests/macos/search-toolbar.swift']],
 ]) {
