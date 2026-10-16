@@ -11,3 +11,4 @@ path = "src/lib.rs"
 [dependencies]
 lino-document.workspace = true
 lino-markdown.workspace = true
+semver = "1.0.28"

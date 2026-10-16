@@ -187,13 +187,36 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     window.makeKeyAndOrderFront(nil)
     try await wait { NSApp.isActive && window.isKeyWindow }
     await windows.navigation.addLocation(directory.path)
-    source.setWorkspaceVisible(true); try await Task.sleep(for: .milliseconds(240))
+    source.setWorkspaceVisible(true)
+    // Capture the baseline after AppKit has restored the sidebar's final width,
+    // rather than during its initial expansion from the minimum thickness.
+    try await wait { split.expanded && abs(split.sidebarPane.frame.width - split.rememberedWidth) < 1 }
     let frame = window.frame, sidebarWidth = split.sidebarPane.frame.width
+    source.workspace.setOutline(true)
+    window.contentView?.layoutSubtreeIfNeeded()
+    guard let content = source.workspace.scroll.superview,
+          let placeholder = content.subviews.first(where: { $0.identifier?.rawValue == "outline-empty" }) as? NSTextField else {
+        throw NSError(domain: "NavigationPresentation", code: 4, userInfo: [NSLocalizedDescriptionKey: "Outline empty state is missing"])
+    }
+    try await wait { !placeholder.isHidden }
+    window.contentView?.layoutSubtreeIfNeeded()
+    if let bitmap = source.workspace.view.bitmapImageRepForCachingDisplay(in: source.workspace.view.bounds) {
+        source.workspace.view.cacheDisplay(in: source.workspace.view.bounds, to: bitmap)
+        if let png = bitmap.representation(using: .png, properties: [:]) {
+            try png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/outline-empty.png"))
+        }
+    }
+    try check("empty-document-outline-has-a-centered-placeholder", !placeholder.isHidden
+        && abs(placeholder.frame.midX - content.bounds.midX) < 1
+        && abs(placeholder.frame.midY - content.bounds.midY) < 1)
+    source.workspace.setOutline(false)
+    try check("outline-empty-placeholder-is-hidden-on-files-page", placeholder.isHidden)
     source.workspace.setOutline(true)
     await windows.open(path: first.path, origin: source)
     let opened = try await source.bridge.call("snapshot") as? [String: Any] ?? [:]
     try check("first-file-reuses-pristine-page-without-window-tab-or-sidebar-resize", windows.controllers.count == initialCount + 1 && source.documents.hasFile && opened["text"] as? String == (try String(contentsOf: first, encoding: .utf8)) && window.frame == frame && split.sidebarPane.frame.width == sidebarWidth)
     try await wait { source.workspace.outline.numberOfRows == 2 }
+    try check("outline-empty-placeholder-disappears-when-headings-arrive", placeholder.isHidden)
     try check("reused-page-outline-is-ready-without-changing-sidebar-page", source.workspace.showingOutline && source.workspace.outline.numberOfRows == 2)
     source.workspace.setOutline(false)
     try await Task.sleep(for: .milliseconds(150))

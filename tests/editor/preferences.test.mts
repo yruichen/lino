@@ -7,7 +7,7 @@ import { setupDOM, settleDOM } from './dom.mts';
 const fixture = setupDOM();
 const { MarkdownEditor } = await import('../../packages/editor/src/engine/editor.ts');
 after(() => fixture.dom.window.close());
-const values = { language: 'en', theme: 'dark', theme_family: 'paper', custom_themes: [], body_font: '', background_image: '', background_opacity: 20, surface_opacity: 100, glass_style: 'solid', image_insertion: 'reference', use_theme_font_size: false, use_theme_line_height: false, auto_save: false, font_size: 20, line_height: 180, page_width: 960, content_width: 'fixed',
+const values = { language: 'en', theme: 'dark', theme_family: 'paper', custom_themes: [], body_font: '', background_image: '', background_opacity: 20, surface_opacity: 100, glass_style: 'solid', image_insertion: 'reference', use_theme_font_size: false, use_theme_line_height: false, auto_save: false, automatic_update_checks: false, include_prerelease_updates: true, font_size: 20, line_height: 180, page_width: 960, content_width: 'fixed',
   spell_check: true, continue_lists: true, code_wrap: false, code_numbers: true };
 test('host viewport changes preserve text, selection and history', () => {
   const mount = fixture.mount(), editor = new MarkdownEditor(mount, 'Writing', () => {});
@@ -61,7 +61,11 @@ test('list continuation follows the effective preference without changing ordina
   try {
     await editor.applyPreferences(values); editor.select(editor.view.state.doc.length); editor.view.focus();
     editor.view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }));
-    assert.equal(editor.read(), '- item\n- '); editor.command('undo');
+    assert.equal(editor.read(), '- item\n- ');
+    editor.view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }));
+    assert.equal(editor.read(), '- item\n');
+    editor.command('undo'); assert.equal(editor.read(), '- item\n- ');
+    editor.command('undo'); assert.equal(editor.read(), '- item');
     await editor.applyPreferences({ ...values, continue_lists: false }); editor.select(editor.view.state.doc.length);
     editor.view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }));
     assert.equal(editor.read(), '- item\n');

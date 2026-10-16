@@ -14,6 +14,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     private var starting = true
     private var pendingOpenPaths: [String] = []
     private lazy var preferences = PreferencesCoordinator(backend: windows.backend)
+    private lazy var updates = UpdateCoordinator(backend: windows.backend, defaults: verifying ? nil : .standard)
     private var verificationLifecycle: [String] = []
     private let verifying = CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings")
 
@@ -30,6 +31,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         }
         windows.navigation.onError = { [weak self] message in self?.currentController?.showError(message) }
         applyNativePreferences()
+        if let values = preferences.snapshot?.values { updates.configure(values) }
         if preferences.snapshot?.storage_warning != nil { startupError = localized("settings.notDurable") }
         starting = false
         if !verifying {
@@ -40,6 +42,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             else { for path in paths { await windows.open(path: path) } }
             if let startupError { windows.controllers.first?.showError(startupError) }
             NSApp.activate(ignoringOtherApps: true)
+            updates.checkAutomatically()
             return
         }
         let controller = EditorWindowController(verifying: verifying, backend: windows.backend, navigation: windows.navigation)
@@ -100,6 +103,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
                     return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
                 }
                 if focused {
+                    await run("interface") { try await verifyInterface(controller) }
                     await run("upgrade") { try await verifyUpgrade(self.windows) }
                     await run("media-output") { try await verifyMediaOutput(self.windows) }
                     await run("appearance") { try await verifyAppearanceControls(controller, settings: self.settingsWindow(), values: { self.preferences.snapshot?.values }) }
@@ -185,7 +189,8 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         Task { NSApp.reply(toApplicationShouldTerminate: await controller.documents.close()) }
         return .terminateLater
     }
-    func applicationWillTerminate(_ notification: Notification) { controller?.detach(); windows.detach() }
+    func applicationWillTerminate(_ notification: Notification) { updates.cancel(); controller?.detach(); windows.detach() }
+    func applicationDidBecomeActive(_ notification: Notification) { if !verifying, !starting { updates.checkAutomatically() } }
     func setInterfaceLanguage(_ preference: InterfaceLanguage) async throws {
         guard var values = preferences.snapshot?.values else { return }
         values.language = preference.rawValue
@@ -203,6 +208,8 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         }
         changingLanguage = true; defer { changingLanguage = false }
         let snapshot = try await preferences.update(values)
+        updates.configure(snapshot.values)
+        if !verifying { updates.checkAutomatically() }
         applyNativePreferences()
         installEditorMenus(target: self)
         for document in verifying ? [controller].compactMap({ $0 }) : windows.controllers { document.relocalize() }
@@ -222,11 +229,12 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         let settings = SettingsWindowController(selectLanguage: { [weak self] preference in
             guard let self else { return }
             try await setInterfaceLanguage(preference)
-        }, values: { [weak self] in self?.preferences.snapshot?.values }, apply: { [weak self] values in try await self?.setPreferences(values) }, navigation: windows.navigation)
+        }, values: { [weak self] in self?.preferences.snapshot?.values }, apply: { [weak self] values in try await self?.setPreferences(values) }, navigation: windows.navigation, updates: updates)
         settingsController = settings
         return settings
     }
     @objc func showSettings() { settingsWindow().showWindow(nil) }
+    @objc func checkForUpdates() { let settings = settingsWindow(); settings.selectCategory("updates"); settings.showWindow(nil); updates.check() }
     private var documentForAction: EditorWindowController? {
         guard let controller = currentController, !controller.isPreviewing, controller.isActiveDocument, controller.documents.ready, !controller.documents.busy else { return nil }
         return controller

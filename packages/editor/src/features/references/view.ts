@@ -46,7 +46,7 @@ class FootnoteWidget extends WidgetType {
   override ignoreEvent(): boolean { return true; }
 }
 function build(state: EditorState): DecorationSet {
-  if (state.field(modeState) === 'source' || state.field(compositionState)) return Decoration.none;
+  if (state.field(modeState) === 'source') return Decoration.none;
   const index = state.field(referenceIndex), locale = state.facet(localeFacet), ranges: ReturnType<Decoration['range']>[] = [];
   const active = (from: number, to: number) => presentationSelection(state).ranges.some(range => range.from <= to && range.to >= from);
   for (const link of index.links) {
@@ -70,6 +70,7 @@ function build(state: EditorState): DecorationSet {
 export const referencePresentation = StateField.define<DecorationSet>({
   create: build,
   update(value, tr) {
+    if (tr.state.field(compositionState) && tr.state.field(modeState) === 'visual') return value.map(tr.changes);
     return tr.docChanged || presentationSelectionChanged(tr.startState, tr.state) || tr.startState.field(referenceIndex) !== tr.state.field(referenceIndex)
       || tr.startState.field(modeState) !== tr.state.field(modeState) || tr.startState.field(compositionState) !== tr.state.field(compositionState)
       || tr.startState.facet(localeFacet) !== tr.state.facet(localeFacet) ? build(tr.state) : value;

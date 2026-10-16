@@ -35,7 +35,9 @@ final class NativeFilePreview: NSObject {
             let imageView = NSImageView(frame: NSRect(origin: .zero, size: image.size))
             imageView.image = image; imageView.imageScaling = .scaleNone
             let scroll = NSScrollView(); self.scroll = scroll
+            scroll.contentView = CenteredImageClipView()
             scroll.documentView = imageView; scroll.hasHorizontalScroller = true; scroll.hasVerticalScroller = true
+            scroll.scrollerStyle = .overlay; scroll.autohidesScrollers = true
             scroll.allowsMagnification = true; scroll.minMagnification = 0.1; scroll.maxMagnification = 8
             scroll.backgroundColor = ThemePalette.color("bg"); renderer = scroll
         }

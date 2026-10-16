@@ -1,5 +1,6 @@
 // AppKit interface strings. User document content and filenames are not translated.
 "link.open" = "Open Link";
+"link.properties" = "Edit Link Properties…";
 "link.copy" = "Copy Link Address";
 "link.remove" = "Remove Link";
 "link.definition" = "Edit Shared Link Definition…";
@@ -452,3 +453,38 @@
 "preview.invalid" = "The file could not be read as an image or PDF. It may be damaged or unavailable.";
 
 "format.imageScale" = "Image Size: %d%%";
+
+"button.done" = "Done";
+"navigation.customizeDetail" = "Changes apply immediately to all windows.";
+"navigation.sectionOrderDetail" = "Choose visible groups, then use the arrows to arrange them.";
+"navigation.customizeNoLocations" = "Add a folder to browse and search its files.";
+"navigation.removeLocationDetail" = "Select a folder to reorder or remove it. Removing a location never deletes its files.";
+"navigation.displayOptions" = "Display and behavior";
+"settings.updates" = "Updates";
+"settings.updatesDetail" = "Check published versions of Lino on GitHub.";
+"updates.version" = "Lino version";
+"updates.currentVersion" = "Installed version: %@";
+"updates.source" = "Releases are provided by yruichen/lino on GitHub.";
+"updates.preferences" = "Update preferences";
+"updates.automatic" = "Automatically check for updates";
+"updates.includeBeta" = "Include Beta and prerelease versions";
+"updates.preferencesDetail" = "Automatic checks run at most once a day when Lino is active. New versions open on GitHub for you to download and install.";
+"updates.checkNow" = "Check Now";
+"updates.checkMenu" = "Check for Updates…";
+"updates.viewRelease" = "View Release & Download";
+"updates.browseReleases" = "Browse Releases";
+"updates.ready" = "Ready to check for updates.";
+"updates.checking" = "Checking for updates…";
+"updates.available" = "A new version is available: %@";
+"updates.current" = "You are up to date.";
+"updates.noReleases" = "No published versions match this update channel.";
+"updates.lastChecked" = "Last checked: %@";
+"updates.rateLimited" = "GitHub is limiting requests. Please try again later.";
+"updates.invalidResponse" = "The release information could not be read. Please try again later.";
+"updates.httpError" = "GitHub returned an error (%ld). Please try again.";
+"updates.networkError" = "Could not check for updates. Check your connection and try again.";
+"format.paragraph" = "Paragraph";
+"navigation.customizeTitle" = "Customize Sidebar";
+"navigation.visibleGroups" = "Sidebar groups";
+"navigation.locationUp" = "Move Folder Up";
+"navigation.locationDown" = "Move Folder Down";

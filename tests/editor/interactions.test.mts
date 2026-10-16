@@ -8,6 +8,27 @@ const fixture = setupDOM();
 const { MarkdownEditor } = await import('../../packages/editor/src/engine/editor.ts');
 after(() => fixture.dom.window.close());
 
+test('Enter on an empty continued list item exits the list instead of inserting an unexpected blank item', () => {
+  for (const [raw, continued, exited] of [
+    ['- item', '- item\n- ', '- item\n'],
+    ['1. item', '1. item\n2. ', '1. item\n'],
+    ['- [x] item', '- [x] item\n- [ ] ', '- [x] item\n'],
+    ['> - item', '> - item\n> - ', '> - item\n> '],
+    ['- item\r\n- second', '- item\r\n- second\r\n- ', '- item\r\n- second\r\n'],
+  ]) {
+    const mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {});
+    try {
+      editor.select(editor.view.state.doc.length);
+      const enter = () => editor.view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true }));
+      enter(); assert.equal(editor.read(), continued);
+      enter(); assert.equal(editor.read(), exited);
+      assert.equal(editor.view.state.selection.main.head, editor.view.state.doc.length);
+      assert(editor.command('undo')); assert.equal(editor.read(), continued);
+      assert(editor.command('undo')); assert.equal(editor.read(), raw);
+    } finally { editor.destroy(); mount.remove(); }
+  }
+});
+
 test('clicking media edits its existing source in place, keeps one history and leaves secondary actions in a context menu', () => {
   const raw = 'start\n\n![alt](local.svg)\n\n$x+1$\n\nend', mount = fixture.mount();
   const events: import('../../packages/protocol/src/client/editor-host.ts').EditorHostEvent[] = [];

@@ -5,7 +5,7 @@ export type EditorPreferences = { language: string, theme: string, theme_family:
 /**
  * Platform bookmark interpreted only by the native appearance adapter.
  */
-background_image: string, background_opacity: number, surface_opacity: number, glass_style: string, image_insertion: string, use_theme_font_size: boolean, use_theme_line_height: boolean, auto_save: boolean, font_size: number,
+background_image: string, background_opacity: number, surface_opacity: number, glass_style: string, image_insertion: string, use_theme_font_size: boolean, use_theme_line_height: boolean, auto_save: boolean, automatic_update_checks: boolean, include_prerelease_updates: boolean, font_size: number,
 /**
  * Percentage, so configuration has no floating-point rounding ambiguity.
  */

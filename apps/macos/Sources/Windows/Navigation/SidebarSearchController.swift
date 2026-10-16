@@ -7,6 +7,7 @@ final class SidebarSearchController: NSObject, NSSearchFieldDelegate, NSTableVie
     let field = NSSearchField()
     private let table = NSTableView()
     private let notice = NSTextField(wrappingLabelWithString: "")
+    private let emptyLabel = NSTextField(wrappingLabelWithString: "")
     private let back = NSButton()
     private let navigation: NavigationCoordinator
     private var observer: UUID?
@@ -26,12 +27,25 @@ final class SidebarSearchController: NSObject, NSSearchFieldDelegate, NSTableVie
         table.delegate = self; table.dataSource = self; table.target = self; table.doubleAction = #selector(openSelected)
         let scroll = NSScrollView(); scroll.documentView = table; scroll.hasVerticalScroller = true; scroll.drawsBackground = false
         notice.font = .systemFont(ofSize: 12); notice.textColor = .secondaryLabelColor
-        view.orientation = .vertical; view.alignment = .leading; view.spacing = 8; view.distribution = .fill
+        emptyLabel.font = .systemFont(ofSize: 13); emptyLabel.textColor = .secondaryLabelColor; emptyLabel.alignment = .center
+        emptyLabel.identifier = .init("sidebar-search-empty")
+        let results = NSView()
+        for child in [scroll, emptyLabel] { child.translatesAutoresizingMaskIntoConstraints = false; results.addSubview(child) }
+        NSLayoutConstraint.activate([
+            scroll.leadingAnchor.constraint(equalTo: results.leadingAnchor), scroll.trailingAnchor.constraint(equalTo: results.trailingAnchor),
+            scroll.topAnchor.constraint(equalTo: results.topAnchor), scroll.bottomAnchor.constraint(equalTo: results.bottomAnchor),
+            emptyLabel.centerXAnchor.constraint(equalTo: results.centerXAnchor), emptyLabel.centerYAnchor.constraint(equalTo: results.centerYAnchor),
+            emptyLabel.leadingAnchor.constraint(greaterThanOrEqualTo: results.leadingAnchor, constant: 20),
+            emptyLabel.trailingAnchor.constraint(lessThanOrEqualTo: results.trailingAnchor, constant: -20),
+        ])
+        view.orientation = .vertical; view.alignment = .leading; view.spacing = 0; view.distribution = .fill
         header.setContentHuggingPriority(.required, for: .vertical)
         notice.setContentHuggingPriority(.required, for: .vertical)
         scroll.scrollerStyle = .overlay; scroll.autohidesScrollers = true; scroll.borderType = .noBorder
-        scroll.setContentHuggingPriority(.defaultLow, for: .vertical)
-        for child in [header, notice, scroll] {
+        results.setContentHuggingPriority(.defaultLow, for: .vertical)
+        let status = NSStackView(views: [notice]); status.edgeInsets = NSEdgeInsets(top: 8, left: 14, bottom: 10, right: 14)
+        status.setContentHuggingPriority(.required, for: .vertical)
+        for child in [header, results, status] {
             view.addArrangedSubview(child); child.translatesAutoresizingMaskIntoConstraints = false
             child.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         }
@@ -46,7 +60,10 @@ final class SidebarSearchController: NSObject, NSSearchFieldDelegate, NSTableVie
     private func apply() {
         let owner = navigation.contentSearch
         if field.stringValue != owner.query { field.stringValue = owner.query }
-        table.reloadData(); notice.stringValue = owner.notice
+        table.reloadData()
+        emptyLabel.stringValue = hits.isEmpty ? owner.notice : ""; emptyLabel.isHidden = !hits.isEmpty || owner.notice.isEmpty
+        notice.stringValue = hits.isEmpty ? "" : owner.notice
+        notice.superview?.isHidden = notice.stringValue.isEmpty
     }
     func show(root: String?, window: NSWindow?) {
         navigation.contentSearch.show(root: root); window?.makeFirstResponder(field)

@@ -488,6 +488,7 @@ version = "0.0.4"
 dependencies = [
  "lino-document",
  "lino-markdown",
+ "semver",
 ]
 
 [[package]]

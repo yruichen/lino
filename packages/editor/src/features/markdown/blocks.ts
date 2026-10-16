@@ -2,7 +2,7 @@ import { localizeError } from '../../localization/index.ts';
 import { EditorSelection, type ChangeSpec, type EditorState, type TransactionSpec } from '@codemirror/state';
 import { enclosingNode, guardTextBlocks, selectedLines, selectionTree } from './selection.ts';
 
-export type BlockFormat = `heading-${1 | 2 | 3 | 4 | 5 | 6}` | 'bullet-list' | 'ordered-list' | 'task-list' | 'blockquote' | 'code-block';
+export type BlockFormat = `heading-${1 | 2 | 3 | 4 | 5 | 6}` | 'paragraph' | 'bullet-list' | 'ordered-list' | 'task-list' | 'blockquote' | 'code-block';
 function prefix(text: string) {
   const outer = /^(?:[ \t]*(?:>[ \t]?))*/.exec(text)![0];
   const rest = text.slice(outer.length), indent = /^[ \t]*/.exec(rest)![0];
@@ -28,7 +28,7 @@ function headings(state: EditorState, level: number): TransactionSpec {
     const body = Array.from({ length: underline.number - first.number }, (_, index) => {
       const line = state.doc.line(first.number + index); return line.text.slice(prefix(line.text).content).trim();
     }).join(' ');
-    setext.push({ from: first.from, to: underline.to, insert: first.text.slice(0, prefix(first.text).content) + '#'.repeat(level) + ' ' + body, first: first.number, last: underline.number });
+    setext.push({ from: first.from, to: underline.to, insert: first.text.slice(0, prefix(first.text).content) + (level ? '#'.repeat(level) + ' ' : '') + body, first: first.number, last: underline.number });
     return false;
   } });
   const entries = lines.filter(line => !setext.some(node => line.number >= node.first && line.number <= node.last) && (line.text.trim() || lines.length === 1)).map(line => {
@@ -36,7 +36,7 @@ function headings(state: EditorState, level: number): TransactionSpec {
     const heading = /^(#{1,6})(?:[ \t]+|$)/.exec(line.text.slice(start));
     return { line, start, heading };
   });
-  const remove = !setext.length && entries.every(entry => entry.heading?.[1].length === level);
+  const remove = level === 0 || !setext.length && entries.every(entry => entry.heading?.[1].length === level);
   const changes: ChangeSpec[] = setext.map(({ from, to, insert }) => ({ from, to, insert }));
   for (const { line, start, heading } of entries) {
     changes.push({ from: line.from + start, to: line.from + start + (heading?.[0].length ?? 0), insert: remove ? '' : '#'.repeat(level) + ' ' });
@@ -121,6 +121,7 @@ export function blockFormat(state: EditorState, command: BlockFormat): Transacti
   guardTextBlocks(state, command === 'code-block');
   if (command === 'code-block') return fence(state);
   if (command === 'blockquote') return quote(state);
+  if (command === 'paragraph') return headings(state, 0);
   if (command.startsWith('heading-')) return headings(state, Number(command.slice(-1)));
   return lists(state, command);
 }

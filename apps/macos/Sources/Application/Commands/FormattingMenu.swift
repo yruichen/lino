@@ -6,6 +6,7 @@ func formattingMenu(target: AnyObject, action: Selector, keyboardShortcuts: Bool
     func add(_ parent: NSMenu, _ title: String, _ command: String, key: String = "") {
         let item = parent.addItem(withTitle: title, action: action, keyEquivalent: keyboardShortcuts ? key : "")
         item.target = target; item.representedObject = command
+        if keyboardShortcuts { EditorShortcuts.apply(command, to: item) }
     }
     func group(_ key: String, _ items: [(String, String)], into parent: NSMenu = menu) {
         let submenu = NSMenu(title: localized(key))
@@ -19,12 +20,13 @@ func formattingMenu(target: AnyObject, action: Selector, keyboardShortcuts: Bool
     add(menu, localized("format.inlineCode"), "inline-code")
     group("format.textStyle", [("format.highlight", "highlight"), ("format.superscript", "superscript"), ("format.subscript", "subscript"), ("format.clearInline", "clear-formatting")])
     add(menu, localized("format.link"), "link", key: "k")
-    group("format.linkOptions", [("link.open", "open-link"), ("link.copy", "copy-link"), ("link.remove", "unlink"), ("link.definition", "edit-link-reference")])
+    group("format.linkOptions", [("link.properties", "link-properties"), ("link.open", "open-link"), ("link.copy", "copy-link"), ("link.remove", "unlink"), ("link.definition", "edit-link-reference")])
     menu.addItem(.separator())
     let heading = NSMenu(title: localized("format.heading"))
     for level in 1...6 { add(heading, localized("format.headingLevel", level), "heading-\(level)") }
     let headingItem = NSMenuItem(title: localized("format.heading"), action: nil, keyEquivalent: "")
     headingItem.submenu = heading; menu.addItem(headingItem)
+    add(menu, localized("format.paragraph"), "paragraph")
     group("format.list", [("format.bulletList", "bullet-list"), ("format.orderedList", "ordered-list"), ("format.taskList", "task-list"),
                           ("format.toggleTask", "toggle-task"), ("format.indent", "indent"), ("format.outdent", "outdent")])
     add(menu, localized("format.blockquote"), "blockquote")

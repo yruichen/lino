@@ -18,7 +18,7 @@ if (process.argv.includes('--headless')) args.push('--headless');
 const stage = process.argv.find(value => value.startsWith('--stage=') || value.startsWith('--stages='));
 const stages = stage?.split('=')[1].split(',');
 if (stage) {
-  if (!focused || !stages.every(value => ['upgrade', 'navigation', 'media-output', 'appearance', 'image-references', 'window-chrome'].includes(value))) throw new Error('Unknown focused verification stage.');
+  if (!focused || !stages.every(value => ['upgrade', 'navigation', 'media-output', 'appearance', 'image-references', 'window-chrome', 'interface'].includes(value))) throw new Error('Unknown focused verification stage.');
   args.push(stage);
 }
 const output = path.join(root, '.local/validation');

@@ -10,6 +10,7 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     private let verifying: Bool
     let outline = NavigationOutlineView()
     let scroll = NSScrollView()
+    private let navigationContent = NSView()
     private let switcher = NSSegmentedControl()
     private let locationPicker = NSPopUpButton(frame: .zero, pullsDown: false)
     private let searchButton = NSButton()
@@ -26,6 +27,9 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     private let continueButton = NSButton()
     var onContinueOutline: (() -> Void)?
     private let notice = NSTextField(wrappingLabelWithString: "")
+    private let outlineEmpty = NSTextField(wrappingLabelWithString: "")
+    private var headingNoticeKey: String?
+    private var headingsExhausted = false
     private let empty = NSStackView()
     private let emptyLabel = NSTextField(wrappingLabelWithString: "")
     private let openButton = NSButton()
@@ -99,6 +103,20 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         scroll.contentView.drawsBackground = false
         scroll.backgroundColor = ThemePalette.navigationBackground
         outline.backgroundColor = ThemePalette.navigationBackground
+        outlineEmpty.identifier = NSUserInterfaceItemIdentifier("outline-empty")
+        outlineEmpty.font = .systemFont(ofSize: 13); outlineEmpty.textColor = .secondaryLabelColor
+        outlineEmpty.alignment = .center; outlineEmpty.isHidden = true
+        for subview in [scroll, outlineEmpty] { subview.translatesAutoresizingMaskIntoConstraints = false; navigationContent.addSubview(subview) }
+        NSLayoutConstraint.activate([
+            scroll.leadingAnchor.constraint(equalTo: navigationContent.leadingAnchor),
+            scroll.trailingAnchor.constraint(equalTo: navigationContent.trailingAnchor),
+            scroll.topAnchor.constraint(equalTo: navigationContent.topAnchor),
+            scroll.bottomAnchor.constraint(equalTo: navigationContent.bottomAnchor),
+            outlineEmpty.centerXAnchor.constraint(equalTo: navigationContent.centerXAnchor),
+            outlineEmpty.centerYAnchor.constraint(equalTo: navigationContent.centerYAnchor),
+            outlineEmpty.leadingAnchor.constraint(greaterThanOrEqualTo: navigationContent.leadingAnchor, constant: 20),
+            outlineEmpty.trailingAnchor.constraint(lessThanOrEqualTo: navigationContent.trailingAnchor, constant: -20),
+        ])
         notice.font = .systemFont(ofSize: 11); notice.textColor = .secondaryLabelColor
         notice.isHidden = true
         openButton.bezelStyle = .rounded; openButton.target = self; openButton.action = #selector(openDocument)
@@ -110,10 +128,10 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         view.orientation = .vertical; view.alignment = .leading; view.spacing = 0; view.distribution = .fill
         header.setContentHuggingPriority(.required, for: .vertical)
         pages.setContentHuggingPriority(.required, for: .vertical)
-        scroll.setContentHuggingPriority(.defaultLow, for: .vertical)
+        navigationContent.setContentHuggingPriority(.defaultLow, for: .vertical)
         contentSearch.view.setContentHuggingPriority(.defaultLow, for: .vertical)
         continueButton.target = self; continueButton.action = #selector(continueOutline); continueButton.bezelStyle = .inline; continueButton.isHidden = true
-        for subview in [header, pages, empty, scroll, notice, continueButton] {
+        for subview in [header, pages, empty, navigationContent, notice, continueButton] {
             view.addArrangedSubview(subview); subview.translatesAutoresizingMaskIntoConstraints = false
             subview.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
         }
@@ -174,6 +192,7 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         addButton.toolTip = localized(currentRoot == nil ? "navigation.addFolder" : "workspace.newFile"); addButton.setAccessibilityLabel(addButton.toolTip)
         customizeButton.toolTip = localized("navigation.customize"); customizeButton.setAccessibilityLabel(customizeButton.toolTip)
         emptyLabel.stringValue = localized("navigation.empty")
+        outlineEmpty.stringValue = localized("analysis.empty")
         openButton.title = localized("menu.open")
         (empty.arrangedSubviews.last as? NSButton)?.title = localized("navigation.addFolder")
         outline.setAccessibilityLabel(localized(showingOutline ? "writing.outline" : "navigation.files"))
@@ -239,6 +258,8 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         let changed = token != headingToken
         let previousCurrent = headingCurrent
         headingToken = token; headingCurrent = projection["current"] as? Int
+        headingNoticeKey = projection["truncated"] as? Bool == true ? "navigation.headingLimit" : projection["exhausted"] as? Bool == true ? "navigation.headingPartial" : projection["complete"] as? Bool == false ? "analysis.parsing" : nil
+        headingsExhausted = projection["exhausted"] as? Bool == true
         var structureChanged = false
         if changed {
             var existing: [String: NavigationHeading] = [:]
@@ -274,11 +295,16 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
                 if !changed, previousCurrent != current, !browsingOutline, visible.location != NSNotFound,
                    (row < visible.location || row >= NSMaxRange(visible)) { outline.scrollRowToVisible(row) }
             } else { outline.deselectAll(nil) }
-            notice.stringValue = projection["truncated"] as? Bool == true ? localized("navigation.headingLimit") : projection["exhausted"] as? Bool == true ? localized("navigation.headingPartial") : projection["complete"] as? Bool == false ? localized("analysis.parsing") : headings.isEmpty ? localized("analysis.empty") : ""
-            continueButton.isHidden = projection["exhausted"] as? Bool != true
-            continueButton.title = localized("navigation.loadHeadings")
-            notice.isHidden = notice.stringValue.isEmpty
+            updateHeadingStatus()
         }
+    }
+    private func updateHeadingStatus() {
+        outlineEmpty.isHidden = !showingOutline || searching || !headings.isEmpty || headingNoticeKey != nil
+        guard showingOutline, !searching else { return }
+        notice.stringValue = headingNoticeKey.map { localized($0) } ?? ""
+        notice.isHidden = notice.stringValue.isEmpty
+        continueButton.isHidden = !headingsExhausted
+        continueButton.title = localized("navigation.loadHeadings")
     }
     @objc private func continueOutline() { onContinueOutline?() }
     private func navigationChanged(_ root: String?) {
@@ -339,7 +365,8 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         }
         if !showingOutline { continueButton.isHidden = true; notice.isHidden = true }
         empty.isHidden = showingOutline || !items.isEmpty || searching
-        scroll.isHidden = (!showingOutline && items.isEmpty) || searching
+        navigationContent.isHidden = (!showingOutline && items.isEmpty) || searching
+        updateHeadingStatus()
         if !showingOutline, !values.show_root { items = items.flatMap { $0.section == "locations" ? $0.children : [$0] } }
         outline.selectionHighlightStyle = .regular
         outline.rowHeight = showingOutline ? 29 : values.compact ? 24 : 29
@@ -353,7 +380,7 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         }
         applyingExpansion = false
         scroll.contentView.scroll(to: scrollOrigin); scroll.reflectScrolledClipView(scroll.contentView)
-        if searching { empty.isHidden = true; scroll.isHidden = true; notice.isHidden = true; continueButton.isHidden = true }
+        if searching { empty.isHidden = true; navigationContent.isHidden = true; notice.isHidden = true; continueButton.isHidden = true }
     }
     private func load(_ item: NavigationItem) {
         guard item.directory, !item.loaded, !item.loading, let root = item.root else { return }
@@ -452,7 +479,7 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     }
     private func presentContentSearch() {
         if !searching { browseOrigin = scroll.contentView.bounds.origin }
-        searching = true; pages.isHidden = true; empty.isHidden = true; scroll.isHidden = true; notice.isHidden = true; continueButton.isHidden = true
+        searching = true; pages.isHidden = true; empty.isHidden = true; navigationContent.isHidden = true; notice.isHidden = true; continueButton.isHidden = true
         contentSearch.view.isHidden = false
     }
     private func hideContentSearch() {
