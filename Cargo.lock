@@ -468,7 +468,7 @@ checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 
 [[package]]
 name = "lino-adapters"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "blake3",
  "libc",
@@ -484,7 +484,7 @@ dependencies = [
 
 [[package]]
 name = "lino-application"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "lino-document",
  "lino-markdown",
@@ -493,11 +493,11 @@ dependencies = [
 
 [[package]]
 name = "lino-document"
-version = "0.0.4"
+version = "0.1.0"
 
 [[package]]
 name = "lino-ffi"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "lino-protocol",
  "lino-runtime",
@@ -508,14 +508,14 @@ dependencies = [
 
 [[package]]
 name = "lino-markdown"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "lino-document",
 ]
 
 [[package]]
 name = "lino-protocol"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "lino-document",
  "serde",
@@ -525,7 +525,7 @@ dependencies = [
 
 [[package]]
 name = "lino-runtime"
-version = "0.0.4"
+version = "0.1.0"
 dependencies = [
  "lino-adapters",
  "lino-application",
