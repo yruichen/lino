@@ -179,7 +179,7 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     try Data("# Notes\n\nKeep a thought.\n".utf8).write(to: second)
     let initialCount = windows.controllers.count
     defer {
-        for document in windows.controllers.dropFirst(initialCount) { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.close() }
+        for document in Array(windows.controllers.dropFirst(initialCount)) { document.window?.close() }
         try? FileManager.default.removeItem(at: directory)
     }
     let source = windows.create()

@@ -29,7 +29,7 @@ func verifyMediaOutput(_ windows: DocumentWindows) async throws -> [String] {
     preferences.values.theme = "dark"
     ThemePalette.install(preferences.values)
     let document = windows.create(path: note.path)
-    defer { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.close(); try? FileManager.default.removeItem(at: directory) }
+    defer { document.window?.close(); try? FileManager.default.removeItem(at: directory) }
     let deadline = ContinuousClock.now.advanced(by: .seconds(5))
     while !document.documents.ready, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
     guard document.documents.ready, let window = document.window else { throw NSError(domain: "MediaOutputVerification", code: 2) }
@@ -145,7 +145,7 @@ func verifyImageReferenceInsertion(_ windows: DocumentWindows) async throws -> [
     for y in 0..<12 { for x in 0..<12 { bitmap.setColor(.systemGreen, atX: x, y: y) } }
     try bitmap.representation(using: .png, properties: [:])!.write(to: picture)
     let document = windows.create()
-    defer { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.delegate = nil; document.window?.close(); try? FileManager.default.removeItem(at: directory) }
+    defer { document.window?.close(); try? FileManager.default.removeItem(at: directory) }
     let deadline = ContinuousClock.now.advanced(by: .seconds(5))
     while !document.documents.ready, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
     guard document.documents.ready else { throw NSError(domain: "ImageReferenceVerification", code: 1) }
@@ -186,7 +186,7 @@ private func verifyWideTableOutput(_ windows: DocumentWindows, directory: URL) a
     let note = directory.appendingPathComponent("WideTables.md")
     try Data(raw.utf8).write(to: note)
     let document = windows.create(path: note.path)
-    defer { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.close() }
+    defer { document.window?.close() }
     let deadline = ContinuousClock.now.advanced(by: .seconds(5))
     while !document.documents.ready, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
     guard document.documents.ready, let window = document.window else { throw NSError(domain: "WideTableVerification", code: 2) }

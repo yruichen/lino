@@ -198,6 +198,8 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         if code != 0, let directory = controller?.documents.verificationRecoveryPath { report["recoveryDirectory"] = directory }
         if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]), let text = String(data: data, encoding: .utf8) { print(text) }
         controller?.detach()
+        // Stages share this backend and its recovery store. Remove it only
+        // after the final stage; per-window cleanup invalidates later stages.
         if code == 0 { controller?.documents.cleanupVerificationFiles() }
         if code == 0 { preferences.cleanupVerificationFiles(); windows.navigation.detach() }
         exit(code)
