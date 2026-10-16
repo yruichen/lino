@@ -8,6 +8,7 @@ export const catalog = {
   'transport.invalid_response': ['Lino could not confirm the operation. Try again; if this keeps happening, update Lino.', 'Lino 无法确认操作结果。请重试；如果仍然失败，请更新 Lino。'],
   'transport.incompatible': ['The editor does not match this version of Lino. Reinstall Lino and try again.', '编辑器与当前 Lino 版本不匹配，请重新安装 Lino 后再试。'],
   'media.importCancelled': ['Pictures could not be copied. The document has not been saved.', '图片未能复制，文档尚未保存。'],
+  'export.tableColumns': ['Columns {range} of {total}', '第 {range} 列，共 {total} 列'],
   'export.limit': ['This document is too large to export. Try exporting a smaller document.', '文档过大，无法导出，请尝试导出较小的文档。'],
   'export.remoteImage': ['Download remote images locally before exporting offline.', '请先把远程图片下载到本地，再进行离线导出。'],
   'export.unsafeURL': ['Unsupported export address.', '不支持此导出地址。'],

@@ -15,7 +15,7 @@ import { referenceSyntax } from '../features/references/syntax.ts';
 import { anchoredHeadings } from '../features/references/model.ts';
 import { languageForCode, loadCodeLanguage } from '../features/code/languages.ts';
 import { previewRenderer, type PreviewRenderer, type RenderInput } from '../renderers/previews.ts';
-import { t } from '../localization/index.ts';
+import { t, normalizeLocale } from '../localization/index.ts';
 import { exportStyle } from './style.ts';
 import { underlineReading } from '../features/markdown/reading.ts';
 import { inlineHTML } from '../features/markdown/inline-reading.ts';
@@ -197,9 +197,13 @@ export class ExportPlan {
     container.innerHTML = DOMPurify.sanitize(container.innerHTML, { USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true }, FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'], ALLOW_DATA_ATTR: false });
     for (const link of container.querySelectorAll('a')) if (!safeURL(link.getAttribute('href') ?? '')) link.removeAttribute('href');
     for (const image of container.querySelectorAll('img')) if (!/^data:image\//i.test(image.getAttribute('src') ?? '')) throw new Error(t('export.invalid'));
+    for (const table of container.querySelectorAll('table')) {
+      const scroll = document.createElement('div'); scroll.className = 'export-table-scroll'; scroll.tabIndex = 0;
+      table.replaceWith(scroll); scroll.append(table);
+    }
     const title = this.source.label ?? t('document.untitled');
     const mathStyle = [...this.slots.values()].some(slot => slot.input?.kind === 'math') || container.querySelector('math,.katex,.katex-error') ? mathCSS : '';
-    const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><title>${escape(title)}</title><style>${exportStyle(this.source.preferences, this.presentation, background).replace(/<\/style/gi, '<\\/style')}\n${mathStyle.replace(/<\/style/gi, '<\\/style')}</style></head><body><div class="export-paper" aria-hidden="true"></div><div class="export-backdrop" aria-hidden="true">${background ? `<img src="${background}" alt="">` : ''}</div>${container.outerHTML}</body></html>`;
+    const html = `<!doctype html><html lang="${normalizeLocale(this.source.preferences.language)}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><title>${escape(title)}</title><style>${exportStyle(this.source.preferences, this.presentation, background).replace(/<\/style/gi, '<\\/style')}\n${mathStyle.replace(/<\/style/gi, '<\\/style')}</style></head><body><div class="export-paper" aria-hidden="true"></div><div class="export-backdrop" aria-hidden="true">${background ? `<img src="${background}" alt="">` : ''}</div>${container.outerHTML}</body></html>`;
     if (html.length > 32 * 1024 * 1024) throw new Error(t('export.limit'));
     return html;
   }

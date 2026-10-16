@@ -164,6 +164,65 @@ struct BlockingStorage {
     entered: Arc<Barrier>,
     release: Arc<Barrier>,
 }
+
+#[test]
+fn external_conflict_overwrite_only_accepts_the_explicitly_observed_disk_version() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("conflict.md");
+    fs::write(&path, "original").unwrap();
+    let runtime = DocumentRuntime::default();
+    let doc = runtime.open_file(&path, None).unwrap();
+    edit(&runtime, &doc, 1, 0, "local ");
+    fs::write(&path, "external").unwrap();
+    let ticket = prepare(&runtime, &doc, 1, None);
+    assert!(
+        matches!(commit(&runtime, &doc, ticket), Response::Error { error } if error.code == ErrorCode::ChangedExternally)
+    );
+
+    // The native prompt captures this target before the user's decision.
+    let observed = runtime.save_target(&path).unwrap();
+    assert_eq!(observed.file_ref, doc.status.file_ref.clone().unwrap());
+    fs::write(&path, "new external").unwrap();
+    let ticket = prepare(&runtime, &doc, 1, Some(observed.clone()));
+    assert!(
+        matches!(commit(&runtime, &doc, ticket), Response::Error { error } if error.code == ErrorCode::ChangedExternally)
+    );
+    runtime.release_save_target(observed).unwrap();
+    assert_eq!(fs::read_to_string(&path).unwrap(), "new external");
+    assert!(
+        matches!(call(&runtime, Request::Status { session_id: doc.status.session_id.clone() }), Response::Status { status } if status.dirty && !status.saving)
+    );
+
+    // A fresh explicit decision can save the retained local revision and close.
+    let observed = runtime.save_target(&path).unwrap();
+    let ticket = prepare(&runtime, &doc, 1, Some(observed.clone()));
+    assert!(
+        matches!(commit(&runtime, &doc, ticket), Response::Saved { status, .. } if !status.dirty && !status.saving)
+    );
+    runtime.release_save_target(observed).unwrap();
+    assert_eq!(fs::read_to_string(&path).unwrap(), "local original");
+    assert_eq!(
+        runtime
+            .external_change(
+                &doc.status.session_id,
+                doc.status.file_ref.as_deref().unwrap()
+            )
+            .unwrap(),
+        "unchanged"
+    );
+    assert!(matches!(
+        call(
+            &runtime,
+            Request::Close {
+                session_id: doc.status.session_id,
+                epoch: doc.status.epoch,
+                revision: "1".into(),
+                discard: false
+            }
+        ),
+        Response::Closed
+    ));
+}
 impl StoragePort for BlockingStorage {
     fn load(&self, f: FileRef) -> Result<LoadedFile, StorageError> {
         self.storage.load(f)

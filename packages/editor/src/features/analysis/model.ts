@@ -3,6 +3,7 @@ import { syntaxTree, syntaxTreeAvailable } from '@codemirror/language';
 import type { EditorState } from '@codemirror/state';
 
 export interface Heading { from: number; to: number; level: number; title: string }
+const titleMarks = new Set(['EmphasisMark', 'StrikethroughMark', 'CodeMark', 'HighlightMark', 'ScriptMark']);
 export function headings(state: EditorState): { complete: boolean; entries: Heading[] } {
   const entries: Heading[] = [];
   const tree = syntaxTree(state);
@@ -15,8 +16,21 @@ export function headings(state: EditorState): { complete: boolean; entries: Head
       if (child.from === from) from = child.to;
       else to = child.from;
     }
-    const title = state.doc.sliceString(from, to).trim();
-    entries.push({ from: node.from, to: node.to, level: Number(match[1]), title });
+    // Labels are a reading projection, while jump coordinates stay in source.
+    // Only remove parsed delimiters: literal stars inside code or incomplete
+    // Markdown must survive, unlike a blanket replacement of punctuation.
+    let title = '', offset = from;
+    node.node.cursor().iterate(child => {
+      if (child.from < from || child.to > to) return;
+      const replacement = titleMarks.has(child.name) ? ''
+        : child.name === 'Escape' ? state.doc.sliceString(child.from + 1, child.to) : undefined;
+      if (replacement === undefined) return;
+      title += state.doc.sliceString(offset, child.from) + replacement;
+      offset = child.to;
+      return false;
+    });
+    title += state.doc.sliceString(offset, to);
+    entries.push({ from: node.from, to: node.to, level: Number(match[1]), title: title.trim() });
     return false;
   } });
   // ensureSyntaxTree can advance the parser context before a transaction has

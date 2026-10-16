@@ -160,6 +160,8 @@ func verifyNavigationFlow(_ controller: EditorWindowController, navigation: Navi
 /// Focused coverage of the user's presentation triggers, without editor-wide fixtures.
 @MainActor
 func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [String] {
+    let nativePreferences = ThemePalette.preferences
+    defer { if let nativePreferences { ThemePalette.install(nativePreferences) } }
     var passed: [String] = []
     func check(_ name: String, _ condition: Bool) throws {
         guard condition else { throw NSError(domain: "NavigationPresentation", code: 1, userInfo: [NSLocalizedDescriptionKey: name]) }
@@ -221,8 +223,12 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     source.workspace.setOutline(false)
     try await Task.sleep(for: .milliseconds(150))
     let outline = source.workspace.outline
-    try await wait { outline.numberOfRows > 0 }
-    outline.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
+    func visibleFileRow() -> Int? { (0..<outline.numberOfRows).first { row in
+        guard let item = outline.item(atRow: row) as? NavigationItem else { return false }
+        return item.section == nil && !item.directory
+    } }
+    try await wait { visibleFileRow() != nil }
+    outline.selectRowIndexes(IndexSet(integer: visibleFileRow()!), byExtendingSelection: false)
     var preferences = try PreferencesCoordinator.decode(await windows.backend.perform { try $0.preferences() })
     preferences.values.theme_family = "grove"
     func selectedUsesNativePresentation() -> Bool {
@@ -299,6 +305,31 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     if let frame = window.contentView?.superview, let bitmap = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) {
         frame.cacheDisplay(in: frame.bounds, to: bitmap)
         if let png = bitmap.representation(using: .png, properties: [:]) { try png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/quiet-navigation.png")) }
+    }
+    source.workspace.setOutline(false)
+    source.showSidebarCustomization()
+    func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
+    func customizationWindow() -> NSWindow? {
+        NSApp.windows.first { candidate in candidate.contentView.map { descendants($0).contains { $0.identifier?.rawValue == "sidebar-customization-done" } } == true }
+    }
+    try await wait { customizationWindow()?.isVisible == true }
+    if let popoverWindow = customizationWindow(), let content = popoverWindow.contentView {
+        content.layoutSubtreeIfNeeded()
+        let controls = descendants(content)
+        let checkbox = controls.first { $0.identifier?.rawValue == "sidebar-group-recents" } as? NSButton
+        let before = windows.navigation.values.show_recents
+        checkbox?.performClick(nil)
+        try await wait { windows.navigation.values.show_recents != before && checkbox?.isEnabled == true }
+        try check("customization-keeps-the-active-native-control-after-persisting", descendants(content).contains { $0 === checkbox })
+        try check("customization-has-four-groups-and-folder-list", controls.filter { $0.identifier?.rawValue.hasPrefix("sidebar-group-") == true }.count == 4 && controls.contains { $0.identifier?.rawValue == "sidebar-locations" })
+        if let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds) {
+            content.cacheDisplay(in: content.bounds, to: bitmap)
+            if let png = bitmap.representation(using: .png, properties: [:]) {
+                try png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/sidebar-customization.png"))
+            }
+        }
+        (controls.first { $0.identifier?.rawValue == "sidebar-customization-done" } as? NSButton)?.performClick(nil)
+        await windows.navigation.change { $0.show_recents = before }
     }
     return passed
 }

@@ -1,4 +1,5 @@
 import { Previewer } from 'pagedjs';
+import { preparePrintTables } from './tables.ts';
 
 interface Paper { width: number; height: number; top: number; right: number; bottom: number; left: number }
 let cancelled = false;
@@ -18,9 +19,13 @@ export async function paginate(paper: Paper): Promise<{ pages: number }> {
   document.querySelector('.export-paper')?.remove(); backdrop?.remove();
   const settings = document.head.appendChild(document.createElement('style'));
   settings.textContent = `@page{size:${paper.width}pt ${paper.height}pt;margin:${paper.top}pt ${paper.right}pt ${paper.bottom}pt ${paper.left}pt;background:${color}}
-    article{min-height:0;max-width:100%;margin:0;padding:0;background:transparent}
+    article{min-height:0;width:${(paper.width - paper.left - paper.right) * 4 / 3}px;max-width:100%;margin:0;padding:0;background:transparent}
+    .export-table-scroll{overflow:visible}td,th{overflow-wrap:anywhere}
     pre{white-space:pre-wrap;overflow:visible}thead{display:table-header-group}tr,img,svg{break-inside:avoid}`;
   await document.fonts.ready;
+  if (cancelled) throw new Error('Print preparation cancelled');
+  for (const article of document.querySelectorAll<HTMLElement>('article')) preparePrintTables(article, (paper.width - paper.left - paper.right) * 4 / 3, (paper.height - paper.top - paper.bottom) * 4 / 3);
+  if (cancelled) throw new Error('Print preparation cancelled');
   const previewer = new Previewer();
   previewer.on('page', () => { if (cancelled) throw new Error('Print preparation cancelled'); });
   const flow = await previewer.preview();

@@ -63,8 +63,12 @@ func verifySettingsFlow(_ editor: EditorWindowController, settings: SettingsWind
         try Data("# Writing\n".utf8).write(to: directory.appendingPathComponent("Writing.md"))
         await navigation.addLocation(directory.path)
         let deadline = ContinuousClock.now.advanced(by: .seconds(2))
-        while editor.workspace.outline.numberOfRows == 0 && ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
-        if editor.workspace.outline.numberOfRows > 0 { editor.workspace.outline.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false) }
+        func fileRow() -> Int? { (0..<editor.workspace.outline.numberOfRows).first { row in
+            guard let item = editor.workspace.outline.item(atRow: row) as? NavigationItem else { return false }
+            return item.section == nil && !item.directory
+        } }
+        while fileRow() == nil && ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
+        if let row = fileRow() { editor.workspace.outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false) }
         editor.window?.contentView?.layoutSubtreeIfNeeded()
         try check("sidebar-selected-file-uses-native-selection", editor.workspace.outline.selectedRow >= 0 && editor.workspace.outline.selectionHighlightStyle == .regular)
         if let frame = editor.window?.contentView?.superview, let bitmap = frame.bitmapImageRepForCachingDisplay(in: frame.bounds) { frame.cacheDisplay(in: frame.bounds, to: bitmap); if let png = bitmap.representation(using: .png, properties: [:]) { try png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/quiet-navigation.png")) } }

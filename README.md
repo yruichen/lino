@@ -8,11 +8,11 @@
 
 Visual editing. Native Mac windows and tabs. Your own Markdown files.
 
-[![Version](https://img.shields.io/badge/v0.1.0-Stable-28584b)](https://github.com/yruichen/lino/releases/tag/v0.1.0)
-[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/v0.1.1-Stable-28584b)](https://github.com/yruichen/lino/releases/tag/v0.1.1)
+[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.1.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**Download**](https://github.com/yruichen/lino/releases/download/v0.1.0/Lino-v0.1.0-macos-arm64.zip) · [Homebrew](#homebrew) · [Features](#features) · [Build](#build-from-source) · [Report an issue](https://github.com/yruichen/lino/issues) · [简体中文](README.zh-CN.md)
+[**Download**](https://github.com/yruichen/lino/releases/download/v0.1.1/Lino-v0.1.1-macos-arm64.zip) · [Homebrew](#homebrew) · [Features](#features) · [Build](#build-from-source) · [Report an issue](https://github.com/yruichen/lino/issues) · [简体中文](README.zh-CN.md)
 
 </div>
 
@@ -47,11 +47,11 @@ brew install --cask yruichen/tap/lino
 
 ### Direct download
 
-**[Download Lino v0.1.0 for macOS →](https://github.com/yruichen/lino/releases/download/v0.1.0/Lino-v0.1.0-macos-arm64.zip)**
+**[Download Lino v0.1.1 for macOS →](https://github.com/yruichen/lino/releases/download/v0.1.1/Lino-v0.1.1-macos-arm64.zip)**
 
-Unzip the download and move **Lino.app** to **Applications**. Release notes and checksums are on the [release page](https://github.com/yruichen/lino/releases/tag/v0.1.0).
+Unzip the download and move **Lino.app** to **Applications**. Release notes and checksums are on the [release page](https://github.com/yruichen/lino/releases/tag/v0.1.1).
 
-In development builds, the welcome window offers New Document and Open File; reopen it from **Lino → Welcome to Lino…**. Downloaded copies also offer Install and Open Lino, without moving files manually. The published v0.1.0 still uses the previous setup guide. Optional Markdown file associations are in **Settings → General**. Installing Lino does not take over existing associations. You can also select a `.md` file in Finder, choose **Get Info → Open with → Lino → Change All**.
+The welcome window offers New Document and Open File; reopen it from **Lino → Welcome to Lino…**. Downloaded copies also offer Install and Open Lino, without moving files manually. Optional Markdown file associations are in **Settings → General**. Installing Lino does not take over existing associations. You can also select a `.md` file in Finder, choose **Get Info → Open with → Lino → Change All**.
 
 Use **⌘O** for a file or **⇧⌘O** for a folder. macOS may request access to protected locations when you open them. If you previously denied access, review **System Settings → Privacy & Security → Files and Folders**, then reopen the location. Lino does not require an account, Accessibility access or Full Disk Access.
 
