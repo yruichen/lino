@@ -107,8 +107,9 @@ test('explicit insertion takes precedence over automatic code tools; Escape dism
   const raw = '```js\nlet x = 1\n```', mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {});
   try {
     editor.select(8); assert.equal(mount.querySelector('.ot-code-tools'), null);
-    editor.command('code-language'); assert(mount.querySelector('.ot-code-tools'));
-    editor.command('insert-table'); assert(mount.querySelector('.ot-table-insert')); assert.equal(mount.querySelector('.ot-code-tools'), null);
+    assert(editor.command('code-language')); assert(mount.querySelector('.ot-code-tools'));
+    assert.equal(document.activeElement, mount.querySelector('[data-code-language-input]'));
+    assert(editor.command('insert-table')); assert(mount.querySelector('.ot-table-insert')); assert.equal(mount.querySelector('.ot-code-tools'), null);
     assert.equal(editor.view.state.facet(showTooltip).filter(Boolean).length, 1);
     mount.querySelector('.ot-table-insert')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     editor.command('code-language'); const form = mount.querySelector('.ot-code-tools')!;

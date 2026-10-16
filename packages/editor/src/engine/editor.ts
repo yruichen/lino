@@ -97,7 +97,12 @@ export class MarkdownEditor {
         this.writable.of(EditorState.readOnly.of(false)), this.source.extension, history(),
         Prec.highest(keymap.of(markdownShortcuts.map(shortcut => ({
           key: [...shortcut.modifiers.map(modifier => ({ command: 'Mod', shift: 'Shift', option: 'Alt', control: 'Ctrl' })[modifier]), shortcut.key].join('-'),
-          run: () => this.command(shortcut.command as EditorCommand), preventDefault: true,
+          run: view => {
+            const focused = view.dom.ownerDocument.activeElement;
+            if (focused instanceof HTMLElement && focused !== view.contentDOM && view.dom.contains(focused)
+              && focused.matches('input, textarea, select, [contenteditable="true"]')) return false;
+            return this.command(shortcut.command as EditorCommand);
+          }, preventDefault: true,
         })))),
         keymap.of([{ key: 'Mod-/', run: () => { this.command('toggle-source'); return true; }, preventDefault: true },
           { key: 'Tab', run: view => !!codeBlockAt(view.state) && runCodeCommand(view, 'code-indent'), shift: view => !!codeBlockAt(view.state) && runCodeCommand(view, 'code-outdent') },
@@ -236,9 +241,6 @@ export class MarkdownEditor {
     }
     if (command === 'find' || command === 'replace' || command === 'find-next' || command === 'find-previous' || command === 'toggle-find' || command === 'close-find') return runSearchCommand(this.view, command);
     if (writingCommand(this.view, command)) return true;
-    const focused = this.view.dom.ownerDocument.activeElement;
-    if (focused instanceof HTMLElement && focused !== this.view.contentDOM && this.view.dom.contains(focused)
-      && focused.matches('input, textarea, select, [contenteditable="true"]') && markdownShortcuts.some(shortcut => shortcut.command === command)) return false;
     if (command === 'goto-line') return goToLine(this.view);
     if (command === 'link' || (referenceCommands as readonly string[]).includes(command)) return runReferenceCommand(this.view, command as ReferenceCommand | 'link');
     if ((mediaCommands as readonly string[]).includes(command)) return runMediaCommand(this.view, command as MediaCommand);

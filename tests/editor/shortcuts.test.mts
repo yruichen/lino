@@ -56,7 +56,8 @@ test('format shortcuts respect read-only, composition and focused form inputs', 
     editor.setReadOnly(false); editor.view.dispatch({ effects: changeComposition.of(true) }); press(editor, 'bold'); assert.equal(editor.read(), 'body');
     editor.view.dispatch({ effects: changeComposition.of(false) });
     const input = editor.view.dom.appendChild(document.createElement('input')); input.focus();
-    assert.equal(editor.command('bold'), false); assert.equal(document.activeElement, input); assert.equal(editor.read(), 'body');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', keyCode: 66, metaKey: true, bubbles: true, cancelable: true }));
+    assert.equal(document.activeElement, input); assert.equal(editor.read(), 'body');
   } finally { editor.destroy(); mount.remove(); }
 });
 
