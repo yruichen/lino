@@ -27,7 +27,13 @@ func verifyUpgrade(_ windows: DocumentWindows) async throws -> [String] {
     let originalSidebar = windows.navigation.sidebar.values
     let count = windows.controllers.count
     defer {
-        for document in windows.controllers.dropFirst(count) { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.delegate = nil; document.window?.close() }
+        for document in Array(windows.controllers.dropFirst(count)) {
+            document.documents.cleanupVerificationFiles()
+            // Keep the delegate so DocumentWindows removes the closed view
+            // and its path from the shared registry before deleting fixtures.
+            document.window?.close()
+        }
+        precondition(windows.controllers.count == count, "Upgrade fixture left closed windows in the document registry")
         try? FileManager.default.removeItem(at: directory)
     }
     if let root = await windows.navigation.addLocation(directory.path) { windows.navigation.sidebar.change { $0.workspace = root } }
