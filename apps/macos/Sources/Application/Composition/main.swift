@@ -25,7 +25,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         else { Task { await start() } }
     }
     private func showInstaller() {
-        let menu = NSMenu(), application = NSMenu(), item = NSMenuItem()
+        let menu = NSMenu(), application = NSMenu(title: "Lino"), item = NSMenuItem(title: "Lino", action: nil, keyEquivalent: "")
         item.submenu = application; menu.addItem(item)
         let quit = application.addItem(withTitle: localized("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"); quit.target = NSApp; NSApp.mainMenu = menu
         let installation = InstallationServices()
@@ -126,6 +126,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
                     return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
                 }
                 if focused {
+                    await run("document-ui") { try await verifyDocumentUI() }
                     await run("setup") { try await verifySetupFlow() }
                     await run("interface") { try await verifyInterface(controller) }
                     await run("upgrade") { try await verifyUpgrade(self.windows) }
@@ -197,6 +198,8 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         if code != 0, let directory = controller?.documents.verificationRecoveryPath { report["recoveryDirectory"] = directory }
         if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]), let text = String(data: data, encoding: .utf8) { print(text) }
         controller?.detach()
+        // Stages share this backend and its recovery store. Remove it only
+        // after the final stage; per-window cleanup invalidates later stages.
         if code == 0 { controller?.documents.cleanupVerificationFiles() }
         if code == 0 { preferences.cleanupVerificationFiles(); windows.navigation.detach() }
         exit(code)
@@ -280,6 +283,16 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         return true
     }
     @objc func newDocument() { if verifying { Task { await controller?.documents.replace(open: false) } } else if !windows.quitting { windows.create() } }
+    @objc func newWindow() { if !windows.quitting { windows.create(newWindow: true) } }
+    @objc func newWindowForTab(_ sender: Any?) { if !windows.quitting { windows.create(tabOrigin: currentController) } }
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        documentDockMenu(documents: windows.controllers, active: windows.active, recentFiles: verifying ? [] : NSDocumentController.shared.recentDocumentURLs, target: self)
+    }
+    @objc func activateDocument(_ sender: NSMenuItem) {
+        guard let document = sender.representedObject as? EditorWindowController, !document.documents.closed, let window = document.window else { return }
+        window.deminiaturize(nil); window.tabGroup?.selectedWindow = window
+        document.showWindow(nil); window.makeKeyAndOrderFront(nil)
+    }
     @objc func openDocument() { if verifying { Task { await controller?.documents.replace(open: true) } } else { Task { await windows.openDialog() } } }
     @objc func openFolder() { let document = currentController ?? windows.create(); Task { await document.workspace.chooseRoot() } }
     @objc func toggleWorkspace() { currentController?.toggleWorkspace() }
@@ -379,7 +392,8 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
             if command == "toggle-source" { menuItem.state = currentController?.editorMode == "source" ? .on : .off }
             return currentController?.allowsCommand(command) == true
         }
-        if [#selector(newDocument), #selector(openDocument)].contains(menuItem.action) { return !windows.quitting }
+        if [#selector(newDocument), #selector(newWindow), #selector(newWindowForTab(_:)), #selector(openDocument)].contains(menuItem.action) { return !starting && !windows.quitting }
+        if menuItem.action == #selector(activateDocument(_:)) { return !windows.quitting && (menuItem.representedObject as? EditorWindowController)?.documents.closed == false }
         if [#selector(toggleWorkspace), #selector(quickOpen), #selector(searchWorkspace), #selector(cancelWorkspaceSearch)].contains(menuItem.action) { return currentController != nil && !windows.quitting }
         if menuItem.action == #selector(saveAll) { return !windows.quitting && !windows.controllers.isEmpty }
         if [#selector(newDocument), #selector(openDocument), #selector(saveDocument), #selector(saveDocumentAs), #selector(toggleAutosave), #selector(restoreDocument), #selector(retryPersistence)].contains(menuItem.action) {

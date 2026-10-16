@@ -30,6 +30,21 @@ enum DocumentDialogs {
         return response == .OK ? panel.url : nil
     }
     enum Decision { case save, discard, cancel }
+    enum ConflictDecision { case overwrite, saveCopy, cancel }
+    static func conflict(in window: NSWindow, label: String) async -> ConflictDecision {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = localized("dialog.conflictTitle", label)
+        alert.informativeText = localized("dialog.conflictDetail")
+        alert.addButton(withTitle: localized("dialog.keepEditing"))
+        alert.addButton(withTitle: localized("dialog.overwriteFile"))
+        alert.addButton(withTitle: localized("menu.saveAs"))
+        switch await alert.beginSheetModal(for: window) {
+        case .alertSecondButtonReturn: return .overwrite
+        case .alertThirdButtonReturn: return .saveCopy
+        default: return .cancel
+        }
+    }
     static func unsaved(in window: NSWindow, label: String, closing: Bool = false) async -> Decision {
         let alert = NSAlert()
         alert.messageText = localized(closing ? "dialog.closeUnsavedTitle" : "dialog.unsavedTitle", label)

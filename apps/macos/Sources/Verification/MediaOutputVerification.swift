@@ -29,7 +29,7 @@ func verifyMediaOutput(_ windows: DocumentWindows) async throws -> [String] {
     preferences.values.theme = "dark"
     ThemePalette.install(preferences.values)
     let document = windows.create(path: note.path)
-    defer { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.close(); try? FileManager.default.removeItem(at: directory) }
+    defer { document.window?.close(); try? FileManager.default.removeItem(at: directory) }
     let deadline = ContinuousClock.now.advanced(by: .seconds(5))
     while !document.documents.ready, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
     guard document.documents.ready, let window = document.window else { throw NSError(domain: "MediaOutputVerification", code: 2) }
@@ -132,6 +132,7 @@ func verifyMediaOutput(_ windows: DocumentWindows) async throws -> [String] {
     var rejected = false
     do { try await cancelledSurface.prepare(info: info) } catch is CancellationError { rejected = true }
     try check("cancelled-print-preparation-cannot-start-a-page-job", rejected && cancelledSurface.pageCount == 0)
+    passed += try await verifyWideTableOutput(windows, directory: directory)
     return passed
 }
 
@@ -144,7 +145,7 @@ func verifyImageReferenceInsertion(_ windows: DocumentWindows) async throws -> [
     for y in 0..<12 { for x in 0..<12 { bitmap.setColor(.systemGreen, atX: x, y: y) } }
     try bitmap.representation(using: .png, properties: [:])!.write(to: picture)
     let document = windows.create()
-    defer { document.detach(); document.documents.cleanupVerificationFiles(); document.window?.delegate = nil; document.window?.close(); try? FileManager.default.removeItem(at: directory) }
+    defer { document.window?.close(); try? FileManager.default.removeItem(at: directory) }
     let deadline = ContinuousClock.now.advanced(by: .seconds(5))
     while !document.documents.ready, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
     guard document.documents.ready else { throw NSError(domain: "ImageReferenceVerification", code: 1) }
@@ -164,4 +165,73 @@ func verifyImageReferenceInsertion(_ windows: DocumentWindows) async throws -> [
     let intent = try await document.bridge.call("replacementIntent", arguments: [true]) as! String
     _ = try await document.bridge.call("closeDocument", arguments: [intent])
     return ["dragged-image-links-original-absolute-path-in-unsaved-document-without-assets", "image-reference-insertion-undo-keeps-the-original-file"]
+}
+
+
+/// Synthetic Markdown only. Exercises editor geometry, real column measurement,
+/// Paged.js continuation rows and the final native, searchable PDF together.
+@MainActor
+private func verifyWideTableOutput(_ windows: DocumentWindows, directory: URL) async throws -> [String] {
+    var passed: [String] = []
+    func check(_ name: String, _ condition: Bool) throws {
+        guard condition else { throw NSError(domain: "WideTableVerification", code: 1, userInfo: [NSLocalizedDescriptionKey: name]) }
+        passed.append(name)
+        if CommandLine.arguments.contains("--headless") { FileHandle.standardError.write(Data((name + "\n").utf8)) }
+    }
+    let headers = (0..<12).map { String(format: "Measurement%02d", $0) }
+    let values = (0..<28).map { row in (0..<12).map { column in String(format: "V%02dR%02d", column, row) } }
+    let longToken = String(repeating: "abcdefghij", count: 30)
+    let wide = "| Row | " + headers.joined(separator: " | ") + " |\n| --- | " + Array(repeating: "---", count: 12).joined(separator: " | ") + " |\n" + values.enumerated().map { row, cells in "| Row\(row) | " + cells.joined(separator: " | ") + " |" }.joined(separator: "\n")
+    let raw = "# Wide tables\n\n| Label | Content |\n| --- | --- |\n| Wrap | " + longToken + " |\n\n" + wide
+    let note = directory.appendingPathComponent("WideTables.md")
+    try Data(raw.utf8).write(to: note)
+    let document = windows.create(path: note.path)
+    defer { document.window?.close() }
+    let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+    while !document.documents.ready, ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
+    guard document.documents.ready, let window = document.window else { throw NSError(domain: "WideTableVerification", code: 2) }
+    let geometry = try await document.webView.callAsyncJavaScript("""
+        const end=Date.now()+5000;
+        while(Date.now()<end){
+          const tables=[...document.querySelectorAll('.markdown-table')];
+          if(tables.length===2){
+            const preview=tables[0].querySelectorAll('td .table-cell-preview')[1];
+            const style=getComputedStyle(preview), wide=tables[1];
+            return {wrap:preview.getBoundingClientRect().height>parseFloat(style.lineHeight)*2,
+              scroll:wide.scrollWidth>wide.clientWidth,
+              contained:wide.getBoundingClientRect().width<=document.querySelector('.cm-content').getBoundingClientRect().width+1};
+          }
+          await new Promise(r=>setTimeout(r,20));
+        }
+        return {};
+        """, arguments: [:], in: nil, contentWorld: .page) as? [String: Bool] ?? [:]
+    try check("wide-table-editor-wraps-long-cell-without-expanding-the-reading-column", geometry["wrap"] == true)
+    try check("wide-table-editor-keeps-all-columns-in-a-local-scroll-region", geometry["scroll"] == true && geometry["contained"] == true)
+    let identity = try await document.bridge.call("exportIdentity") as! [String: String]
+    let job = try await windows.backend.perform { try $0.beginExport(sessionId: identity["session_id"]!, epoch: identity["epoch"]!, revision: identity["revision"]!) }
+    defer { _ = job.cancel() }
+    _ = try await document.bridge.call("endExportCapture")
+    let source = try await windows.backend.perform { _ in try job.source() }
+    let plan = try await document.bridge.call("prepareExport", arguments: [source]) as! [String: Any]
+    let html = try await document.bridge.call("renderExport", arguments: [plan["job_id"]!, "{}", ""]) as! String
+    let output = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/export-wide-table.pdf")
+    try Data(html.utf8).write(to: output.deletingPathExtension().appendingPathExtension("html"), options: .atomic)
+    let surface = PrintSurface(); try await surface.load(html)
+    let info = NSPrintInfo.shared.copy() as! NSPrintInfo
+    info.paperSize = NSSize(width: 595, height: 842)
+    info.topMargin = 36; info.bottomMargin = 36; info.leftMargin = 36; info.rightMargin = 36
+    guard await surface.print(in: window, info: info, pdf: output), let pdf = PDFDocument(url: output) else { throw NSError(domain: "WideTableVerification", code: 3) }
+    let layout = try await surface.webView.callAsyncJavaScript("""
+        const tables=[...document.querySelectorAll('.pagedjs_page table')];
+        const bands=tables.filter(t=>t.caption);
+        return {bands:bands.length>1,
+          fits:tables.every(t=>{const box=t.closest('.pagedjs_page_content').getBoundingClientRect(), r=t.getBoundingClientRect();return r.left>=box.left-1&&r.right<=box.right+1&&r.top>=box.top-1&&r.bottom<=box.bottom+1;}),
+          headers:bands.every(t=>t.querySelector('thead th')?.textContent==='Row')&&tables.every(t=>!!t.tHead&&t.querySelectorAll('col').length===t.tHead.rows[0].cells.length)};
+        """, arguments: [:], in: nil, contentWorld: .page) as? [String: Bool] ?? [:]
+    try check("wide-table-pdf-uses-labelled-column-continuations-with-repeated-row-headers", layout["bands"] == true && layout["headers"] == true)
+    try check("wide-table-pdf-keeps-every-table-inside-the-paper-content-box", layout["fits"] == true)
+    let text = pdf.string?.precomposedStringWithCompatibilityMapping ?? ""
+    try check("wide-table-native-pdf-keeps-every-data-cell-exactly-once", values.flatMap { $0 }.allSatisfy { text.components(separatedBy: $0).count - 1 == 1 })
+    try check("wide-table-native-pdf-keeps-all-column-headings", headers.allSatisfy { text.contains($0) })
+    return passed
 }

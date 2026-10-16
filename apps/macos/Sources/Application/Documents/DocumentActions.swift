@@ -103,7 +103,34 @@ final class DocumentActions: DocumentCloseParticipant {
     private func saveCurrent(asNew: Bool) async throws -> Bool {
         let generation = bridge.generation
         var target: String?
-        if asNew || !hasFile {
+        var chooseTarget = asNew || !hasFile
+        if !chooseTarget, let session = sessionId, let file = fileRef {
+            let change = try await bridge.backend.perform { try $0.externalChange(sessionId: session, fileRef: file) }
+            try requireGeneration(generation)
+            if change != "unchanged" {
+                guard let window, let path = try await bridge.backend.perform({ try $0.documentPath(sessionId: session) }) else { return false }
+                // Capture the version before asking. A second external write while
+                // the sheet is open must still fail the ordinary checked commit.
+                let observed = try await bridge.backend.perform { try $0.saveTarget(path: path) }
+                do {
+                    try requireGeneration(generation)
+                    let decision = await DocumentDialogs.conflict(in: window, label: label ?? localized("document.untitled"))
+                    try requireGeneration(generation)
+                    switch decision {
+                    case .overwrite: target = observed
+                    case .saveCopy: chooseTarget = true
+                    case .cancel:
+                        try? await bridge.backend.perform { try $0.releaseSaveTarget(targetJson: observed) }
+                        return false
+                    }
+                } catch {
+                    try? await bridge.backend.perform { try $0.releaseSaveTarget(targetJson: observed) }
+                    throw error
+                }
+                if chooseTarget { try? await bridge.backend.perform { try $0.releaseSaveTarget(targetJson: observed) } }
+            }
+        }
+        if chooseTarget {
             let resourceNote = (try await bridge.call("hasLocalImages")) as? Bool == true
             guard let window, let path = await DocumentDialogs.save(in: window, label: label, resourceNote: resourceNote)?.path else { return false }
             target = try await bridge.backend.perform { try $0.saveTarget(path: path) }

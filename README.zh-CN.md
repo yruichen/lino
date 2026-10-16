@@ -8,11 +8,11 @@
 
 直观的 Markdown 编辑，原生 Mac 窗口与标签页，保存在自己手中的文件。
 
-[![Version](https://img.shields.io/badge/v0.1.0-Stable-28584b)](https://github.com/yruichen/lino/releases/tag/v0.1.0)
-[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/v0.1.1-Stable-28584b)](https://github.com/yruichen/lino/releases/tag/v0.1.1)
+[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.1.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**下载**](https://github.com/yruichen/lino/releases/download/v0.1.0/Lino-v0.1.0-macos-arm64.zip) · [Homebrew](#homebrew) · [功能](#功能) · [构建](#从源码构建) · [反馈问题](https://github.com/yruichen/lino/issues) · [English](README.md)
+[**下载**](https://github.com/yruichen/lino/releases/download/v0.1.1/Lino-v0.1.1-macos-arm64.zip) · [Homebrew](#homebrew) · [功能](#功能) · [构建](#从源码构建) · [反馈问题](https://github.com/yruichen/lino/issues) · [English](README.md)
 
 </div>
 
@@ -45,15 +45,15 @@ Lino 将 Markdown 视觉编辑与原生 Mac 工作区结合在一起。在同一
 brew install --cask yruichen/tap/lino
 ```
 
-开发版本的首次欢迎页只提供新建和打开文件，可从 **Lino → 欢迎使用 Lino…** 重开。下载副本还提供「安装并打开 Lino」，无需手动移动。已发布的 v0.1.0 仍使用原安装指引。Markdown 默认打开方式位于 **设置 → 通用**。安装不会自动接管现有文件关联；也可在 Finder 中选中 `.md` 文件，通过 **显示简介 → 打开方式 → Lino → 全部更改** 设置。
+首次欢迎页只提供新建和打开文件，可从 **Lino → 欢迎使用 Lino…** 重开。下载副本还提供「安装并打开 Lino」，无需手动移动。Markdown 默认打开方式位于 **设置 → 通用**。安装不会自动接管现有文件关联；也可在 Finder 中选中 `.md` 文件，通过 **显示简介 → 打开方式 → Lino → 全部更改** 设置。
 
 用 **⌘O** 打开文件，**⇧⌘O** 打开文件夹。访问受保护的位置时，macOS 可能请求权限；如果曾拒绝，可检查 **系统设置 → 隐私与安全性 → 文件与文件夹**，再重新打开。无需账号、辅助功能或完全磁盘访问权限。
 
 ### 直接下载
 
-**[下载 Lino v0.1.0 macOS 版 →](https://github.com/yruichen/lino/releases/download/v0.1.0/Lino-v0.1.0-macos-arm64.zip)**
+**[下载 Lino v0.1.1 macOS 版 →](https://github.com/yruichen/lino/releases/download/v0.1.1/Lino-v0.1.1-macos-arm64.zip)**
 
-解压后，将 **Lino.app** 移到**应用程序**目录。发行说明与校验值见[发布页](https://github.com/yruichen/lino/releases/tag/v0.1.0)。
+解压后，将 **Lino.app** 移到**应用程序**目录。发行说明与校验值见[发布页](https://github.com/yruichen/lino/releases/tag/v0.1.1)。
 
 当前 macOS 构建采用临时签名，**尚未经过 Apple 公证**。如果系统阻止首次启动，可在**系统设置 → 隐私与安全性 → 仍要打开**中确认此应用。
 

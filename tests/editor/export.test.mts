@@ -90,3 +90,15 @@ test('captions export the same Markdown, escaped literals and actual inline math
   assert.equal(captions[2].querySelector('strong')?.textContent, 'Reference caption');
   assert(html.includes('caption-only-math-style')); assert.equal(plan.source.text, raw);
 });
+
+test('wide HTML tables retain every cell inside their own scroll region', async () => {
+  const headers = Array.from({ length: 16 }, (_, column) => `Header${column}`);
+  const values = Array.from({ length: 16 }, (_, column) => `Value${column}`);
+  const raw = `| ${headers.join(' | ')} |\n| ${headers.map(() => '---').join(' | ')} |\n| ${values.join(' | ')} |`;
+  const html = await new ExportPlan(source(raw)).render({});
+  const doc = new fixture.dom.window.DOMParser().parseFromString(html, 'text/html');
+  assert.equal(doc.querySelectorAll('.export-table-scroll > table').length, 1);
+  assert.deepEqual([...doc.querySelectorAll('th')].map(cell => cell.textContent), headers);
+  assert.deepEqual([...doc.querySelectorAll('td')].map(cell => cell.textContent), values);
+  assert.equal(doc.querySelector('.export-table-scroll')?.getAttribute('tabindex'), '0');
+});

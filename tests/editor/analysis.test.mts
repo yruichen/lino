@@ -24,6 +24,22 @@ test('outline uses syntax ranges and excludes headings inside code while recogni
   assert.equal(new Set(outline.entries.map(h => h.from)).size, 4);
   for (const heading of outline.entries) assert(state.doc.sliceString(heading.from, heading.to).includes(heading.title));
 });
+test('outline labels omit parsed inline formatting and preserve literal stars and source coordinates', () => {
+  const doc = '### **表 2C. HER2ST 增强比较：**\n\n### **表 5C. HER2ST 策略复用的结果**\n\n# **bold *nested*** and `literal **stars**`\n\n# \\*literal\\* and unclosed **marker\n\nSetext **bold**\n---\n';
+  let state = EditorState.create({ doc, extensions: markdown({ base: markdownLanguage }) });
+  assert(ensureSyntaxTree(state, state.doc.length, 100));
+  state = state.update({}).state;
+  const entries = headings(state).entries;
+  assert.deepEqual(entries.map(entry => entry.title), [
+    '表 2C. HER2ST 增强比较：', '表 5C. HER2ST 策略复用的结果',
+    'bold nested and literal **stars**', '*literal* and unclosed **marker', 'Setext bold',
+  ]);
+  assert.deepEqual(entries.map(entry => state.doc.lineAt(entry.from).text), [
+    '### **表 2C. HER2ST 增强比较：**', '### **表 5C. HER2ST 策略复用的结果**',
+    '# **bold *nested*** and `literal **stars**`', '# \\*literal\\* and unclosed **marker', 'Setext **bold**',
+  ]);
+  assert.equal(state.doc.toString(), doc);
+});
 test('counts define Han, Unicode code points, source markup and selection semantics', () => {
   assert.deepEqual(countText('中文 hello 👩‍💻\n'), { words: 3, characters: 13, nonWhitespace: 10, lines: 2 });
   const state = EditorState.create({ doc: 'abc\n中文', selection: EditorSelection.single(4,6), extensions: statistics });
@@ -83,7 +99,7 @@ test('workspace-style line navigation reveals table source and focus mode also h
 test('native outline and statistics project current content without a second panel and reject stale heading coordinates', async () => {
   const parent = document.createElement('div'); document.body.append(parent);
   const events: import('../../packages/protocol/src/client/editor-host.ts').EditorHostEvent[] = [];
-  const editor = new MarkdownEditor(parent, '# First\n\n## Child\n\nSome words', event => events.push(event), () => {}, undefined, undefined, { nativeAnalysis: true });
+  const editor = new MarkdownEditor(parent, '# **First**\n\n## *Child*\n\nSome words', event => events.push(event), () => {}, undefined, undefined, { nativeAnalysis: true });
   try {
     editor.command('toggle-outline'); await new Promise(resolve => setTimeout(resolve, 120));
     assert.equal(parent.querySelector('.ot-document-outline'), null);

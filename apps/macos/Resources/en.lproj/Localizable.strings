@@ -24,6 +24,14 @@
 "menu.quit" = "Quit Lino";
 "menu.file" = "File";
 "menu.new" = "New";
+"menu.newWindow" = "New Window";
+"menu.services" = "Services";
+"menu.hideOthers" = "Hide Others";
+"menu.showAll" = "Show All";
+"menu.minimize" = "Minimize";
+"menu.zoomWindow" = "Zoom";
+"menu.moveTabToWindow" = "Move Tab to New Window";
+"menu.bringAllToFront" = "Bring All to Front";
 "menu.open" = "Open…";
 "menu.save" = "Save";
 "menu.saveAs" = "Save As…";
@@ -456,7 +464,7 @@
 
 "button.done" = "Done";
 "navigation.customizeDetail" = "Changes apply immediately to all windows.";
-"navigation.sectionOrderDetail" = "Choose visible groups, then use the arrows to arrange them.";
+"navigation.sectionOrderDetail" = "Choose visible groups and arrange them with the arrows. Empty groups appear when they contain files.";
 "navigation.customizeNoLocations" = "Add a folder to browse and search its files.";
 "navigation.removeLocationDetail" = "Select a folder to reorder or remove it. Removing a location never deletes its files.";
 "navigation.displayOptions" = "Display and behavior";
@@ -516,3 +524,8 @@
 "setup.defaultNeedsInstall" = "This is a trial copy. Open Lino again and choose Install & Open Lino before setting a default.";
 "setup.showBackup" = "Show Previous Copy in Finder";
 "setup.restoreFailed" = "The installation folder changed. Your previous copy is kept safely; you can find it in Finder.";
+"dialog.conflictTitle" = "“%@” changed outside Lino.";
+"dialog.conflictDetail" = "Your local edits are preserved. Overwrite replaces the current file with your edits. Save As keeps the external file and saves your edits elsewhere.";
+"dialog.overwriteFile" = "Overwrite File";
+
+"navigation.customizeScope" = "Customize the Files page. Changes are saved and apply to all windows; the outline keeps its document headings.";

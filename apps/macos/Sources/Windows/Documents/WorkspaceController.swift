@@ -53,6 +53,9 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     private var collapsedHeadings = Set<String>()
     private var collapsedSections = Set<String>()
     private var selectedID: String?
+    private var renderedPreferences: NavigationPreferences?
+    private var renderedOpenFiles: [String] = []
+    private var renderedRecents: [String] = []
     private let dragType = NSPasteboard.PasteboardType("dev.lino.navigation-item")
     private(set) var currentFile: String?
     private(set) var showingOutline = false
@@ -165,11 +168,12 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         let changedPage = showingOutline != value.outline
         applyingPresentation = true
         selectedRoot = value.workspace; expanded = value.expanded; collapsedSections = value.collapsedSections
-        showingOutline = value.outline; switcher.selectedSegment = value.outline ? 1 : 0
+        showingOutline = value.outline
         pageOrigins[false] = NSPoint(x: value.filesX, y: value.filesY)
         pageOrigins[true] = NSPoint(x: value.outlineX, y: value.outlineY)
         lastPresentation = value
         if structureChanged { rebuild(); if searching { contentSearch.rebind(root: currentRoot) } }
+        switcher.selectedSegment = value.outline ? 1 : 0
         if changedPage { onOutlineVisibility?(showingOutline) }
         if !searching {
             scroll.contentView.scroll(to: pageOrigins[showingOutline] ?? .zero)
@@ -236,14 +240,19 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     func setOutline(_ value: Bool) {
         guard value != showingOutline else { return }
         pageOrigins[showingOutline] = scroll.contentView.bounds.origin
-        showingOutline = value; switcher.selectedSegment = value ? 1 : 0; browsingOutline = false
-        onOutlineVisibility?(value); saveWindowState(); rebuild()
+        showingOutline = value; browsingOutline = false
+        // Publish and perform native layout only after the outline's cached
+        // rows match its new data source, including a zero-heading page.
+        rebuild(); switcher.selectedSegment = value ? 1 : 0
+        onOutlineVisibility?(value); saveWindowState()
         scroll.contentView.scroll(to: pageOrigins[value] ?? .zero); scroll.reflectScrolledClipView(scroll.contentView)
     }
     func setCurrentFile(_ path: String?) {
         guard currentFile != path else { return }
-        currentFile = path; rebuild()
-        if navigation.values.follow_active, !showingOutline, let path {
+        currentFile = path; rebuild(); followCurrentFile()
+    }
+    private func followCurrentFile() {
+        if navigation.values.follow_active, !showingOutline, let path = currentFile {
             // Follow only already-visible rows; never reopen a deliberately collapsed tree.
             if let row = (0..<outline.numberOfRows).first(where: { (outline.item(atRow: $0) as? NavigationItem)?.path == path }) {
                 outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
@@ -312,13 +321,34 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         // is a configuration publication rather than a directory invalidation.
         let roots = Set(navigation.values.locations + navigation.values.favorites)
         for id in Array(tasks.keys) {
-            if let owner = nodes[id]?.root, !roots.contains(owner) { tasks.removeValue(forKey: id)?.cancel() }
+            if let node = nodes[id], let owner = node.root, !roots.contains(owner) {
+                tasks.removeValue(forKey: id)?.cancel(); node.loading = false; node.loaded = false
+            }
         }
         if let root {
-            for node in nodes.values where root.isEmpty || node.root == root { node.loaded = false; node.loading = false; node.children = [] }
-            for task in tasks.values { task.cancel() }; tasks.removeAll()
+            let invalidated = nodes.values.filter { $0.section == nil && (root.isEmpty || $0.root == root) }
+            for node in invalidated {
+                tasks.removeValue(forKey: node.id)?.cancel()
+                // A watcher invalidates knowledge of directory membership, not
+                // the last complete presentation. Keep that list until the
+                // replacement has arrived, including during atomic saves.
+                node.loaded = false; node.loading = false
+            }
+            if !showingOutline {
+                for node in invalidated where node.directory {
+                    let hiddenRoot = !navigation.values.show_root && node.id == "location:" + (currentRoot ?? "")
+                    if hiddenRoot || outline.isItemExpanded(node) { load(node) }
+                }
+            }
+            return
         }
+        let values = navigation.values
+        let followingEnabled = renderedPreferences?.follow_active != true && values.follow_active
+        guard renderedPreferences != values
+            || values.show_open_files && renderedOpenFiles != navigation.openFiles
+            || values.show_recents && renderedRecents != navigation.recent else { return }
         rebuild()
+        if followingEnabled { followCurrentFile() }
     }
     private func node(_ id: String, title: String) -> NavigationItem {
         if let item = nodes[id] { item.title = title; return item }
@@ -337,11 +367,14 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         guard !disposed, !rebuilding else { return }; rebuilding = true; defer { rebuilding = false }
         let scrollOrigin = scroll.contentView.bounds.origin
         let values = navigation.values
-        locationPicker.removeAllItems()
-        for root in values.locations { locationPicker.addItem(withTitle: URL(fileURLWithPath: root).lastPathComponent); locationPicker.lastItem?.toolTip = root }
-        locationPicker.addItem(withTitle: localized("navigation.addFolder"))
-        if let root = currentRoot, let index = values.locations.firstIndex(of: root) { locationPicker.selectItem(at: index) }
-        searchButton.isEnabled = currentRoot != nil
+        if renderedPreferences?.sort != values.sort {
+            // Sorting is a presentation of cached directory entries. Changing
+            // the setting must take effect without waiting for another I/O.
+            for item in nodes.values where item.section == nil && item.directory {
+                item.children = sortedChildren(item.children)
+            }
+        }
+        renderedPreferences = values; renderedOpenFiles = navigation.openFiles; renderedRecents = navigation.recent
         if !showingOutline {
             var sections: [String: [NavigationItem]] = [:]
             sections["favorites"] = values.show_favorites ? values.favorites.map { path in
@@ -363,13 +396,8 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
                 return group
             }
         }
-        if !showingOutline { continueButton.isHidden = true; notice.isHidden = true }
-        empty.isHidden = showingOutline || !items.isEmpty || searching
-        navigationContent.isHidden = (!showingOutline && items.isEmpty) || searching
-        updateHeadingStatus()
-        if !showingOutline, !values.show_root { items = items.flatMap { $0.section == "locations" ? $0.children : [$0] } }
-        outline.selectionHighlightStyle = .regular
-        outline.rowHeight = showingOutline ? 29 : values.compact ? 24 : 29
+        // The data-source projection above is pure Swift. Commit its row cache
+        // before AppKit setters can synchronously lay out a floating group row.
         applyingExpansion = true
         outline.reloadData()
         if showingOutline { restoreHeadingExpansion() }
@@ -379,8 +407,28 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
             if let selectedID, let item = nodes[selectedID], outline.row(forItem: item) >= 0 { outline.selectRowIndexes(IndexSet(integer: outline.row(forItem: item)), byExtendingSelection: false) }
         }
         applyingExpansion = false
+        outline.selectionHighlightStyle = .regular
+        outline.rowHeight = showingOutline ? 29 : values.compact ? 24 : 29
+        locationPicker.removeAllItems()
+        for root in values.locations { locationPicker.addItem(withTitle: URL(fileURLWithPath: root).lastPathComponent); locationPicker.lastItem?.toolTip = root }
+        locationPicker.addItem(withTitle: localized("navigation.addFolder"))
+        if let root = currentRoot, let index = values.locations.firstIndex(of: root) { locationPicker.selectItem(at: index) }
+        searchButton.isEnabled = currentRoot != nil
+        if !showingOutline { continueButton.isHidden = true; notice.isHidden = true }
+        empty.isHidden = showingOutline || !items.isEmpty || searching
+        navigationContent.isHidden = (!showingOutline && items.isEmpty) || searching
+        updateHeadingStatus()
         scroll.contentView.scroll(to: scrollOrigin); scroll.reflectScrolledClipView(scroll.contentView)
         if searching { empty.isHidden = true; navigationContent.isHidden = true; notice.isHidden = true; continueButton.isHidden = true }
+    }
+    private func sortedChildren(_ children: [NavigationItem]) -> [NavigationItem] {
+        let modified = navigation.values.sort == "modified"
+        return children.sorted { left, right in
+            if left.directory != right.directory { return left.directory }
+            if modified && left.modified != right.modified { return left.modified > right.modified }
+            let name = left.title.localizedStandardCompare(right.title)
+            return name == .orderedSame ? left.id < right.id : name == .orderedAscending
+        }
     }
     private func load(_ item: NavigationItem) {
         guard item.directory, !item.loaded, !item.loading, let root = item.root else { return }
@@ -397,15 +445,20 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
                 }
                 let listing = try await Task.detached(priority: .userInitiated) { try service.list(path: relative, hidden: false) }.value
                 guard !Task.isCancelled, !disposed else { return }
-                var entries = listing.entries
-                entries.sort { $0.directory == $1.directory ? $0.name.localizedStandardCompare($1.name) == .orderedAscending : $0.directory }
-                item.children = entries.map { entry in
+                let previous = item.children.map { ($0.id, $0.directory) }
+                let children = listing.entries.map { entry in
                     let child = fileNode((root as NSString).appendingPathComponent(entry.path), prefix: item.id, directory: entry.directory)
                     child.root = root; child.relative = entry.path; child.modified = entry.modified; return child
                 }
+                item.children = sortedChildren(children)
+                let structureChanged = previous.count != item.children.count || zip(previous, item.children).contains { old, child in
+                    old.0 != child.id || old.1 != child.directory
+                }
                 item.loaded = true; item.loading = false; tasks.removeValue(forKey: item.id)
                 if listing.truncated { notice.stringValue = localized("workspace.listTruncated"); notice.isHidden = false }
-                rebuild()
+                // Metadata only affects presentation when it changes the
+                // selected sort order; otherwise preserve native row state.
+                if structureChanged && !showingOutline { rebuild() }
             } catch {
                 guard !Task.isCancelled else { return }; item.loading = false; item.loaded = true
                 notice.stringValue = userFacingError(error); notice.isHidden = false
@@ -487,13 +540,20 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         scroll.contentView.scroll(to: browseOrigin); scroll.reflectScrolledClipView(scroll.contentView)
     }
     func detach() {
+        guard !disposed else { return }; disposed = true
         navigation.sidebar.save()
         if let presentationObserver { navigation.sidebar.removeObserver(presentationObserver); self.presentationObserver = nil }
         if let searchObserver { navigation.contentSearch.removeObserver(searchObserver); self.searchObserver = nil }
         contentSearch.detach()
         if let scrollObserver { NotificationCenter.default.removeObserver(scrollObserver); self.scrollObserver = nil }
-        disposed = true; for task in tasks.values { task.cancel() }; tasks.removeAll()
+        for task in tasks.values { task.cancel() }; tasks.removeAll()
         if let observer { navigation.removeObserver(observer) }; observer = nil
+        // AppKit can retain a closed tab's view for a later layout pass. Clear
+        // its floating row while this data source is still alive, then commit
+        // an empty table before weak delegate/data-source references disappear.
+        outline.floatsGroupRows = false
+        outline.delegate = nil; outline.dataSource = nil; outline.reloadData()
+        outline.target = nil; outline.onOpen = nil; outline.menu?.delegate = nil
     }
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()

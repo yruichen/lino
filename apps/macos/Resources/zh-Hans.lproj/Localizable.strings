@@ -24,6 +24,14 @@
 "menu.quit" = "退出 Lino";
 "menu.file" = "文件";
 "menu.new" = "新建";
+"menu.newWindow" = "新建窗口";
+"menu.services" = "服务";
+"menu.hideOthers" = "隐藏其他应用";
+"menu.showAll" = "显示全部";
+"menu.minimize" = "最小化";
+"menu.zoomWindow" = "缩放窗口";
+"menu.moveTabToWindow" = "将标签页移至新窗口";
+"menu.bringAllToFront" = "前置全部窗口";
 "menu.open" = "打开…";
 "menu.save" = "保存";
 "menu.saveAs" = "另存为…";
@@ -456,7 +464,7 @@
 
 "button.done" = "完成";
 "navigation.customizeDetail" = "更改会立即应用到所有窗口。";
-"navigation.sectionOrderDetail" = "勾选要显示的分组，使用右侧箭头调整顺序。";
+"navigation.sectionOrderDetail" = "勾选要显示的分组，使用右侧箭头调整顺序。空分组会在有内容时显示。";
 "navigation.customizeNoLocations" = "添加文件夹后，即可浏览和搜索其中的文件。";
 "navigation.removeLocationDetail" = "选中文件夹后可排序或移除。移除位置不会删除磁盘文件。";
 "navigation.displayOptions" = "显示与行为";
@@ -516,3 +524,8 @@
 "setup.defaultNeedsInstall" = "当前为试用副本。下次打开时选择「安装并打开 Lino」，即可设置默认打开方式。";
 "setup.showBackup" = "在 Finder 中查看原来的副本";
 "setup.restoreFailed" = "安装位置发生了变化，原来的副本已保留，可以在 Finder 中找到。";
+"dialog.conflictTitle" = "“%@”已被外部修改。";
+"dialog.conflictDetail" = "本地编辑已保留。覆盖文件会用你的编辑替换当前磁盘文件；另存为会保留外部文件，并将你的编辑保存到其它位置。";
+"dialog.overwriteFile" = "覆盖文件";
+
+"navigation.customizeScope" = "自定义“文件”页；更改会保存并同步到所有窗口。“大纲”仍显示当前文档的标题。";

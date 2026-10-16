@@ -60,6 +60,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
     private var persistenceError: String?
     private var automaticReconnectUsed = false
     var onClosed: (() -> Void)?
+    var onActivated: (() -> Void)?
     private(set) var canUndo = false
     private(set) var canRedo = false
 
@@ -443,7 +444,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTool
         webView.navigationDelegate = nil; webView.stopLoading()
     }
     func windowWillClose(_ notification: Notification) { onClosed?() }
-    func windowDidBecomeKey(_ notification: Notification) { updateChromeInsets(); externalChanges?.check(); if let path = workspace.currentFile { Task { await navigation.noteFile(path) } } }
+    func windowDidBecomeKey(_ notification: Notification) { onActivated?(); updateChromeInsets(); externalChanges?.check(); if let path = workspace.currentFile { Task { await navigation.noteFile(path) } } }
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         if let filePreview { onWillClose?(filePreview.url.path); return true }
         if documents.closed { return true }

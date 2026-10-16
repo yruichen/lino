@@ -23,7 +23,23 @@ final class EditorBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate
         generation += 1
         guard let content = webView?.configuration.userContentController else { return }
         content.removeAllUserScripts()
-        content.addUserScript(WKUserScript(source: "window.__linoViewportWidth = \(max(1, viewportWidth)); window.__linoViewGeneration = \(generation); window.__linoLocale = '\(LanguagePreferences.shared.locale)';", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        let dark = webView?.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let colors = dark ? ThemePalette.current.dark.colors : ThemePalette.current.light.colors
+        let palette = String(decoding: try! JSONSerialization.data(withJSONObject: colors), as: UTF8.self)
+        // A page can be composited before its editor/theme module starts. Seed
+        // the root from the SAME confirmed catalog used by the native canvas.
+        // Keep CSS variables so later preference updates remain authoritative.
+        content.addUserScript(WKUserScript(source: """
+            window.__linoViewportWidth = \(max(1, viewportWidth)); window.__linoViewGeneration = \(generation); window.__linoLocale = '\(LanguagePreferences.shared.locale)';
+            {
+                const root = document.documentElement, colors = \(palette);
+                root.style.setProperty('--ot-background', colors.bg);
+                root.style.setProperty('--ot-text', colors.text);
+                root.style.colorScheme = '\(dark ? "dark" : "light")';
+                root.style.backgroundColor = 'var(--ot-background)';
+                root.style.color = 'var(--ot-text)';
+            }
+            """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
