@@ -1,0 +1,38 @@
+# Install in yruichen/homebrew-tap as .github/workflows/sync-lino.yml.
+# Runs with the tap's built-in token. No cross-repository PAT or user login.
+name: Sync Lino releases
+on:
+  schedule:
+    - cron: '43 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sync-lino
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tap
+      - uses: actions/checkout@v4
+        with:
+          repository: yruichen/lino
+          ref: main
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node source/tools/homebrew/sync.cjs tap/Casks/lino.rb
+      - name: Commit the cask when a release changes
+        working-directory: tap
+        run: |
+          if git diff --quiet -- Casks/lino.rb; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Casks/lino.rb
+          git commit -m "Update Lino from published release metadata"
+          git push
