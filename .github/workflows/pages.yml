@@ -1,0 +1,42 @@
+name: Publish Lino website and releases
+on:
+  push:
+    branches: [main]
+    paths: ['website/**', 'assets/brand/**', 'assets/screenshots/**', 'tools/website/**', 'tools/releases/**', '.github/workflows/pages.yml']
+  release:
+    types: [published, edited, unpublished, deleted]
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/configure-pages@v5
+      - name: Fetch published release metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/releases/fetch.cjs .local/releases.json
+      - run: node tools/releases/catalog.cjs .local/releases.json .local/pages/updates/releases.json
+      - run: node tools/website/build.cjs .local/pages
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .local/pages
+      - uses: actions/deploy-pages@v4
+        id: deployment

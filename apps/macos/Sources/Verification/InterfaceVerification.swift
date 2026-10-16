@@ -11,6 +11,15 @@ private actor ReleaseAttemptFixture {
     }
 }
 
+private actor ReleaseSuccessThenFailureFixture {
+    private var attempts = 0
+    func fetch() throws -> String {
+        attempts += 1
+        if attempts > 1 { throw URLError(.notConnectedToInternet) }
+        return "[{\"tag_name\":\"v9.0.0\",\"prerelease\":true,\"draft\":false}]"
+    }
+}
+
 @MainActor
 func verifyInterface(_ controller: EditorWindowController) async throws -> [String] {
     var passed: [String] = []
@@ -31,6 +40,24 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
             if let png = bitmap.representation(using: .png, properties: [:]) { try png.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".local/validation/" + name + ".png")) }
         }
     }
+    let bundle = Bundle.main.infoDictionary ?? [:]
+    let types = bundle["CFBundleDocumentTypes"] as? [[String: Any]] ?? []
+    try check("bundle-declares-markdown-as-editor-without-taking-default", types.contains { ($0["LSItemContentTypes"] as? [String])?.contains("net.daringfireball.markdown") == true && $0["CFBundleTypeRole"] as? String == "Editor" && $0["LSHandlerRank"] as? String == "Alternate" })
+    let home = URL(fileURLWithPath: "/Users/fixture", isDirectory: true)
+    try check("installation-recognizes-system-and-user-applications-only", InstallationServices.isInstalled(URL(fileURLWithPath: "/Applications/Lino.app"), home: home) && InstallationServices.isInstalled(home.appendingPathComponent("Applications/Lino.app"), home: home) && !InstallationServices.isInstalled(URL(fileURLWithPath: "/Volumes/Lino/Lino.app"), home: home) && !InstallationServices.isInstalled(home.appendingPathComponent("Downloads/Lino.app"), home: home))
+    var openedFixture = false
+    let setup = SetupWindowController(installation: InstallationServices(applicationURL: home.appendingPathComponent("Downloads/Lino.app")), openFile: { openedFixture = true }, openFolder: {})
+    setup.showWindow(nil); setup.window?.alphaValue = 0
+    if let root = setup.window?.contentView {
+        root.layoutSubtreeIfNeeded()
+        let controls = views(root).compactMap { $0 as? NSButton }
+        try check("welcome-does-not-change-associations-before-installation", controls.first { $0.identifier?.rawValue == "setup.makeDefault" }?.isEnabled == false)
+        try check("welcome-explains-permissions-and-reaches-real-file-entry", controls.contains { $0.identifier?.rawValue == "setup.permissions" })
+        try capture(root, "installation-guide")
+        controls.first { $0.identifier?.rawValue == "setup.openFile" }?.performClick(nil)
+        try check("welcome-open-file-routes-action-and-closes-guide", openedFixture && setup.window?.isVisible == false)
+    } else { try check("welcome-has-content", false) }
+    setup.close()
     if let menu = NSApp.mainMenu {
         func items(_ menu: NSMenu) -> [NSMenuItem] { menu.items + menu.items.flatMap { $0.submenu.map(items) ?? [] } }
         let formats = items(menu).filter { $0.representedObject is String }
@@ -156,6 +183,15 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
     try await wait { if case .checked = failed.state { return true }; return false }
     try check("failed-update-check-can-be-retried", failed.lastChecked != nil)
     failed.cancel()
+    let cachedAttempts = ReleaseSuccessThenFailureFixture()
+    let retained = UpdateCoordinator(backend: controller.bridge.backend, defaults: nil, currentVersion: "0.0.4", fetch: { _ in try await cachedAttempts.fetch() })
+    retained.check()
+    try await wait { if case .checked = retained.state { return true }; return false }
+    let lastSuccess = retained.lastChecked
+    retained.check()
+    try await wait { if case .failed = retained.state { return true }; return false }
+    try check("failed-refresh-retains-previous-release-and-success-time", retained.lastResult?.release?.version == "v9.0.0" && retained.lastChecked == lastSuccess)
+    retained.cancel()
     let delayed = UpdateCoordinator(backend: controller.bridge.backend, defaults: nil, currentVersion: "0.0.4", fetch: { _ in try? await Task.sleep(for: .milliseconds(80)); return releaseJSON })
     delayed.configure(snapshot.values); delayed.check()
     var changedChannel = snapshot.values; changedChannel.include_prerelease_updates.toggle(); delayed.configure(changedChannel)

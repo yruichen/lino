@@ -43,6 +43,7 @@ xcuserdata/
 __pycache__/
 *.pyc
 .DS_Store
+.playwright-cli/
 .env
 .env.*
 !.env.example

@@ -100,7 +100,10 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
         add(SettingsForm.label("settings." + selectedCategory + "Detail", size: 12))
         guard let value = values() else { return }
         switch selectedCategory {
-        case "general": add(SettingsForm.group("settings.interface", [SettingsForm.row("settings.language", languageControl)], detail: "settings.languageDetail"))
+        case "general":
+            add(SettingsForm.group("settings.interface", [SettingsForm.row("settings.language", languageControl)], detail: "settings.languageDetail"))
+            let setup = NSButton(title: localized("setup.openGuide"), target: NSApp.delegate, action: #selector(EditorApplication.showSetup)); setup.bezelStyle = .rounded
+            add(SettingsForm.group("setup.association", [setup], detail: "setup.settingsDetail"))
         case "appearance":
             let mode = popup([("language.system", "system"), ("settings.light", "light"), ("settings.dark", "dark")], selected: value.theme) { control, next in next.theme = (control as! NSPopUpButton).selectedItem?.representedObject as? String ?? next.theme }
             add(SettingsForm.group("settings.appearance", [SettingsForm.row("settings.appearanceMode", mode)]))
@@ -189,7 +192,10 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
                 updateStatus.stringValue = result.newer ? localized("updates.available", release.version) : localized("updates.current")
                 releaseButton.title = localized("updates.viewRelease")
             } else { updateStatus.stringValue = localized("updates.noReleases") }
-        case .failed(let message): updateStatus.stringValue = message; updateStatus.textColor = ThemePalette.color("error")
+        case .failed(let message):
+            updateStatus.stringValue = message
+            if let previous = updates.lastResult?.release { updateStatus.stringValue += "\n" + localized("updates.previousResult", previous.version) }
+            updateStatus.textColor = ThemePalette.color("error")
         }
         if let date = updates.lastChecked { updateDate.stringValue = localized("updates.lastChecked", DateFormatter.localizedString(from: date, dateStyle: .medium, timeStyle: .short)) }
         else { updateDate.stringValue = "" }
