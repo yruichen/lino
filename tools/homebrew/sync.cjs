@@ -12,8 +12,7 @@ function updatedCask(text, releases) {
   return text.replace(/^  version "[^"]+"$/m, `  version "${latest.tag_name.replace(/^v/, '')}"`)
     .replace(/^  sha256 "[^"]+"$/m, `  sha256 "${zip.digest.slice(7)}"`)
     .replace(/^  url "[^"]+"$/m, `  url "${zip.browser_download_url}"`)
-    .replace(/^  homepage "[^"]+"$/m, '  homepage "https://yruichen.github.io/lino/"')
-    .replace('Lino is currently in Beta and is not notarized by Apple.', 'Lino is not notarized by Apple.');
+    .replace(/^  homepage "[^"]+"$/m, '  homepage "https://yruichen.github.io/lino/"');
 }
 module.exports = { updatedCask };
 if (require.main === module) (async () => {
