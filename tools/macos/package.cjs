@@ -22,7 +22,7 @@ try {
   const volume = path.join(stage, 'volume'); fs.mkdirSync(volume);
   fs.cpSync(app, path.join(volume, 'Lino.app'), { recursive: true });
   fs.symlinkSync('/Applications', path.join(volume, 'Applications'));
-  fs.writeFileSync(path.join(volume, 'Read Me - 请先阅读.txt'), 'Lino\n\nDrag Lino.app to Applications, eject this disk image, then open Lino from Applications.\nThe Beta is ad-hoc signed and not notarized. If macOS blocks opening, approve it in System Settings → Privacy & Security → Open Anyway.\nNever disable Gatekeeper or remove quarantine globally.\n\n将 Lino.app 拖入 Applications（应用程序），推出磁盘映像，再从应用程序中打开 Lino。\n当前 Beta 为临时签名，尚未经过 Apple 公证。如系统阻止打开，请前往「系统设置 → 隐私与安全性 → 仍要打开」批准。\n首次使用指引可设置 Markdown 默认打开方式，无需账号或完全磁盘访问权限。\n');
+  fs.writeFileSync(path.join(volume, 'Read Me - 请先阅读.txt'), 'Lino\n\nDrag Lino.app to Applications, eject this disk image, then open Lino from Applications.\nThis build is ad-hoc signed and not notarized. If macOS blocks opening, approve it in System Settings → Privacy & Security → Open Anyway.\nNever disable Gatekeeper or remove quarantine globally.\n\n将 Lino.app 拖入 Applications（应用程序），推出磁盘映像，再从应用程序中打开 Lino。\n当前构建为临时签名，尚未经过 Apple 公证。如系统阻止打开，请前往「系统设置 → 隐私与安全性 → 仍要打开」批准。\n首次使用指引可设置 Markdown 默认打开方式，无需账号或完全磁盘访问权限。\n');
   const zip = path.join(stage, stem + '.zip'), dmg = path.join(stage, stem + '.dmg');
   run('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', path.join(volume, 'Lino.app'), zip]);
   run('hdiutil', ['create', '-volname', 'Lino', '-srcfolder', volume, '-format', 'UDZO', dmg]);
