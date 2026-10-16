@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{pageTitle}}</title>
+  <meta name="description" content="{{description}}">
+  <meta name="theme-color" content="#f7f6f2">
+  <meta property="og:title" content="{{pageTitle}}">
+  <meta property="og:description" content="{{description}}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{canonical}}">
+  <meta property="og:image" content="https://yruichen.github.io/lino/assets/writing.png">
+  <link rel="canonical" href="{{canonical}}">
+  <link rel="alternate" hreflang="zh-Hans" href="https://yruichen.github.io/lino/">
+  <link rel="alternate" hreflang="en" href="https://yruichen.github.io/lino/en/">
+  <link rel="icon" type="image/png" href="{{prefix}}assets/lino.png">
+  <link rel="stylesheet" href="{{prefix}}style.css">
+  <script src="{{prefix}}site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">{{skip}}</a>
+  <header class="site-header wrap">
+    <a class="brand" href="{{prefix}}" aria-label="Lino"><img src="{{prefix}}assets/lino.png" width="38" height="38" alt="">Lino<span class="beta">{{channel}}</span></a>
+    <nav aria-label="{{navigation}}">
+      <a href="#features">{{features}}</a><a href="#start">{{getStarted}}</a>
+      <a class="language" href="{{languageLink}}" lang="{{otherLang}}">{{language}}</a>
+      <a class="nav-download" href="#download">{{download}}</a>
+    </nav>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A LITTLE SPACE. A LOT OF POSSIBILITY.</p>
+        <h1 id="hero-title"><span>{{heroOne}}</span><span>{{heroTwo}}</span></h1>
+        <p class="lede">{{heroDescription}}</p>
+        <div class="hero-actions"><a class="button" href="{{downloadURL}}">{{downloadMac}} <span aria-hidden="true">↗</span></a><a class="text-link" href="#features">{{explore}} <span aria-hidden="true">↓</span></a></div>
+        <p class="requirements">{{requirements}} <span>·</span> {{version}} {{channel}}</p>
+      </div>
+      <figure class="hero-product"><div class="image-mat"><img src="{{prefix}}assets/writing.png" width="1920" height="1301" alt="{{writingAlt}}" fetchpriority="high"></div><figcaption><span class="dot" aria-hidden="true"></span>{{screenshotCaption}}</figcaption></figure>
+    </section>
+    <div class="principles wrap"><span>{{native}}</span><span>{{local}}</span><span>{{openSource}}</span><span>{{bilingual}}</span></div>
+    <section class="features wrap section" id="features" aria-labelledby="features-title">
+      <div class="section-heading"><p class="eyebrow">ROOM TO THINK</p><h2 id="features-title">{{featuresTitle}}</h2><p>{{featuresIntro}}</p></div>
+      <div class="feature-columns">
+        <article><span class="feature-index">01 / WRITE</span><h3>{{writeTitle}}</h3><p>{{writeBody}}</p><div class="key-note"><kbd>⌘</kbd><kbd>/</kbd><span>{{modeKey}}</span></div></article>
+        <article><span class="feature-index">02 / FIND</span><h3>{{findTitle}}</h3><p>{{findBody}}</p><div class="key-note"><kbd>⌘</kbd><kbd>P</kbd><span>{{quickKey}}</span></div></article>
+        <article><span class="feature-index">03 / KEEP</span><h3>{{keepTitle}}</h3><p>{{keepBody}}</p><div class="key-note"><span class="file-tag">.md</span><span>{{fileKey}}</span></div></article>
+      </div>
+    </section>
+    <section class="night-section">
+      <div class="night-grid wrap">
+        <figure><img src="{{prefix}}assets/code-and-math.png" width="1920" height="1301" loading="lazy" alt="{{codeAlt}}"></figure>
+        <div class="night-copy"><p class="eyebrow">FOR THE WAY YOU THINK</p><h2>{{nightTitle}}</h2><p>{{nightBody}}</p><ul><li>{{nightItemOne}}</li><li>{{nightItemTwo}}</li><li>{{nightItemThree}}</li></ul><p class="quiet-note">{{nightNote}}</p></div>
+      </div>
+    </section>
+    <section class="download-section wrap section" id="download" aria-labelledby="download-title">
+      <div class="section-heading"><p class="eyebrow">MAKE YOURSELF AT HOME</p><h2 id="download-title">{{downloadTitle}}</h2><p>{{downloadDescription}}</p></div>
+      <div class="download-grid">
+        <article class="download-option"><span class="small-label">{{directLabel}}</span><h3>Lino {{version}} <span class="version-channel">{{channel}}</span></h3><p>{{requirements}}</p><a class="button" href="{{downloadURL}}">{{downloadPackage}} <span aria-hidden="true">↓</span></a><a class="minor-link" href="{{releaseURL}}">{{releaseNotes}} ↗</a></article>
+        <article class="download-option brew"><span class="small-label">HOMEBREW</span><h3>{{brewTitle}}</h3><p>{{brewDescription}}</p><div class="command"><code id="brew-command">brew install --cask yruichen/tap/lino</code><button type="button" id="copy-brew" data-copy="{{copied}}" data-failed="{{copyFailed}}" aria-label="{{copyCommand}}">{{copy}}</button></div><p class="copy-status" id="copy-status" role="status" aria-live="polite"></p><p class="brew-upgrade">{{upgradeWith}} <code>brew upgrade --cask yruichen/tap/lino</code></p></article>
+      </div>
+      <p class="beta-note">{{betaNote}}</p>
+    </section>
+    <section class="getting-started wrap section" id="start" aria-labelledby="start-title">
+      <div class="section-heading"><p class="eyebrow">YOUR FIRST FEW MINUTES</p><h2 id="start-title">{{startTitle}}</h2></div>
+      <ol class="steps"><li><span class="step-number">1</span><h3>{{stepOneTitle}}</h3><p>{{stepOneBody}}</p></li><li><span class="step-number">2</span><h3>{{stepTwoTitle}}</h3><p>{{stepTwoBody}}</p></li><li><span class="step-number">3</span><h3>{{stepThreeTitle}}</h3><p>{{stepThreeBody}}</p></li></ol>
+    </section>
+    <section class="faq wrap section" aria-labelledby="faq-title">
+      <div><p class="eyebrow">A FEW SMALL THINGS</p><h2 id="faq-title">{{faqTitle}}</h2></div>
+      <div class="questions">
+        <details><summary>{{faqOneTitle}}</summary><p>{{faqOneBody}}</p></details>
+        <details><summary>{{faqTwoTitle}}</summary><p>{{faqTwoBody}}</p></details>
+        <details><summary>{{faqThreeTitle}}</summary><p>{{faqThreeBody}}</p></details>
+        <details><summary>{{faqFourTitle}}</summary><p>{{faqFourBody}}</p></details>
+        <details><summary>{{faqFiveTitle}}</summary><p>{{faqFiveBody}}</p></details>
+      </div>
+    </section>
+    <section class="closing wrap"><img src="{{prefix}}assets/lino.png" alt="" width="58" height="58" loading="lazy"><p>{{closing}}</p><a class="text-link" href="#download">{{downloadMac}} ↗</a></section>
+  </main>
+  <footer class="wrap"><span>Lino <span class="footer-dot">/</span> {{footer}}</span><div><a href="https://github.com/yruichen/lino">GitHub ↗</a><a href="https://github.com/yruichen/lino/issues">{{feedback}} ↗</a><a href="https://github.com/yruichen/lino/blob/main/LICENSE">MIT</a></div></footer>
+</body>
+</html>
