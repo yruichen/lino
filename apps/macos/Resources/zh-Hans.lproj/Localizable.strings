@@ -492,24 +492,27 @@
 
 /* Installation and first use */
 "setup.title" = "欢迎使用 Lino";
-"setup.intro" = "完成几项可选设置，就可以开始写作。以后也能从设置重新打开这份指引。";
-"setup.install" = "1. 将 Lino 放入「应用程序」";
-"setup.applications" = "打开「应用程序」";
-"setup.installDetail" = "将 Lino.app 拖入「应用程序」，推出下载的磁盘映像，再打开安装好的副本。通过 Homebrew 安装时，这一步会自动完成。";
-"setup.installed" = "当前副本已位于「应用程序」。";
-"setup.moveFirst" = "当前副本不在「应用程序」。请先移入，再设置默认打开方式。";
-"setup.association" = "2. 用 Lino 默认打开 Markdown";
 "setup.makeDefault" = "设为 Markdown 默认应用…";
-"setup.associationDetail" = "可选设置，适用于 .md、.markdown、.mdown 和 .mkd，不改变其他文本文件的打开方式。以后可在 Finder 的「显示简介 → 打开方式 → 全部更改」中修改。";
 "setup.defaultAlready" = "当前 Lino 已是 Markdown 的默认应用。";
 "setup.defaultOptional" = "将 Lino 设为默认应用后，即可双击 Markdown 文件打开。";
 "setup.defaultUnchanged" = "默认应用尚未更改。可以重试，或通过 Finder「显示简介 → 打开方式 → 全部更改」设置。";
 "setup.defaultFailed" = "macOS 未能更改默认应用。可以重试，或在 Finder「显示简介 → 打开方式 → 全部更改」中选择 Lino。";
-"setup.access" = "3. 选择要打开的内容";
-"setup.openFile" = "打开 Markdown 文件…";
-"setup.openFolder" = "打开文件夹…";
-"setup.permissions" = "前往系统文件访问设置…";
-"setup.accessDetail" = "无需账号、辅助功能或完全磁盘访问权限。需要时选择文件或文件夹；访问受保护的位置时，macOS 可能询问权限。如果曾拒绝，请在「隐私与安全性 → 文件与文件夹」中允许访问，再重新打开该位置。系统仅在请求发生后列出相应权限。";
-"setup.start" = "开始写作";
-"setup.openGuide" = "安装与首次使用…";
-"setup.settingsDetail" = "设置 Markdown 默认应用、打开文件或文件夹，并了解 macOS 文件访问权限。";
+"setup.openFile" = "打开文件…";
+"setup.openGuide" = "欢迎使用 Lino…";
+
+/* First-run actions */
+"setup.installTitle" = "安装 Lino";
+"setup.installSubtitle" = "安装到「应用程序」，完成后自动打开。";
+"setup.installAndOpen" = "安装并打开 Lino";
+"setup.newDocument" = "新建文稿";
+"setup.writeSubtitle" = "从一张白纸开始，或继续你的创作。";
+"setup.tryFirst" = "先试用";
+"setup.returnToLino" = "显示已打开的 Lino";
+"setup.installing" = "正在安装…";
+"setup.retryInstall" = "重新安装";
+"setup.quitExisting" = "另一个 Lino 正在运行。请先保存并退出，再重试安装。";
+"setup.installFailed" = "暂时没能完成安装。可以重试，也可以先用当前副本开始写作。";
+"setup.defaultApplication" = "Markdown 默认打开方式";
+"setup.defaultNeedsInstall" = "当前为试用副本。下次打开时选择「安装并打开 Lino」，即可设置默认打开方式。";
+"setup.showBackup" = "在 Finder 中查看原来的副本";
+"setup.restoreFailed" = "安装位置发生了变化，原来的副本已保留，可以在 Finder 中找到。";

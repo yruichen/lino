@@ -102,8 +102,11 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
         switch selectedCategory {
         case "general":
             add(SettingsForm.group("settings.interface", [SettingsForm.row("settings.language", languageControl)], detail: "settings.languageDetail"))
-            let setup = NSButton(title: localized("setup.openGuide"), target: NSApp.delegate, action: #selector(EditorApplication.showSetup)); setup.bezelStyle = .rounded
-            add(SettingsForm.group("setup.association", [setup], detail: "setup.settingsDetail"))
+            let defaultApp = NSButton(title: localized("setup.makeDefault"), target: self, action: #selector(makeDefaultApplication)); defaultApp.bezelStyle = .rounded
+            defaultApp.isEnabled = InstallationServices().installed && !InstallationServices().isDefault
+            let installation = InstallationServices()
+            let status = NSTextField(wrappingLabelWithString: localized(!installation.installed ? "setup.defaultNeedsInstall" : installation.isDefault ? "setup.defaultAlready" : "setup.defaultOptional")); status.font = .systemFont(ofSize: 12); status.textColor = .secondaryLabelColor
+            add(SettingsForm.group("setup.defaultApplication", [status, defaultApp]))
         case "appearance":
             let mode = popup([("language.system", "system"), ("settings.light", "light"), ("settings.dark", "dark")], selected: value.theme) { control, next in next.theme = (control as! NSPopUpButton).selectedItem?.representedObject as? String ?? next.theme }
             add(SettingsForm.group("settings.appearance", [SettingsForm.row("settings.appearanceMode", mode)]))
@@ -179,6 +182,17 @@ final class SettingsWindowController: NSWindowController, NSTableViewDataSource,
         window?.backgroundColor = ThemePalette.color("bg")
     }
     @objc private func checkUpdates() { updates.check() }
+    @objc private func makeDefaultApplication(_ sender: NSButton) {
+        guard InstallationServices().installed else { return }
+        lastError = nil
+        sender.isEnabled = false
+        Task { [weak self] in
+            guard let self else { return }
+            do { try await InstallationServices().makeDefault(); if !InstallationServices().isDefault { lastError = localized("setup.defaultUnchanged") } }
+            catch { lastError = localized("setup.defaultFailed") }
+            render()
+        }
+    }
     @objc private func openRelease() { updates.openRelease() }
     private func refreshUpdateStatus() {
         updateButton.title = localized("updates.checkNow"); updateButton.isEnabled = true

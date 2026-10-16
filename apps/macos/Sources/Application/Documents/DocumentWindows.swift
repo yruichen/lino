@@ -12,6 +12,7 @@ final class DocumentWindows {
     private(set) var controllers: [EditorWindowController] = []
     private var reopening: [String] = []
     private(set) var quitting = false
+    var onDocumentPresented: (() -> Void)?
     var active: EditorWindowController? { controllers.first { $0.isActiveDocument } }
     var restorationPaths: [String] { Array((UserDefaults.standard.stringArray(forKey: "documentSessionPaths") ?? []).prefix(32)) }
 
@@ -24,6 +25,7 @@ final class DocumentWindows {
             window.deminiaturize(nil)
             window.tabGroup?.selectedWindow = window
             document.showWindow(nil); window.makeKeyAndOrderFront(nil)
+            onDocumentPresented?()
         }
         return document
     }
@@ -65,6 +67,7 @@ final class DocumentWindows {
                         next.tabGroup?.selectedWindow = next
                     }
                     controller.showWindow(nil); controller.window?.makeKeyAndOrderFront(nil)
+                    self?.onDocumentPresented?()
                     if controller.isActiveDocument && !controller.quickOpen.visible { _ = try await controller.bridge.call("focusEditor"); controller.window?.makeFirstResponder(controller.webView) }
                     if let path, self?.verifying == false { NSDocumentController.shared.noteNewRecentDocumentURL(URL(fileURLWithPath: path)) }
                     if let line = controller.pendingNavigationLine { _ = try await controller.bridge.call("navigateLine", arguments: [line]); controller.pendingNavigationLine = nil }
@@ -73,7 +76,7 @@ final class DocumentWindows {
                     if path != nil && controller.documents.sessionId == nil {
                         controller.window?.close()
                         self?.showOpenError(error, path: path!, in: origin?.window)
-                    } else { controller.showWindow(nil); controller.showError(userFacingError(error)) }
+                    } else { controller.showWindow(nil); self?.onDocumentPresented?(); controller.showError(userFacingError(error)) }
                 }
             }
         }
@@ -82,11 +85,13 @@ final class DocumentWindows {
                 next.setFrame(old.frame, display: false); old.addTabbedWindow(next, ordered: .above); next.tabGroup?.selectedWindow = next
             }
             controller.showFilePreview()
+            onDocumentPresented?()
             return controller
         }
         // The first visible frame already contains the configured editor page.
         // Loading and wallpaper preparation happen before window/tab presentation.
-        do { try controller.loadEditor() } catch { controller.showError(userFacingError(error)) }
+        do { try controller.loadEditor() }
+        catch { controller.showWindow(nil); onDocumentPresented?(); controller.showError(userFacingError(error)) }
         return controller
     }
     func open(path: String, line: Int? = nil, anchor: String? = nil, origin: EditorWindowController? = nil) async {
@@ -100,6 +105,7 @@ final class DocumentWindows {
                 if let existing = controllers.first(where: { $0.filePreview?.url.resolvingSymlinksInPath() == resolved }) {
                     existing.window?.tabGroup?.selectedWindow = existing.window
                     existing.showWindow(nil); existing.window?.makeKeyAndOrderFront(nil)
+                    onDocumentPresented?()
                     await navigation.noteFile(existing.filePreview!.url.path)
                 } else {
                     let preview = try NativeFilePreview(url: resolved)
@@ -115,6 +121,7 @@ final class DocumentWindows {
                let existing = controllers.first(where: { $0.documents.sessionId == session }) {
                 if let window = existing.window { window.tabGroup?.selectedWindow = window }
                 existing.showWindow(nil); existing.window?.makeKeyAndOrderFront(nil)
+                onDocumentPresented?()
                 existing.window?.makeFirstResponder(existing.webView)
                 _ = try? await existing.bridge.call("focusEditor")
                 await navigation.noteFile(path)
@@ -131,14 +138,15 @@ final class DocumentWindows {
                 empty.window?.makeFirstResponder(empty.webView)
                 _ = try await empty.bridge.call("focusEditor")
                 await navigation.noteFile(path)
+                onDocumentPresented?()
                 return
             }
             create(path: path, line: line, anchor: anchor, tabOrigin: origin)
         } catch { showOpenError(error, path: path, in: (origin ?? active)?.window) }
     }
-    func openDialog() async {
+    func openDialog(in window: NSWindow? = nil) async {
         guard !quitting else { return }
-        guard let url = await DocumentDialogs.open(in: active?.window) else { return }
+        guard let url = await DocumentDialogs.open(in: window ?? active?.window) else { return }
         await open(path: url.path)
     }
     private func showOpenError(_ error: Error, path: String, in window: NSWindow?) {
