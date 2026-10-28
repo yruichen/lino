@@ -1,5 +1,10 @@
 import AppKit
 
+// This controller intentionally owns the native sidebar presentation, outline,
+// search bridge and file mutations as one lifecycle-bound coordinator; the
+// suppression keeps its lifecycle boundary visible without hiding member checks.
+// swiftlint:disable type_body_length
+
 /// Native navigation presentation. Directory and mutation semantics stay in Rust;
 /// sidebar presentation is shared; headings belong to the active document.
 @MainActor
@@ -97,8 +102,9 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         outline.indentationPerLevel = 12; outline.intercellSpacing = NSSize(width: 0, height: 2)
         outline.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
         let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("navigation")); outline.addTableColumn(column); outline.outlineTableColumn = column
-        outline.dataSource = self; outline.delegate = self; outline.target = self; outline.action = #selector(clicked); outline.doubleAction = #selector(doubleClicked)
+        outline.dataSource = self; outline.delegate = self; outline.target = self; outline.action = #selector(clicked)
         outline.onOpen = { [weak self] in self?.openSelection() }
+        outline.onDoubleClick = { [weak self] row in self?.openSelection(row: row) }
         outline.registerForDraggedTypes([dragType, .fileURL]); outline.setDraggingSourceOperationMask([.copy, .move], forLocal: true)
         let menu = NSMenu(); menu.delegate = self; outline.menu = menu
         scroll.documentView = outline; scroll.hasVerticalScroller = true; scroll.drawsBackground = true
@@ -267,7 +273,9 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         let changed = token != headingToken
         let previousCurrent = headingCurrent
         headingToken = token; headingCurrent = projection["current"] as? Int
-        headingNoticeKey = projection["truncated"] as? Bool == true ? "navigation.headingLimit" : projection["exhausted"] as? Bool == true ? "navigation.headingPartial" : projection["complete"] as? Bool == false ? "analysis.parsing" : nil
+        headingNoticeKey = projection["truncated"] as? Bool == true ? "navigation.headingLimit"
+            : projection["exhausted"] as? Bool == true ? "navigation.headingPartial"
+            : projection["complete"] as? Bool == false ? "analysis.parsing" : nil
         headingsExhausted = projection["exhausted"] as? Bool == true
         var structureChanged = false
         if changed {
@@ -386,7 +394,9 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
                 if !root.loaded { load(root) }; locations = root.children
             }
             sections["locations"] = values.show_locations ? locations : []
-            sections["open_files"] = values.show_open_files ? navigation.openFiles.filter { path in !values.locations.contains { path == $0 || path.hasPrefix($0 + "/") } }.map { fileNode($0, prefix: "open") } : []
+            sections["open_files"] = values.show_open_files
+                ? navigation.openFiles.filter { path in !values.locations.contains { path == $0 || path.hasPrefix($0 + "/") } }.map { fileNode($0, prefix: "open") }
+                : []
             sections["recents"] = values.show_recents ? navigation.recent.prefix(20).map { fileNode($0, prefix: "recent") } : []
             items = values.sections.compactMap { key in
                 guard let children = sections[key], !children.isEmpty || key == "locations" && !values.locations.isEmpty && values.show_locations else { return nil }
@@ -484,7 +494,10 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool { (item as? NavigationItem)?.section == nil }
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
         if let item = item as? NavigationItem, item.section != nil {
-            let label = NSTextField(labelWithString: item.title.uppercased()); label.font = .systemFont(ofSize: 10, weight: .semibold); label.textColor = .labelColor.withAlphaComponent(0.65); return label
+            let label = NSTextField(labelWithString: item.title.uppercased())
+            label.font = .systemFont(ofSize: 10, weight: .semibold)
+            label.textColor = .labelColor.withAlphaComponent(0.65)
+            return label
         }
         let cell = outlineView.makeView(withIdentifier: WorkspaceRowView.reuseIdentifier, owner: self) as? WorkspaceRowView ?? WorkspaceRowView(frame: .zero)
         if let heading = item as? NavigationHeading {
@@ -517,10 +530,16 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
     func outlineViewSelectionDidChange(_ notification: Notification) {
         if let item = outline.item(atRow: outline.selectedRow) as? NavigationItem { selectedID = item.id }
     }
-    @objc private func clicked() { if showingOutline { openSelection() } }
-    @objc private func doubleClicked() { if !showingOutline { openSelection() } }
-    private func openSelection() {
-        let item = outline.item(atRow: outline.selectedRow)
+    @objc private func clicked() { openSelection() }
+    private func openSelection(row explicitRow: Int? = nil) {
+        // During an NSOutlineView double action, clickedRow can be valid while
+        // selectedRow still refers to the previous row. Prefer the event row so
+        // a double-click always opens the file under the pointer.
+        let row = explicitRow ?? (outline.clickedRow >= 0 ? outline.clickedRow : outline.selectedRow)
+        guard row >= 0, let item = outline.item(atRow: row) else { return }
+        if outline.selectedRow != row {
+            outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+        }
         if let heading = item as? NavigationHeading { browsingOutline = false; onHeading?(heading.from, headingToken) }
         else if let item = item as? NavigationItem, !item.directory, let path = item.path { onOpen?(path, nil) }
     }
@@ -567,7 +586,10 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         action("workspace.reveal", #selector(revealFile)); action("navigation.copyPath", #selector(copyPath))
         if item.root != nil && !item.relative.isEmpty {
             menu.addItem(.separator())
-            action("navigation.rename", #selector(renameFile)); action("workspace.move", #selector(moveFile)); action("navigation.duplicate", #selector(duplicateFile)); action("workspace.trash", #selector(trashFile))
+            action("navigation.rename", #selector(renameFile))
+            action("workspace.move", #selector(moveFile))
+            action("navigation.duplicate", #selector(duplicateFile))
+            action("workspace.trash", #selector(trashFile))
         }
         if item.root != nil {
             menu.addItem(.separator()); action("workspace.newFile", #selector(newFile)); action("workspace.newFolder", #selector(newFolder))
@@ -706,3 +728,5 @@ final class WorkspaceController: NSObject, NSOutlineViewDataSource, NSOutlineVie
         }; return true
     }
 }
+
+// swiftlint:enable type_body_length

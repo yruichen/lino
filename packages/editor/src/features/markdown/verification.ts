@@ -21,8 +21,16 @@ export async function verifyMarkdown(): Promise<{ passed: string[]; failed: stri
     editor.command('undo'); editor.select(0, 4);
     check('inline-code-command', editor.command('inline-code') && editor.read().startsWith('`中文🙂`'));
     editor.command('undo'); editor.select(0, 4);
-    check('link-command', editor.command('link') && editor.read().startsWith('[中文🙂](https://example.com)'));
-    check('link-destination-selected', editor.view.state.sliceDoc(editor.view.state.selection.main.from, editor.view.state.selection.main.to) === 'https://example.com');
+    const linkOpened = editor.command('link');
+    const linkPanel = mount.querySelector<HTMLFormElement>('.ot-reference-tools');
+    check('link-command-opens-properties', linkOpened && !!linkPanel);
+    const linkURL = linkPanel?.querySelector<HTMLInputElement>('input[name=link-url]');
+    if (linkURL && linkPanel) {
+      linkURL.value = 'https://example.com';
+      linkURL.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      linkPanel.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+    check('link-properties-apply', editor.read().startsWith('[中文🙂](<https://example.com>)'));
     editor.command('undo'); editor.select(1);
     check('heading-command', editor.command('heading-3') && editor.read().startsWith('### 中文🙂'));
     editor.command('undo'); editor.select(0, editor.view.state.doc.line(3).from);

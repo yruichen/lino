@@ -27,3 +27,10 @@
 .ot-code-input .cm-editor { height: auto; }
 .ot-code-input .cm-content { width: auto; max-width: none; margin: 0; padding: 5px 8px; }
 .ot-code-input .cm-scroller { background: transparent; }
+.ot-code-tools { border-radius: var(--ot-radius-medium); box-shadow: var(--ot-shadow-panel); backdrop-filter: blur(16px); }
+.ot-code-tools button { transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease; }
+.ot-code-tools button:hover:not(:disabled) { border-color: var(--ot-focus); background: var(--ot-active); }
+.ot-code-tools button:active:not(:disabled) { transform: translateY(1px); }
+.cm-line.ot-code-line { transition: background-color 100ms ease; }
+.cm-editor.cm-focused .cm-line.ot-code-line.cm-activeLine { background: color-mix(in srgb, var(--ot-active) 42%, var(--ot-code-background, var(--ot-panel))); }
+@media (prefers-reduced-motion: reduce) { .ot-code-tools button, .cm-line.ot-code-line { transition: none; } }

@@ -1,6 +1,7 @@
 //! Generated Swift facade. Business rules remain in the shared runtime.
 
 mod assets;
+mod compile;
 mod conversion;
 mod export;
 mod exports;

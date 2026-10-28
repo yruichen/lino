@@ -6,4 +6,5 @@ pub const CAPABILITIES: &[&str] = &[
     "utf8-bom",
     "mixed-line-endings",
     "recovery-snapshots",
+    "document-profiles",
 ];

@@ -1,6 +1,7 @@
 //! Platform I/O implementing application ports.
 
 pub mod assets;
+pub mod compiler;
 mod export;
 mod platform;
 pub mod recovery;

@@ -3,7 +3,10 @@ use crate::{
     DocumentRuntime,
 };
 use lino_adapters::assets::{read_selected, resolve_image_path, FileAssets};
-use lino_application::assets::{AssetPort, ImageContent};
+use lino_application::{
+    assets::{AssetPort, ImageContent},
+    document_types::DocumentKind,
+};
 use lino_document::SessionId;
 use lino_protocol::{ErrorCode, WireError};
 use std::path::Path;
@@ -19,6 +22,14 @@ impl DocumentRuntime {
             .file_gate
             .lock()
             .map_err(|_| error(ErrorCode::Internal, "File gate poisoned", false))?;
+        if request.sources.len() > 4096 || request.sources.iter().any(|source| source.len() > 4096)
+        {
+            return Err(error(
+                ErrorCode::ResourceLimit,
+                "Too many or oversized image resources",
+                false,
+            ));
+        }
         self.validate_target(&request.target)?;
         let ticket = self
             .lock()?
@@ -183,9 +194,7 @@ impl DocumentRuntime {
             .resolve(source)
             .map_err(storage_error)?;
         if let Some(extension) = path.extension().and_then(|value| value.to_str()) {
-            if !["md", "markdown", "mdown", "mkd", "txt"]
-                .contains(&extension.to_ascii_lowercase().as_str())
-            {
+            if !DocumentKind::supports_extension(extension) {
                 return Err(error(
                     ErrorCode::UnsupportedOperation,
                     "This local link is not a supported text document",

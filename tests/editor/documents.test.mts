@@ -13,7 +13,7 @@ import { DocumentSession } from '../../packages/editor/src/session/document.ts';
 import { sourceChanges } from '../../packages/editor/src/session/changes.ts';
 import { PersistenceDeferred } from '../../packages/editor/src/session/persistence.ts';
 
-const base: DocumentStatus = { session_id: '1', epoch: '1', revision: '0', saved_revision: null, file_ref: null, label: null, dirty: false, saving: false };
+const base: DocumentStatus = { document_kind: 'markdown', session_id: '1', epoch: '1', revision: '0', saved_revision: null, file_ref: null, label: null, dirty: false, saving: false };
 function harness(timeout = 1000, status: Partial<DocumentStatus> = {}, copySaveImages?: (ticket: SaveTicket, target: SaveTarget, raw: string) => Promise<void>) {
   let text = '', composing = false;
   const queue: RequestEnvelope[] = [];

@@ -6,9 +6,10 @@ import { sourceNode } from '../media/model.ts';
 import { previewRenderer, type PreviewRenderer } from '../../renderers/previews.ts';
 import { formatError } from '../../localization/errors.ts';
 import { underlineReading } from './reading.ts';
+import { replaceParsedHTML, sanitizeHTML } from './html.ts';
 
 // Derived reading content. Input and history remain in the owning editor.
-const markdown = new MarkdownIt({ html: false, linkify: false, typographer: false });
+const markdown = new MarkdownIt({ html: true, linkify: false, typographer: false });
 underlineReading(markdown);
 // Images in inline reading content must not initiate unscoped or remote requests.
 markdown.renderer.rules.image = (tokens, index) => markdown.utils.escapeHtml(tokens[index].content);
@@ -35,12 +36,12 @@ function inlineContent(source: string): { html: string; math: Map<number, Inline
       return false;
     } });
   }
-  return { html: markdown.renderInline(source, environment), math: environment.math };
+  return { html: sanitizeHTML(markdown.renderInline(source, environment), true), math: environment.math };
 }
 
 export function presentInline(element: HTMLElement, source: string, dark: boolean, measure: () => void): () => void {
   const abort = new AbortController(), content = inlineContent(source);
-  element.innerHTML = content.html;
+  replaceParsedHTML(element, content.html);
   for (const slot of element.querySelectorAll<HTMLElement>('.ot-inline-math')) {
     const math = content.math.get(Number(slot.dataset.mathFrom))!;
     slot.textContent = `$${math.text}$`;
@@ -48,13 +49,13 @@ export function presentInline(element: HTMLElement, source: string, dark: boolea
     const report = (error: unknown) => { slot.dataset.previewState = 'error'; slot.title = formatError(error); };
     try {
       const cached = previewRenderer.cached(input) ?? previewRenderer.immediate(input);
-      if (cached) { slot.innerHTML = cached.html; continue; }
+      if (cached) { replaceParsedHTML(slot, cached.html); continue; }
     } catch (error) { report(error); continue; }
     queueMicrotask(() => {
       if (abort.signal.aborted || !slot.isConnected) return;
       void previewRenderer.request(input, abort.signal).then(result => {
         if (abort.signal.aborted || !slot.isConnected) return;
-        slot.innerHTML = result.html; measure();
+        replaceParsedHTML(slot, result.html); measure();
       }, error => {
         if (abort.signal.aborted || !slot.isConnected) return;
         report(error); measure();
@@ -67,12 +68,12 @@ export function presentInline(element: HTMLElement, source: string, dark: boolea
 /** Export uses the same inline dialect and its own renderer/cancellation. */
 export async function inlineHTML(source: string, dark: boolean, renderer: PreviewRenderer, signal: AbortSignal): Promise<string> {
   const content = inlineContent(source), element = document.createElement('span');
-  element.innerHTML = content.html;
+  replaceParsedHTML(element, content.html);
   for (const slot of element.querySelectorAll<HTMLElement>('.ot-inline-math')) {
     const math = content.math.get(Number(slot.dataset.mathFrom))!;
     const result = await renderer.request({ kind: 'math', text: math.text, block: false, dark }, signal);
     if (signal.aborted) throw new Error('Inline rendering cancelled');
-    slot.innerHTML = result.html;
+    replaceParsedHTML(slot, result.html);
   }
   return element.innerHTML;
 }

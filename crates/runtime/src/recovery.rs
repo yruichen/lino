@@ -181,6 +181,13 @@ impl DocumentRuntime {
             };
             if let Err(error) = protection {
                 self.lock()?.cancel_close(intent.session);
+                // Retirement can remove the record before directory sync reports
+                // failure. Recreate the protection before returning so a failed
+                // close never leaves the dirty session without a recovery copy.
+                let info = self.info(intent.session)?;
+                if recovery.store.is_some() && (info.dirty || !info.saved_durable) {
+                    recovery.write(&info)?;
+                }
                 return Err(error);
             }
         }

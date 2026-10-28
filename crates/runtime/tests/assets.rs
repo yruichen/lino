@@ -1,7 +1,16 @@
 use lino_protocol::ErrorCode;
 use lino_runtime::DocumentRuntime;
 use std::fs;
-const PNG: &[u8] = b"\x89PNG\r\n\x1a\nsynthetic-payload";
+const PNG: &[u8] = &[
+    137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, 0,
+    0, 0, 181, 28, 12, 2, 0, 0, 0, 11, 73, 68, 65, 84, 120, 218, 99, 100, 248, 15, 0, 1, 5, 1, 1,
+    39, 24, 227, 102, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130,
+];
+const OTHER_PNG: &[u8] = &[
+    137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, 0,
+    0, 0, 181, 28, 12, 2, 0, 0, 0, 11, 73, 68, 65, 84, 121, 218, 99, 100, 248, 15, 0, 1, 5, 1, 1,
+    230, 150, 60, 166, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130,
+];
 #[test]
 fn save_as_copies_bound_resources_without_clobbering_conflicts_or_changing_relative_paths() {
     use lino_protocol::{
@@ -56,7 +65,7 @@ fn save_as_copies_bound_resources_without_clobbering_conflicts_or_changing_relat
             request(),
         )
         .unwrap();
-    fs::write(target.join("nested/image.png"), b"\x89PNG\r\n\x1a\nother").unwrap();
+    fs::write(target.join("nested/image.png"), OTHER_PNG).unwrap();
     assert_eq!(
         runtime
             .copy_save_images(
@@ -70,7 +79,7 @@ fn save_as_copies_bound_resources_without_clobbering_conflicts_or_changing_relat
     );
     assert_eq!(
         fs::read(target.join("nested/image.png")).unwrap(),
-        b"\x89PNG\r\n\x1a\nother"
+        OTHER_PNG
     );
     assert!(!target.join("new.md").exists());
     assert_eq!(
@@ -276,7 +285,7 @@ fn save_as_changes_resource_scope_and_old_requests_cannot_read_or_write_the_new_
     let new = tempfile::tempdir().unwrap();
     fs::write(old.path().join("note.md"), "![x](x.png)").unwrap();
     fs::write(old.path().join("x.png"), PNG).unwrap();
-    let different = [PNG, b"different-image"].concat();
+    let different = OTHER_PNG.to_vec();
     fs::write(new.path().join("x.png"), &different).unwrap();
     let runtime = DocumentRuntime::default();
     let doc = runtime

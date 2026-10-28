@@ -1,6 +1,9 @@
 import AppKit
 import WebKit
 
+// Verification intentionally keeps the complete native command flow together.
+// swiftlint:disable function_body_length line_length
+
 @MainActor
 func verifyCommandFlow(_ controller: EditorWindowController, settings: SettingsWindowController) async throws -> [String] {
     var passed: [String] = []
@@ -148,10 +151,15 @@ func verifyInitialEditorSurface() throws -> [String] {
         window.appearance = NSAppearance(named: name)
         surface.viewDidChangeEffectiveAppearance()
         let color = controller.webView.underPageBackgroundColor.usingColorSpace(.sRGB)
-        let expected = name == .darkAqua ? CGFloat(32.0 / 255.0) : 1
-        guard let color, abs(color.redComponent - expected) < 0.005, color.alphaComponent == 1 else {
+        let palette = name == .darkAqua ? ThemePalette.current.dark : ThemePalette.current.light
+        let expected = palette.colors["bg"].map(ThemePalette.hex)?.usingColorSpace(.sRGB)
+        guard let color, let expected, abs(color.redComponent - expected.redComponent) < 0.005,
+              abs(color.greenComponent - expected.greenComponent) < 0.005,
+              abs(color.blueComponent - expected.blueComponent) < 0.005, color.alphaComponent == 1 else {
             throw NSError(domain: "SurfaceVerification", code: 2, userInfo: [NSLocalizedDescriptionKey: "Native loading surface appearance mismatch"])
         }
     }
     return ["native-initial-webview-hidden", "native-light-dark-loading-surface"]
 }
+
+// swiftlint:enable function_body_length line_length

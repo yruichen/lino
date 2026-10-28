@@ -140,7 +140,7 @@ pub const MARKDOWN_SHORTCUTS: &[EditorShortcut] = &[
     },
     EditorShortcut {
         command: "horizontal-rule",
-        key: "h",
+        key: "j",
         modifiers: &["command", "option"],
     },
     EditorShortcut {

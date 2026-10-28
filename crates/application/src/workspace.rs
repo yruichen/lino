@@ -51,6 +51,8 @@ pub struct SearchOptions {
 pub trait WorkspacePort: Send + Sync {
     fn list(&self, path: &str, include_hidden: bool) -> Result<Listing, StorageError>;
     fn read(&self, path: &str) -> Result<String, StorageError>;
+    /// Return a cheap identity used to reject hits produced from a changed file.
+    fn fingerprint(&self, path: &str) -> Result<(u64, u32, u64), StorageError>;
     fn mutate(&self, operation: Mutation, source: &str, target: &str) -> Result<(), StorageError>;
 }
 pub trait SearchMatcher: Send + Sync {
@@ -141,6 +143,13 @@ impl Workspace {
                     result.truncated = true;
                     return Ok(result);
                 }
+                let before = match self.port.fingerprint(&entry.path) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        result.skipped += 1;
+                        continue;
+                    }
+                };
                 let text = match self.port.read(&entry.path) {
                     Ok(text) => text,
                     Err(_) => {
@@ -148,6 +157,7 @@ impl Workspace {
                         continue;
                     }
                 };
+                let hit_start = result.hits.len();
                 for (n, line) in text.lines().enumerate() {
                     if cancelled.load(Ordering::Relaxed) {
                         result.cancelled = true;
@@ -161,9 +171,16 @@ impl Workspace {
                         });
                         if result.hits.len() >= 1000 {
                             result.truncated = true;
-                            return Ok(result);
+                            break;
                         }
                     }
+                }
+                if self.port.fingerprint(&entry.path).ok() != Some(before) {
+                    result.hits.truncate(hit_start);
+                    result.skipped += 1;
+                }
+                if result.hits.len() >= 1000 {
+                    return Ok(result);
                 }
             }
         }

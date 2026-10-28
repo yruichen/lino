@@ -43,6 +43,12 @@
 "export.print" = "Print…";
 "export.pageSetup" = "Page Setup…";
 "export.cancel" = "Cancel Export";
+"latex.compile" = "Compile LaTeX";
+"latex.cancel" = "Cancel LaTeX Compilation";
+"latex.compiling" = "Compiling LaTeX…";
+"latex.compiled" = "LaTeX compilation finished";
+"latex.cancelled" = "LaTeX compilation cancelled";
+"latex.failed" = "LaTeX compilation failed";
 "export.rendering" = "Preparing your export…";
 "export.saved" = "Export saved";
 "export.savedNotDurable" = "The export was written, but the system could not confirm it was saved safely. Export again.";
@@ -167,6 +173,7 @@
 "status.untitled" = "Untitled document";
 "status.autosaveEncoding" = "Autosave · UTF-8";
 "status.markdownEncoding" = "Markdown · UTF-8";
+"status.latexEncoding" = "LaTeX · UTF-8";
 "status.retry" = "Retry";
 "status.reconnect" = "Restore Editor";
 "status.retryAccessibility" = "Retry backup or automatic saving";
@@ -223,6 +230,10 @@
 "workspace.recentFiles" = "Recent Files";
 "workspace.reopen" = "Reopen Closed Document";
 "workspace.quick" = "Quick Open";
+"workspace.commandPalette" = "Command Palette…";
+"workspace.commandPalettePlaceholder" = "Search commands";
+"workspace.commandResults" = "Command results";
+"workspace.commandKeys" = "↑↓ Navigate     ↵ Run     Esc Close";
 "workspace.search" = "Search Folder";
 "workspace.saveAll" = "Save All";
 "workspace.sidebar" = "Toggle File Sidebar";
@@ -354,6 +365,8 @@
 "navigation.copied" = "Copy created";
 "navigation.moved" = "File moved";
 "navigation.words" = "%ld words";
+"navigation.position" = "Ln %ld, Col %ld";
+"navigation.positionAccessibility" = "Cursor position";
 "navigation.selectionWords" = "%ld words selected";
 "navigation.countDetails" = "%ld words · %ld characters · %ld lines";
 "analysis.untitled" = "Untitled heading";

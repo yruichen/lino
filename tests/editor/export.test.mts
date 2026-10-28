@@ -24,6 +24,15 @@ test('fixed HTML renders structure, shared images, footnotes, TOC, actual math a
   assert(doc.querySelector('pre code')?.textContent!.includes('$literal$')); assert(doc.querySelector('pre .tok-keyword'));
   assert(!html.includes('lino-slot:')); assert.equal(plan.source.text, raw);
 });
+test('HTML blocks and inline tags render in export while unsafe active content is removed', async () => {
+  const raw = '<section class="callout"><strong>Exported HTML</strong></section>\n\nInline <u>markup</u> <script>alert(1)</script><style>body{display:none}</style>';
+  const doc = new fixture.dom.window.DOMParser().parseFromString(await new ExportPlan(source(raw)).render({}), 'text/html');
+  assert.equal(doc.querySelector('.callout strong')?.textContent, 'Exported HTML');
+  assert.equal(doc.querySelector('u')?.textContent, 'markup');
+  assert.equal(doc.querySelectorAll('article script, article style').length, 0);
+  assert.equal(doc.body.textContent?.includes('alert(1)'), false);
+});
+
 test('missing images, remote image policy, renderer failure and cancellation cannot produce a partial successful export', async () => {
   await assert.rejects(new ExportPlan(source('![x](missing.png)')).render({}), /embed image/);
   assert.throws(() => new ExportPlan(source('![remote](https://example.org/a.png)')), /remote images/);

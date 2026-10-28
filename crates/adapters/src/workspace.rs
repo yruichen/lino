@@ -20,6 +20,37 @@ fn error(e: std::io::Error) -> StorageError {
         _ => StorageError::Io(e.to_string()),
     }
 }
+fn normalize_line_endings(text: &str) -> String {
+    let mut normalized = String::with_capacity(text.len());
+    let mut chars = text.chars();
+    while let Some(character) = chars.next() {
+        if character == '\r' {
+            if chars.clone().next() == Some('\n') {
+                chars.next();
+            }
+            normalized.push('\n');
+        } else {
+            normalized.push(character);
+        }
+    }
+    normalized
+}
+
+fn sync_directory(path: &Path) -> Result<(), StorageError> {
+    #[cfg(unix)]
+    {
+        fs::File::open(path)
+            .map_err(error)?
+            .sync_all()
+            .map_err(error)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = path;
+        Ok(())
+    }
+}
+
 impl FileWorkspace {
     pub fn open(root: &Path) -> Result<Self, StorageError> {
         if !fs::symlink_metadata(root).map_err(error)?.is_dir() {
@@ -154,13 +185,18 @@ impl WorkspacePort for FileWorkspace {
             return Err(StorageError::UnsupportedEncoding);
         }
         String::from_utf8(bytes)
-            .map(|text| {
-                text.strip_prefix('\u{feff}')
-                    .unwrap_or(&text)
-                    .replace("\r\n", "\n")
-                    .replace('\r', "\n")
-            })
+            .map(|text| normalize_line_endings(text.strip_prefix('\u{feff}').unwrap_or(&text)))
             .map_err(|_| StorageError::UnsupportedEncoding)
+    }
+    fn fingerprint(&self, path: &str) -> Result<(u64, u32, u64), StorageError> {
+        let path = self.ordinary_file(path)?;
+        let metadata = fs::symlink_metadata(path).map_err(error)?;
+        let modified = metadata
+            .modified()
+            .map_err(error)?
+            .duration_since(UNIX_EPOCH)
+            .map_err(|_| StorageError::Io("Invalid file timestamp".into()))?;
+        Ok((modified.as_secs(), modified.subsec_nanos(), metadata.len()))
     }
     fn mutate(&self, operation: Mutation, source: &str, target: &str) -> Result<(), StorageError> {
         if target.is_empty() {
@@ -176,12 +212,16 @@ impl WorkspacePort for FileWorkspace {
                 OpenOptions::new()
                     .write(true)
                     .create_new(true)
-                    .open(destination)
+                    .open(&destination)
                     .map_err(error)?
                     .sync_all()
                     .map_err(error)?;
+                sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
             }
-            Mutation::NewDirectory => fs::create_dir(destination).map_err(error)?,
+            Mutation::NewDirectory => {
+                fs::create_dir(&destination).map_err(error)?;
+                sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
+            }
             Mutation::Copy => {
                 if source.is_empty() {
                     return Err(StorageError::Denied);
@@ -197,6 +237,7 @@ impl WorkspacePort for FileWorkspace {
                             .map_err(error)?;
                     copy_directory(&source, staging.path(), 0, &mut 0, &mut (128 * 1024 * 1024))?;
                     rename_noclobber(staging.path(), &destination).map_err(error)?;
+                    sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
                 } else {
                     copy_file(&source, &destination, 64 * 1024 * 1024)?;
                 }
@@ -210,6 +251,10 @@ impl WorkspacePort for FileWorkspace {
                     return Err(StorageError::Denied);
                 }
                 rename_noclobber(&source, &destination).map_err(error)?;
+                sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
+                if source.parent() != destination.parent() {
+                    sync_directory(source.parent().ok_or(StorageError::Denied)?)?;
+                }
             }
         }
         Ok(())
@@ -231,19 +276,46 @@ fn copy_file(source: &Path, destination: &Path, remaining: u64) -> Result<u64, S
         use std::os::unix::fs::OpenOptionsExt;
         options.custom_flags(libc::O_NOFOLLOW);
     }
-    let input = options.open(source).map_err(error)?;
+    let mut input = options.open(source).map_err(error)?;
+    let opened = input.metadata().map_err(error)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if opened.dev() != meta.dev() || opened.ino() != meta.ino() {
+            return Err(StorageError::ChangedExternally);
+        }
+    }
     let mut temp =
         tempfile::NamedTempFile::new_in(destination.parent().ok_or(StorageError::Denied)?)
             .map_err(error)?;
     crate::platform::preserve_metadata(&input, temp.as_file()).map_err(error)?;
-    let written = std::io::copy(&mut input.take(remaining + 1), &mut temp).map_err(error)?;
+    let written = std::io::copy(&mut (&mut input).take(remaining + 1), &mut temp).map_err(error)?;
     if written > remaining {
         return Err(StorageError::LimitExceeded);
+    }
+    let after = input.metadata().map_err(error)?;
+    if after.len() != opened.len() || after.modified().ok() != opened.modified().ok() {
+        return Err(StorageError::ChangedExternally);
+    }
+    let current = fs::symlink_metadata(source).map_err(error)?;
+    if !current.file_type().is_file()
+        || current.len() != after.len()
+        || current.modified().ok() != after.modified().ok()
+    {
+        return Err(StorageError::ChangedExternally);
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if current.dev() != after.dev() || current.ino() != after.ino() {
+            return Err(StorageError::ChangedExternally);
+        }
     }
     temp.flush().map_err(error)?;
     temp.as_file().sync_all().map_err(error)?;
     temp.persist_noclobber(destination)
         .map_err(|e| error(e.error))?;
+    sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
     Ok(written)
 }
 fn copy_directory(
@@ -425,11 +497,16 @@ impl FileWorkspace {
                         .map_err(error)?;
                 copy_directory(&source, staging.path(), 0, &mut 0, &mut (128 * 1024 * 1024))?;
                 rename_noclobber(staging.path(), &destination).map_err(error)?;
+                sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
             } else {
                 copy_file(&source, &destination, 64 * 1024 * 1024)?;
             }
         } else {
             rename_noclobber(&source, &destination).map_err(error)?;
+            sync_directory(destination.parent().ok_or(StorageError::Denied)?)?;
+            if source.parent() != destination.parent() {
+                sync_directory(source.parent().ok_or(StorageError::Denied)?)?;
+            }
         }
         Ok(())
     }

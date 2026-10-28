@@ -3,6 +3,15 @@ import AppKit
 @MainActor
 final class NavigationOutlineView: NSOutlineView {
     var onOpen: (() -> Void)?
+    var onDoubleClick: ((Int) -> Void)?
+
+    override func mouseDown(with event: NSEvent) {
+        let doubleClick = event.clickCount >= 2
+        let row = row(at: convert(event.locationInWindow, from: nil))
+        super.mouseDown(with: event)
+        if doubleClick, row >= 0 { onDoubleClick?(row) }
+    }
+
     override func keyDown(with event: NSEvent) {
         if event.keyCode == 36 || event.keyCode == 76 { onOpen?(); return }
         super.keyDown(with: event)

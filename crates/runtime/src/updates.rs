@@ -3,6 +3,20 @@ use lino_application::updates::{newest_release, Release};
 use lino_protocol::{ErrorCode, UpdateCheck, UpdateRelease, WireError};
 use serde::Deserialize;
 
+fn encode_path_segment(value: &str) -> String {
+    let mut encoded = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {
+            encoded.push(byte as char);
+        } else {
+            encoded.push('%');
+            encoded.push(char::from(b"0123456789ABCDEF"[(byte >> 4) as usize]));
+            encoded.push(char::from(b"0123456789ABCDEF"[(byte & 0x0f) as usize]));
+        }
+    }
+    encoded
+}
+
 #[derive(Deserialize)]
 struct GitHubRelease {
     tag_name: String,
@@ -39,7 +53,7 @@ impl DocumentRuntime {
                 version: release.tag.clone(),
                 url: format!(
                     "https://github.com/yruichen/lino/releases/tag/{}",
-                    release.tag
+                    encode_path_segment(&release.tag)
                 ),
                 prerelease: release.prerelease || release.tag.contains('-'),
             }),

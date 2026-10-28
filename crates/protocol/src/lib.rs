@@ -2,6 +2,7 @@
 
 mod assets;
 mod capabilities;
+mod compile;
 mod documents;
 mod envelope;
 mod errors;
@@ -13,6 +14,7 @@ mod updates;
 mod version;
 
 pub use assets::*;
+pub use compile::*;
 pub use documents::*;
 pub use envelope::*;
 pub use errors::*;
