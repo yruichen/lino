@@ -8,11 +8,11 @@
 
 直观的 Markdown 编辑，原生 Mac 窗口与标签页，保存在自己手中的文件。
 
-[![Version](https://img.shields.io/badge/v0.1.1-Stable-28584b)](https://github.com/yruichen/lino/releases/tag/v0.1.1)
-[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.1.1)
+[![Version](https://img.shields.io/badge/v0.1.2-Stable-28584b)](https://github.com/yruichen/lino/releases/tag/v0.1.2)
+[![macOS](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20Apple%20Silicon-555555)](https://github.com/yruichen/lino/releases/tag/v0.1.2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6)](LICENSE)
 
-[**下载**](https://github.com/yruichen/lino/releases/download/v0.1.1/Lino-v0.1.1-macos-arm64.zip) · [Homebrew](#homebrew) · [功能](#功能) · [构建](#从源码构建) · [反馈问题](https://github.com/yruichen/lino/issues) · [English](README.md)
+[**下载**](https://github.com/yruichen/lino/releases/download/v0.1.2/Lino-v0.1.2-macos-arm64.zip) · [Homebrew](#homebrew) · [功能](#功能) · [构建](#从源码构建) · [反馈问题](https://github.com/yruichen/lino/issues) · [English](README.md)
 
 </div>
 
@@ -51,9 +51,9 @@ brew install --cask yruichen/tap/lino
 
 ### 直接下载
 
-**[下载 Lino v0.1.1 macOS 版 →](https://github.com/yruichen/lino/releases/download/v0.1.1/Lino-v0.1.1-macos-arm64.zip)**
+**[下载 Lino v0.1.2 macOS 版 →](https://github.com/yruichen/lino/releases/download/v0.1.2/Lino-v0.1.2-macos-arm64.zip)**
 
-解压后，将 **Lino.app** 移到**应用程序**目录。发行说明与校验值见[发布页](https://github.com/yruichen/lino/releases/tag/v0.1.1)。
+解压后，将 **Lino.app** 移到**应用程序**目录。发行说明与校验值见[发布页](https://github.com/yruichen/lino/releases/tag/v0.1.2)。
 
 当前 macOS 构建采用临时签名，**尚未经过 Apple 公证**。如果系统阻止首次启动，可在**系统设置 → 隐私与安全性 → 仍要打开**中确认此应用。
 
