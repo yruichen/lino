@@ -99,7 +99,16 @@ impl FileRecovery {
             }
             let entry = entry.map_err(io)?;
             let name = entry.file_name().to_string_lossy().into_owned();
-            if !name.ends_with(".recovery") {
+            if !name.ends_with(".recovery")
+                || !name.starts_with("draft-")
+                || name.len() > 96
+                || !name
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.' || b == b'_')
+            {
+                // Stray files are not recovery records and must not block the
+                // recovery store. Valid-looking corrupt records remain visible
+                // through header() as problem entries.
                 continue;
             }
             self.path(&name)?;
@@ -112,26 +121,37 @@ impl FileRecovery {
         Ok(files)
     }
     fn total_bytes(&self) -> Result<u64, StorageError> {
-        // Count interrupted staging files too; repeated crashes cannot bypass
-        // the disk budget. Keep them as evidence instead of silently deleting.
+        // Count interrupted staging files and nested leftovers too; repeated
+        // crashes must not bypass the disk budget. Never follow symlinks.
         let mut total = 0u64;
-        for (index, entry) in fs::read_dir(&self.root).map_err(io)?.enumerate() {
-            if index >= 128 {
-                return Err(StorageError::LimitExceeded);
+        let mut pending = vec![self.root.clone()];
+        let mut entries = 0usize;
+        while let Some(directory) = pending.pop() {
+            for entry in fs::read_dir(directory).map_err(io)? {
+                entries += 1;
+                if entries > 128 {
+                    return Err(StorageError::LimitExceeded);
+                }
+                let path = entry.map_err(io)?.path();
+                let metadata = fs::symlink_metadata(&path).map_err(io)?;
+                if metadata.is_dir() {
+                    pending.push(path);
+                } else {
+                    total = total
+                        .checked_add(metadata.len())
+                        .ok_or(StorageError::LimitExceeded)?;
+                }
             }
-            total = total
-                .checked_add(
-                    fs::symlink_metadata(entry.map_err(io)?.path())
-                        .map_err(io)?
-                        .len(),
-                )
-                .ok_or(StorageError::LimitExceeded)?;
         }
         Ok(total)
     }
     fn header(&self, key: &str) -> Result<(File, Header), StorageError> {
         let path = self.path(key)?;
-        let metadata = fs::symlink_metadata(&path).map_err(io)?;
+        let metadata = fs::symlink_metadata(&path).map_err(|error| match error.kind() {
+            std::io::ErrorKind::NotFound => StorageError::NotFound,
+            std::io::ErrorKind::PermissionDenied => StorageError::Denied,
+            _ => io(error),
+        })?;
         if !metadata.is_file() || metadata.len() > (MAX_DOCUMENT_BYTES + HEADER_LIMIT + 12) as u64 {
             return Err(invalid());
         }
@@ -302,6 +322,8 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let mut store = FileRecovery::open(dir.path()).unwrap();
         assert!(FileRecovery::open(dir.path()).is_err());
+        fs::write(dir.path().join("foreign.recovery"), b"not a Lino draft").unwrap();
+        assert!(store.list().unwrap().is_empty());
         let (key, durable) = store.write(None, &draft("中👩🏽‍💻\r\nA\rB\n")).unwrap();
         #[cfg(unix)]
         assert!(durable);

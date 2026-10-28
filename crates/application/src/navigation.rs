@@ -64,7 +64,7 @@ impl NavigationPreferences {
 /// Match quality dominates recency: exact, prefix, contained phrase, then subsequence.
 /// Unicode scalar iteration avoids invalid byte slices for multilingual filenames.
 pub fn supported_document_extension(extension: &str) -> bool {
-    ["md", "markdown", "mdown", "mkd", "txt"].contains(&extension.to_lowercase().as_str())
+    crate::document_types::DocumentKind::supports_extension(extension)
 }
 /// Browsable files include native, read-only media; editable documents remain UTF-8.
 pub fn supported_browsing_extension(extension: &str) -> bool {

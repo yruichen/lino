@@ -1,6 +1,7 @@
 //! Shared document service composition and protocol dispatch.
 
 mod assets;
+mod compile;
 mod composition;
 mod dispatch;
 mod events;
@@ -13,6 +14,7 @@ mod sessions;
 mod shutdown;
 mod updates;
 
+pub use compile::CompileJob;
 pub use composition::DocumentRuntime;
 pub use external::DocumentWatch;
 

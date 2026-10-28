@@ -101,16 +101,18 @@ impl QuickOpenService {
                 previous.store(true, Ordering::Relaxed);
             }
         }
-        let result = self
-            .runtime
-            .quick_files(
-                &text,
-                scope.as_deref().map(Path::new),
-                current.as_deref(),
-                &token,
-            )
-            .map_err(wire_error)?;
-        json(&result)
+        let result = self.runtime.quick_files(
+            &text,
+            scope.as_deref().map(Path::new),
+            current.as_deref(),
+            &token,
+        );
+        if let Ok(mut query) = self.query.lock() {
+            if query.last == query_id {
+                query.active = None;
+            }
+        }
+        json(&result.map_err(wire_error)?)
     }
     pub fn cancel(&self, query_id: u64) {
         if let Ok(mut query) = self.query.lock() {

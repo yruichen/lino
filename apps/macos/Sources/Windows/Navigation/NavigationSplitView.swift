@@ -12,9 +12,9 @@ final class NavigationSplitView: NSSplitView {
     private weak var editorContent: NSView?
     private weak var footer: NSView?
     private var editorFrameObserver: NSObjectProtocol?
+    private var editorBoundsObserver: NSObjectProtocol?
     private var fixedBacking = true
     private var trackingDivider = false
-    private var presentationSequence: UInt64 = 0
     var onSidebarSafeTop: ((CGFloat) -> Void)?
     private(set) var rememberedWidth: CGFloat = 268
     private(set) var expanded = false
@@ -50,7 +50,11 @@ final class NavigationSplitView: NSSplitView {
         // AppKit's collapse animation resizes the pane between split-view
         // layout passes. Keep its backing and viewport in that same frame.
         editorClip.postsFrameChangedNotifications = true
+        editorClip.postsBoundsChangedNotifications = true
         editorFrameObserver = NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: editorClip, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.layoutPanes() }
+        }
+        editorBoundsObserver = NotificationCenter.default.addObserver(forName: NSView.boundsDidChangeNotification, object: editorClip, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.layoutPanes() }
         }
     }
@@ -68,22 +72,13 @@ final class NavigationSplitView: NSSplitView {
             layoutPanes()
         }
     }
-    func show(_ value: Bool, animated: Bool) {
+    func show(_ value: Bool, animated _: Bool) {
         guard expanded != value else { layoutPanes(); return }
-        expanded = value; presentationSequence &+= 1
-        let sequence = presentationSequence
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = animated && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.18 : 0
-            sidebarItem.animator().isCollapsed = !value
-        } completionHandler: { [weak self] in
-            MainActor.assumeIsolated {
-                guard let self, self.presentationSequence == sequence else { return }
-                if self.expanded {
-                    self.layoutSubtreeIfNeeded(); self.setPosition(self.rememberedWidth, ofDividerAt: 0)
-                }
-                self.layoutPanes(); self.onTransitionCompleted?()
-            }
-        }
+        expanded = value
+        sidebarItem.isCollapsed = !value
+        layoutSubtreeIfNeeded()
+        if value { setPosition(rememberedWidth, ofDividerAt: 0) }
+        layoutPanes(); onTransitionCompleted?()
     }
     func layoutPanes() {
         guard sidebarItem != nil else { return }
@@ -116,8 +111,8 @@ final class NavigationSplitView: NSSplitView {
         layoutSubtreeIfNeeded(); layout()
     }
     func detach() {
-        presentationSequence &+= 1
         if let editorFrameObserver { NotificationCenter.default.removeObserver(editorFrameObserver); self.editorFrameObserver = nil }
+        if let editorBoundsObserver { NotificationCenter.default.removeObserver(editorBoundsObserver); self.editorBoundsObserver = nil }
         onWidthChanged = nil; onViewportWidth = nil; onTransitionCompleted = nil; onSidebarSafeTop = nil
     }
 }

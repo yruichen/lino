@@ -22,7 +22,7 @@ export async function verifySearch(): Promise<{ passed: string[]; failed: string
     check('table-visible-before-find', !!mount.querySelector('.markdown-table'));
     check('command-opens-panel', editor.command('find') && !!mount.querySelector('.ot-search'));
     check('find-focus', document.activeElement === input('search'));
-    check('table-source-exposed-for-matches', !mount.querySelector('.markdown-table') && editor.snapshot().mode === 'visual');
+    check('table-stays-rendered-while-searching', !!mount.querySelector('.markdown-table') && editor.snapshot().mode === 'visual');
     set('search', 'cat');
     check('match-count', count() === tFor(editor.view.state.facet(localeFacet), 'search.matches', {count: 4}));
     option('case', true); option('word', true);

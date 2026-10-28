@@ -29,6 +29,9 @@ export interface EditorStatus {
   focus: boolean;
   typewriter: boolean;
   zoom: number;
+  cursorLine: number;
+  cursorColumn: number;
+  selectionLength: number;
   search: SearchProjection;
 }
 export type EditorHostEvent =
@@ -39,7 +42,7 @@ export type EditorHostEvent =
   | { kind: 'statistics'; counts: { words: number; characters: number; nonWhitespace: number; lines: number }; selection: boolean; visible: boolean }
   | { kind: 'rpc'; json: string }
   | { kind: 'document'; dirty: boolean; saving: boolean; hasFile: boolean; label: string | null; revision: string;
-      readOnly?: boolean; sessionId?: string; fileRef?: string | null;
+      readOnly?: boolean; documentKind?: string; sessionId?: string; epoch?: string; fileRef?: string | null;
       recoveryRevision: string | null; recoveryState: 'pending' | 'saving' | 'saved' | 'error';
       recoveryError: string | null; autosave: boolean; autosaveError: string | null }
   | { kind: 'status'; status: EditorStatus }

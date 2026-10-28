@@ -4,16 +4,20 @@ import WebKit
 @MainActor
 final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValidation, NSMenuDelegate {
     weak var recentMenu: NSMenu?
-    private let windows = DocumentWindows(verifying: CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings"))
+    private let windows = DocumentWindows(verifying:
+        CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings"))
     private var currentController: EditorWindowController? { verifying ? controller : windows.active }
     private var controller: EditorWindowController?
     private var settingsController: SettingsWindowController?
     private var setupController: SetupWindowController?
+    private var commandPalette: CommandPaletteController?
+    private var commandPaletteKeyMonitor: Any?
     private var finished = false
     private var verificationStage = "startup"
     private var changingLanguage = false
     private var starting = true
     private var pendingOpenPaths: [String] = []
+    private var openingPaths: Set<String> = []
     private lazy var preferences = PreferencesCoordinator(backend: windows.backend)
     private lazy var updates = UpdateCoordinator(backend: windows.backend, defaults: verifying ? nil : .standard)
     private var verificationLifecycle: [String] = []
@@ -50,6 +54,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         if let values = preferences.snapshot?.values { updates.configure(values) }
         if preferences.snapshot?.storage_warning != nil { startupError = localized("settings.notDurable") }
         starting = false
+        installCommandPaletteShortcut()
         if !verifying {
             installEditorMenus(target: self)
             let paths = pendingOpenPaths.isEmpty ? windows.restorationPaths : pendingOpenPaths
@@ -98,117 +103,6 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         catch { finish(["failed": [error.localizedDescription]], code: 1) }
     }
 
-    private func verify() {
-        if CommandLine.arguments.contains("--verify-settings"), let controller {
-            verificationStage = "settings"
-            Task {
-                do { let checks = try await verifySettingsFlow(controller, settings: settingsWindow(), values: { self.preferences.snapshot?.values }, navigation: windows.navigation); finish(["passed": checks, "failed": []], code: 0) }
-                catch { finish(["failed": [String(describing: error)]], code: 1) }
-            }
-            return
-        }
-        if CommandLine.arguments.contains("--verify-navigation"), let controller {
-            verificationStage = "navigation"
-            let focused = CommandLine.arguments.contains("--focused")
-            if focused && !CommandLine.arguments.contains("--headless") { controller.showWindow(nil); NSApp.activate(ignoringOtherApps: true) }
-            Task {
-                var checks: [String] = [], failures: [String] = []
-                let requested = CommandLine.arguments.first { $0.hasPrefix("--stage=") || $0.hasPrefix("--stages=") }.map { Set($0.split(separator: "=", maxSplits: 1)[1].split(separator: ",").map(String.init)) }
-                @MainActor func run(_ stage: String, _ action: @MainActor () async throws -> [String]) async {
-                    guard requested == nil || requested?.contains(stage) == true else { return }
-                    self.verificationStage = stage
-                    if CommandLine.arguments.contains("--headless") { FileHandle.standardError.write(Data(("stage: " + stage + "\n").utf8)) }
-                    do { checks += try await action() }
-                    catch { failures.append("\(stage): \(String(describing: error))") }
-                }
-                await run("navigation") {
-                    if focused || CommandLine.arguments.contains("--presentation-only") { return try await verifyNavigationPresentation(self.windows) }
-                    return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
-                }
-                if focused {
-                    await run("document-ui") { try await verifyDocumentUI() }
-                    await run("setup") { try await verifySetupFlow() }
-                    await run("interface") { try await verifyInterface(controller) }
-                    await run("upgrade") { try await verifyUpgrade(self.windows) }
-                    await run("media-output") { try await verifyMediaOutput(self.windows) }
-                    await run("appearance") { try await verifyAppearanceControls(controller, settings: self.settingsWindow(), values: { self.preferences.snapshot?.values }) }
-                    await run("image-references") { try await verifyImageReferenceInsertion(self.windows) }
-                    await run("window-chrome") {
-                        let root = controller.window!.contentView!, guide = controller.window!.contentLayoutGuide as! NSLayoutGuide
-                        let nativeToolbar = controller.window!.styleMask.contains(.fullSizeContentView) && controller.window!.titlebarAppearsTransparent && controller.searchControls.item.isBordered && guide.frame.maxY < root.bounds.maxY
-                        guard nativeToolbar else { throw NSError(domain: "WindowChromeVerification", code: 1, userInfo: [NSLocalizedDescriptionKey: "Native translucent toolbar or safe content layout was missing"]) }
-                        return ["native-translucent-toolbar-keeps-controls-and-writing-below-titlebar"]
-                    }
-                }
-                finish(["passed": checks, "failed": failures], code: failures.isEmpty ? 0 : 1)
-            }
-            return
-        }
-        verificationStage = "editor-fixtures"
-        currentController?.bridge.command("source") { [weak self] accepted in
-            guard accepted else { self?.finish(["failed": ["Native command was not accepted"]], code: 1); return }
-            self?.verifyView()
-        }
-    }
-
-    private func verifyView() {
-        controller?.webView.callAsyncJavaScript("if (window.lino.snapshot().mode !== 'source') return {failed: ['Native command did not reach the engine']}; const report = await window.lino.verify(); report.passed.push('native-command-routing'); return report", arguments: [:], in: nil, in: .page) { [weak self] result in
-            switch result {
-            case .success(let value):
-                guard let self, let controller = self.controller else { return }
-                let bridge = controller.bridge
-                let viewReport = value as? [String: Any] ?? ["failed": ["Invalid editor report"]]
-                Task {
-                    var report = viewReport
-                    do {
-                        self.verificationStage = "window"
-                        let surfaceChecks = try verifyInitialEditorSurface()
-                        report["passed"] = (report["passed"] as? [String] ?? []) + surfaceChecks
-                        let windowChecks = try await verifyWindowLayout(controller)
-                        report["passed"] = (report["passed"] as? [String] ?? []) + windowChecks
-                        self.verificationStage = "commands"
-                        let commandChecks = try await verifyCommandFlow(controller, settings: self.settingsWindow())
-                        report["passed"] = (report["passed"] as? [String] ?? []) + commandChecks
-                        self.verificationStage = "document"
-                        let documentChecks = try await verifyDocumentFlow(bridge: bridge)
-                        report["passed"] = (report["passed"] as? [String] ?? []) + documentChecks
-                        self.verificationStage = "recovery"
-                        let recoveryChecks = try await verifyRecoveryFlow(bridge: bridge, onStep: { self.verificationStage = "recovery:" + $0 })
-                        report["passed"] = (report["passed"] as? [String] ?? []) + recoveryChecks
-                        self.verificationStage = "navigation"
-                        let navigationChecks = try await verifyNavigationFlow(controller, navigation: windows.navigation)
-                        report["passed"] = (report["passed"] as? [String] ?? []) + navigationChecks
-                        self.verificationStage = "localization"
-                        let localizationChecks = try await verifyLocalizationFlow(controller, settings: self.settingsWindow())
-                        report["passed"] = (report["passed"] as? [String] ?? []) + localizationChecks
-                    } catch { report["failed"] = (report["failed"] as? [String] ?? []) + [error.localizedDescription] }
-                    self.finish(report, code: (report["failed"] as? [String])?.isEmpty == true ? 0 : 1)
-                }
-            case .failure(let error): self?.finish(["failed": [error.localizedDescription]], code: 1)
-            }
-        }
-    }
-
-    private func finish(_ report: [String: Any], code: Int32) {
-        guard !finished else { return }
-        finished = true
-        var report = report
-        if !verificationLifecycle.isEmpty { report["nativeLifecycle"] = verificationLifecycle }
-        if code != 0 { report["verificationStage"] = verificationStage }
-        if code != 0, let directory = controller?.documents.verificationRecoveryPath { report["recoveryDirectory"] = directory }
-        if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]), let text = String(data: data, encoding: .utf8) { print(text) }
-        controller?.detach()
-        // Stages share this backend and its recovery store. Remove it only
-        // after the final stage; per-window cleanup invalidates later stages.
-        if code == 0 { controller?.documents.cleanupVerificationFiles() }
-        if code == 0 { preferences.cleanupVerificationFiles(); windows.navigation.detach() }
-        exit(code)
-    }
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        if CommandLine.arguments.contains("--headless") { return false }
-        if verifying { verificationLifecycle.append("last-window-closed:\(verificationStage)") }
-        return verifying
-    }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if !verifying, starting { return .terminateNow }
         if verifying { verificationLifecycle.append("termination-request:\(verificationStage)") }
@@ -217,7 +111,11 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         Task { NSApp.reply(toApplicationShouldTerminate: await controller.documents.close()) }
         return .terminateLater
     }
-    func applicationWillTerminate(_ notification: Notification) { updates.cancel(); controller?.detach(); windows.detach() }
+    func applicationWillTerminate(_ notification: Notification) {
+        updates.cancel()
+        if let commandPaletteKeyMonitor { NSEvent.removeMonitor(commandPaletteKeyMonitor) }
+        commandPalette?.detach(); controller?.detach(); windows.detach()
+    }
     func applicationDidBecomeActive(_ notification: Notification) { if !verifying, !starting { updates.checkAutomatically() } }
     func setInterfaceLanguage(_ preference: InterfaceLanguage) async throws {
         guard var values = preferences.snapshot?.values else { return }
@@ -243,6 +141,7 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         for document in verifying ? [controller].compactMap({ $0 }) : windows.controllers { document.relocalize() }
         settingsController?.relocalize()
         setupController?.relocalize()
+        commandPalette?.relocalize(commandPaletteLabels())
         var errors: [String] = []
         for document in verifying ? [controller].compactMap({ $0 }) : windows.controllers where document.documents.ready {
             do {
@@ -329,9 +228,38 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         let clear = menu.addItem(withTitle: localized("workspace.clearRecent"), action: #selector(clearRecent), keyEquivalent: ""); clear.target = self
     }
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
-        if starting { pendingOpenPaths.append(contentsOf: filenames) }
-        else { for path in filenames { Task { await windows.open(path: path) } } }
+        enqueueOpenPaths(filenames)
         sender.reply(toOpenOrPrint: .success)
+    }
+
+    /// Launch Services may deliver a URL open event instead of openFiles when
+    /// an already-running app is activated by Finder. Handle both entry points
+    /// so the document never depends on which AppKit callback was selected.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        enqueueOpenPaths(urls.map(\.path))
+    }
+
+    func application(_ application: NSApplication, openFile filename: String) -> Bool {
+        enqueueOpenPaths([filename])
+        return true
+    }
+
+    private func enqueueOpenPaths(_ paths: [String]) {
+        let paths = paths.map { URL(fileURLWithPath: $0).standardizedFileURL.path }
+            .filter { !$0.isEmpty }
+        if starting {
+            for path in paths where !pendingOpenPaths.contains(path) {
+                pendingOpenPaths.append(path)
+            }
+            return
+        }
+        for path in paths where openingPaths.insert(path).inserted {
+            Task { [weak self] in
+                guard let self else { return }
+                defer { openingPaths.remove(path) }
+                await windows.open(path: path)
+            }
+        }
     }
     @objc func saveDocument() { guard let controller = documentForAction else { return }; Task { await controller.documents.save() } }
     @objc func saveDocumentAs() { guard let controller = documentForAction else { return }; Task { await controller.documents.save(asNew: true) } }
@@ -347,6 +275,8 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     @objc func printDocument() { guard let controller = documentForAction else { return }; Task { await controller.exports.export(.printDocument, label: controller.documents.label) } }
     @objc func pageSetup() { currentController?.exports.pageSetup() }
     @objc func cancelExport() { currentController?.exports.cancel() }
+    @objc func compileLatex() { currentController?.compileLatex() }
+    @objc func cancelLatexCompile() { currentController?.cancelLatexCompile() }
     @objc func toggleAutosave() {
         guard let controller = documentForAction else { return }
         if verifying { Task { await controller.documents.toggleAutosave() } }
@@ -365,15 +295,36 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
     @objc func undoEdit() { if currentController?.allowsCommand("undo") == true, currentController?.canUndo == true { currentController?.bridge.command("undo") } }
     @objc func redoEdit() { if currentController?.allowsCommand("redo") == true, currentController?.canRedo == true { currentController?.bridge.command("redo") } }
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        if menuItem.action == #selector(sidebarOption(_:)), let key = menuItem.representedObject as? String {
-            let values = windows.navigation.values
-            let selected = ["favorites": values.show_favorites, "locations": values.show_locations, "recents": values.show_recents, "follow": values.follow_active, "name": values.sort == "name", "modified": values.sort == "modified"]
-            menuItem.state = selected[key] == true ? .on : .off; return true
-        }
-        if menuItem.action == #selector(toggleWorkspace) { menuItem.state = currentController?.workspaceVisible == true ? .on : .off }
+        if let result = validateSidebarMenuItem(menuItem) { return result }
+        if let result = validateDocumentMenuItem(menuItem) { return result }
+        if let result = validateApplicationMenuItem(menuItem) { return result }
+        return true
+    }
 
-        if [#selector(exportHTML), #selector(exportPDF), #selector(printDocument), #selector(pageSetup)].contains(menuItem.action) { return documentForAction != nil && currentController?.exports.busy == false }
+    private func validateSidebarMenuItem(_ menuItem: NSMenuItem) -> Bool? {
+        guard menuItem.action == #selector(sidebarOption(_:)), let key = menuItem.representedObject as? String else {
+            if menuItem.action == #selector(toggleWorkspace) { menuItem.state = currentController?.workspaceVisible == true ? .on : .off }
+            return nil
+        }
+        let values = windows.navigation.values
+        let selected = [
+            "favorites": values.show_favorites, "locations": values.show_locations,
+            "recents": values.show_recents, "follow": values.follow_active,
+            "name": values.sort == "name", "modified": values.sort == "modified"
+        ]
+        menuItem.state = selected[key] == true ? .on : .off
+        return true
+    }
+
+    private func validateDocumentMenuItem(_ menuItem: NSMenuItem) -> Bool? {
+        if [#selector(exportHTML), #selector(exportPDF), #selector(printDocument), #selector(pageSetup)].contains(menuItem.action) {
+            return documentForAction != nil && currentController?.exports.busy == false
+        }
         if menuItem.action == #selector(cancelExport) { return currentController?.exports.cancellable == true }
+        if menuItem.action == #selector(compileLatex) {
+            return currentController?.documentKind == "latex" && currentController?.latexCompile?.busy != true
+        }
+        if menuItem.action == #selector(cancelLatexCompile) { return currentController?.latexCompile?.cancellable == true }
         if menuItem.action == #selector(reloadDocument) { return currentController?.isPreviewing == true || documentForAction?.documents.hasFile == true }
         if menuItem.action == #selector(toggleReadOnly) {
             menuItem.state = currentController?.documents.readOnly == true ? .on : .off
@@ -383,28 +334,259 @@ final class EditorApplication: NSObject, NSApplicationDelegate, NSMenuItemValida
         if menuItem.action == #selector(redoEdit) { return currentController?.allowsCommand("redo") == true && currentController?.canRedo == true }
         if menuItem.action == #selector(toggleAutosave) {
             menuItem.state = currentController?.documents.autosave == true ? .on : .off
-            if changingLanguage { return false }
+            return changingLanguage ? false : nil
         }
-        if menuItem.action == #selector(reconnectEditor) { return currentController?.isActiveDocument == true && currentController?.documents.ready == false && currentController?.documents.busy == false }
-        if menuItem.action == #selector(editorCommand(_:)) {
-            guard let command = menuItem.representedObject as? String else { return false }
-            menuItem.state = currentController?.writingMenuState(command) ?? .off
-            if command == "toggle-source" { menuItem.state = currentController?.editorMode == "source" ? .on : .off }
-            return currentController?.allowsCommand(command) == true
+        if menuItem.action == #selector(reconnectEditor) {
+            return currentController?.isActiveDocument == true && currentController?.documents.ready == false && currentController?.documents.busy == false
         }
-        if [#selector(newDocument), #selector(newWindow), #selector(newWindowForTab(_:)), #selector(openDocument)].contains(menuItem.action) { return !starting && !windows.quitting }
-        if menuItem.action == #selector(activateDocument(_:)) { return !windows.quitting && (menuItem.representedObject as? EditorWindowController)?.documents.closed == false }
-        if [#selector(toggleWorkspace), #selector(quickOpen), #selector(searchWorkspace), #selector(cancelWorkspaceSearch)].contains(menuItem.action) { return currentController != nil && !windows.quitting }
+        guard menuItem.action == #selector(editorCommand(_:)) else { return nil }
+        guard let command = menuItem.representedObject as? String else { return false }
+        menuItem.state = currentController?.writingMenuState(command) ?? .off
+        if command == "toggle-source" { menuItem.state = currentController?.editorMode == "source" ? .on : .off }
+        return currentController?.allowsCommand(command) == true
+    }
+
+    private func validateApplicationMenuItem(_ menuItem: NSMenuItem) -> Bool? {
+        if [#selector(newDocument), #selector(newWindow), #selector(newWindowForTab(_:)), #selector(openDocument)].contains(menuItem.action) {
+            return !starting && !windows.quitting
+        }
+        if menuItem.action == #selector(activateDocument(_:)) {
+            return !windows.quitting && (menuItem.representedObject as? EditorWindowController)?.documents.closed == false
+        }
+        if [#selector(toggleWorkspace), #selector(quickOpen), #selector(searchWorkspace), #selector(cancelWorkspaceSearch)].contains(menuItem.action) {
+            return currentController != nil && !windows.quitting
+        }
         if menuItem.action == #selector(saveAll) { return !windows.quitting && !windows.controllers.isEmpty }
-        if [#selector(newDocument), #selector(openDocument), #selector(saveDocument), #selector(saveDocumentAs), #selector(toggleAutosave), #selector(restoreDocument), #selector(retryPersistence)].contains(menuItem.action) {
+        if [#selector(newDocument), #selector(openDocument), #selector(saveDocument), #selector(saveDocumentAs),
+            #selector(toggleAutosave), #selector(restoreDocument), #selector(retryPersistence)].contains(menuItem.action) {
             return documentForAction != nil
         }
-        return true
+        return nil
+    }
+}
+
+extension EditorApplication {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        if CommandLine.arguments.contains("--headless") { return false }
+        if verifying { verificationLifecycle.append("last-window-closed:\(verificationStage)") }
+        return verifying
+    }
+
+    private func finish(_ report: [String: Any], code: Int32) {
+        guard !finished else { return }
+        finished = true
+        var report = report
+        if !verificationLifecycle.isEmpty { report["nativeLifecycle"] = verificationLifecycle }
+        if code != 0 { report["verificationStage"] = verificationStage }
+        if code != 0, let directory = controller?.documents.verificationRecoveryPath { report["recoveryDirectory"] = directory }
+        if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]),
+           let text = String(data: data, encoding: .utf8) { print(text) }
+        controller?.detach()
+        // Stages share this backend and its recovery store. Remove it only
+        // after the final stage; per-window cleanup invalidates later stages.
+        if code == 0 { controller?.documents.cleanupVerificationFiles() }
+        if code == 0 { preferences.cleanupVerificationFiles(); windows.navigation.detach() }
+        exit(code)
+    }
+
+    private func verify() {
+        if CommandLine.arguments.contains("--verify-settings"), let controller {
+            verificationStage = "settings"
+            Task {
+                do {
+                    let checks = try await verifySettingsFlow(controller, settings: settingsWindow(), values: { self.preferences.snapshot?.values }, navigation: windows.navigation)
+                    finish(["passed": checks, "failed": []], code: 0)
+                } catch { finish(["failed": [String(describing: error)]], code: 1) }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--verify-navigation"), let controller {
+            verificationStage = "navigation"
+            let focused = CommandLine.arguments.contains("--focused")
+            if focused && !CommandLine.arguments.contains("--headless") {
+                controller.showWindow(nil); NSApp.activate(ignoringOtherApps: true)
+            }
+            Task {
+                var checks: [String] = [], failures: [String] = []
+                let requested = CommandLine.arguments.first {
+                    $0.hasPrefix("--stage=") || $0.hasPrefix("--stages=")
+                }.map { argument in
+                    Set(argument.split(separator: "=", maxSplits: 1)[1].split(separator: ",").map(String.init))
+                }
+                @MainActor func run(_ stage: String, _ action: @MainActor () async throws -> [String]) async {
+                    guard requested == nil || requested?.contains(stage) == true else { return }
+                    self.verificationStage = stage
+                    if CommandLine.arguments.contains("--headless") {
+                        FileHandle.standardError.write(Data(("stage: " + stage + "\n").utf8))
+                    }
+                    do { checks += try await action() }
+                    catch { failures.append("\(stage): \(String(describing: error))") }
+                }
+                await run("navigation") {
+                    if focused || CommandLine.arguments.contains("--presentation-only") {
+                        return try await verifyNavigationPresentation(self.windows)
+                    }
+                    return try await verifyNavigationFlow(controller, navigation: self.windows.navigation)
+                }
+                if focused {
+                    await run("document-ui") { try await verifyDocumentUI() }
+                    await run("setup") { try await verifySetupFlow() }
+                    await run("interface") { try await verifyInterface(controller) }
+                    await run("upgrade") { try await verifyUpgrade(self.windows) }
+                    await run("media-output") { try await verifyMediaOutput(self.windows) }
+                    await run("appearance") {
+                        try await verifyAppearanceControls(controller, settings: self.settingsWindow(), values: { self.preferences.snapshot?.values })
+                    }
+                    await run("image-references") { try await verifyImageReferenceInsertion(self.windows) }
+                    await run("window-chrome") {
+                        guard let window = controller.window, let root = window.contentView,
+                              let guide = window.contentLayoutGuide as? NSLayoutGuide else {
+                            throw NSError(domain: "WindowChromeVerification", code: 1,
+                                          userInfo: [NSLocalizedDescriptionKey: "Window content was unavailable"])
+                        }
+                        let nativeToolbar = window.styleMask.contains(.fullSizeContentView)
+                            && window.titlebarAppearsTransparent
+                            && controller.searchControls.item.isBordered
+                            && guide.frame.maxY < root.bounds.maxY
+                        guard nativeToolbar else {
+                            throw NSError(domain: "WindowChromeVerification", code: 1,
+                                          userInfo: [NSLocalizedDescriptionKey: "Native translucent toolbar or safe content layout was missing"])
+                        }
+                        return ["native-translucent-toolbar-keeps-controls-and-writing-below-titlebar"]
+                    }
+                }
+                finish(["passed": checks, "failed": failures], code: failures.isEmpty ? 0 : 1)
+            }
+            return
+        }
+        verificationStage = "editor-fixtures"
+        currentController?.bridge.command("source") { [weak self] accepted in
+            guard accepted else { self?.finish(["failed": ["Native command was not accepted"]], code: 1); return }
+            self?.verifyView()
+        }
+    }
+
+    private func verifyView() {
+        let script = """
+        if (window.lino.snapshot().mode !== 'source') return {failed: ['Native command did not reach the engine']};
+        const report = await window.lino.verify();
+        report.passed.push('native-command-routing');
+        return report;
+        """
+        controller?.webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { [weak self] result in
+            switch result {
+            case .success(let value):
+                guard let self, let controller = self.controller else { return }
+                let bridge = controller.bridge
+                let viewReport = value as? [String: Any] ?? ["failed": ["Invalid editor report"]]
+                Task {
+                    var report = viewReport
+                    do {
+                        self.verificationStage = "window"
+                        let surfaceChecks = try verifyInitialEditorSurface()
+                        report["passed"] = (report["passed"] as? [String] ?? []) + surfaceChecks
+                        let windowChecks = try await verifyWindowLayout(controller)
+                        report["passed"] = (report["passed"] as? [String] ?? []) + windowChecks
+                        self.verificationStage = "commands"
+                        let commandChecks = try await verifyCommandFlow(controller, settings: self.settingsWindow())
+                        report["passed"] = (report["passed"] as? [String] ?? []) + commandChecks
+                        self.verificationStage = "document"
+                        let documentChecks = try await verifyDocumentFlow(bridge: bridge)
+                        report["passed"] = (report["passed"] as? [String] ?? []) + documentChecks
+                        self.verificationStage = "recovery"
+                        let recoveryChecks = try await verifyRecoveryFlow(bridge: bridge, onStep: { self.verificationStage = "recovery:" + $0 })
+                        report["passed"] = (report["passed"] as? [String] ?? []) + recoveryChecks
+                        self.verificationStage = "navigation"
+                        let navigationChecks = try await verifyNavigationFlow(controller, navigation: windows.navigation)
+                        report["passed"] = (report["passed"] as? [String] ?? []) + navigationChecks
+                        self.verificationStage = "localization"
+                        let localizationChecks = try await verifyLocalizationFlow(controller, settings: self.settingsWindow())
+                        report["passed"] = (report["passed"] as? [String] ?? []) + localizationChecks
+                    } catch { report["failed"] = (report["failed"] as? [String] ?? []) + [error.localizedDescription] }
+                    self.finish(report, code: (report["failed"] as? [String])?.isEmpty == true ? 0 : 1)
+                }
+            case .failure(let error): self?.finish(["failed": [error.localizedDescription]], code: 1)
+            }
+        }
+    }
+
+    private func installCommandPaletteShortcut() {
+        guard commandPaletteKeyMonitor == nil else { return }
+        commandPaletteKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard flags == [.command, .shift], event.charactersIgnoringModifiers?.lowercased() == "p" else { return event }
+            self?.showCommandPalette()
+            return nil
+        }
+    }
+
+    var commandPaletteVisible: Bool { commandPalette?.visible == true }
+
+    func dismissCommandPalette() {
+        commandPalette?.dismiss()
+        guard let controller = currentController, controller.documents.ready else { return }
+        controller.window?.makeKeyAndOrderFront(nil)
+        controller.window?.makeFirstResponder(controller.webView)
+    }
+
+    @objc func showCommandPalette() {
+        guard let controller = currentController, let window = controller.window else { return }
+        if commandPalette == nil { commandPalette = CommandPaletteController() }
+        commandPalette?.show(in: window, entries: commandPaletteEntries(), labels: commandPaletteLabels())
+    }
+
+    private func commandPaletteLabels() -> CommandPaletteLabels {
+        CommandPaletteLabels(
+            placeholder: localized("workspace.commandPalettePlaceholder"),
+            accessibility: localized("workspace.commandPalette"),
+            results: localized("workspace.commandResults"),
+            keys: localized("workspace.commandKeys")
+        )
+    }
+
+    private func commandPaletteEntries() -> [CommandPaletteEntry] {
+        var result: [CommandPaletteEntry] = []
+        func add(_ title: String, _ detail: String, _ keywords: String, _ enabled: Bool = true, _ action: @escaping () -> Void) {
+            result.append(CommandPaletteEntry(title: title, detail: detail, keywords: keywords, enabled: enabled, action: action))
+        }
+        add(localized("menu.new"), localized("menu.file"), "new document", !windows.quitting) { [weak self] in self?.newDocument() }
+        add(localized("menu.open"), localized("menu.file"), "open file", !windows.quitting) { [weak self] in self?.openDocument() }
+        add(localized("workspace.quick"), "⌘P", "quick open file", currentController != nil) { [weak self] in self?.quickOpen() }
+        add(localized("workspace.search"), "⇧⌘F", "search folder files", currentController != nil) { [weak self] in self?.searchWorkspace() }
+        add(localized("workspace.commandPalette"), "⇧⌘P", "commands actions", currentController != nil) { [weak self] in self?.showCommandPalette() }
+        add(localized("menu.settings"), "⌘,", "preferences appearance language", !windows.quitting) { [weak self] in self?.showSettings() }
+        add(localized("workspace.sidebar"), "⌘\\", "files navigation", currentController != nil) { [weak self] in self?.toggleWorkspace() }
+        add(localized("menu.save"), "⌘S", "save write", documentForAction != nil) { [weak self] in self?.saveDocument() }
+        add(localized("menu.saveAs"), "⇧⌘S", "save another file", documentForAction != nil) { [weak self] in self?.saveDocumentAs() }
+        add(localized("export.html"), localized("menu.file"), "export html", documentForAction != nil) { [weak self] in self?.exportHTML() }
+        add(localized("export.pdf"), localized("menu.file"), "export pdf", documentForAction != nil) { [weak self] in self?.exportPDF() }
+        add(localized("export.print"), localized("menu.file"), "print document", documentForAction != nil) { [weak self] in self?.printDocument() }
+        add(localized("menu.recovery"), localized("menu.file"), "recover draft backup", documentForAction != nil) { [weak self] in self?.restoreDocument() }
+        add(localized("menu.retry"), localized("menu.file"), "retry save backup", documentForAction != nil) { [weak self] in self?.retryPersistence() }
+        func addEditor(_ key: String, _ command: String, _ keywords: String, _ shortcut: String) {
+            guard currentController?.allowsCommand(command, fromToolbar: true) == true else { return }
+            add(localized(key), shortcut, keywords) { [weak self] in self?.currentController?.performEditorCommand(command) }
+        }
+        addEditor("menu.visual", "visual", "visual editing", "⌘⇧V")
+        addEditor("menu.source", "source", "markdown source", "⌘⇧S")
+        addEditor("writing.outline", "toggle-outline", "headings structure", "⌘⌥O")
+        addEditor("writing.statistics", "toggle-statistics", "word count statistics", "")
+        addEditor("writing.focus", "focus-mode", "focus writing", "")
+        addEditor("writing.typewriter", "typewriter-mode", "typewriter scroll", "")
+        addEditor("writing.zoomIn", "zoom-in", "larger text", "⌘+")
+        addEditor("writing.zoomOut", "zoom-out", "smaller text", "⌘-")
+        addEditor("writing.zoomReset", "zoom-reset", "reset text size", "⌘⌥0")
+        addEditor("menu.find", "find", "search document", "⌘F")
+        addEditor("menu.replace", "replace", "replace document", "⌘⌥F")
+        addEditor("menu.gotoLine", "goto-line", "jump line", "⌘⌥G")
+        return result
     }
 }
 
 let application = NSApplication.shared
-application.setActivationPolicy(CommandLine.arguments.contains("--headless") ? .prohibited : CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings") ? .accessory : .regular)
+let headless = CommandLine.arguments.contains("--headless")
+let verifying = CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--verify-navigation") || CommandLine.arguments.contains("--verify-settings")
+application.setActivationPolicy(headless ? .prohibited : verifying ? .accessory : .regular)
 let delegate = EditorApplication()
 application.delegate = delegate
 application.run()

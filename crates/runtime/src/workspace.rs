@@ -105,7 +105,7 @@ impl WorkspaceRuntime {
                 previous.store(true, Ordering::Relaxed);
             }
         }
-        let result = Matcher::compile(&options)
+        let mut result = Matcher::compile(&options)
             .map_err(storage_error)
             .and_then(|matcher| {
                 self.workspace
@@ -113,12 +113,20 @@ impl WorkspaceRuntime {
                     .map_err(storage_error)
             });
         if let Ok(mut query) = self.query.lock() {
+            let superseded = query.last_id != id || query.cancelled_through >= id;
             if query
                 .active
                 .as_ref()
                 .is_some_and(|(current, _)| *current == id)
             {
                 query.active.take();
+            }
+            if superseded {
+                if let Ok(value) = &mut result {
+                    value.hits.clear();
+                    value.truncated = false;
+                    value.cancelled = true;
+                }
             }
         }
         result

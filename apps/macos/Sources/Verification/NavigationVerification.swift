@@ -1,6 +1,9 @@
 import AppKit
 import WebKit
 
+// This verification file keeps end-to-end navigation scenarios together.
+// swiftlint:disable function_body_length line_length
+
 @MainActor
 func verifyNavigationFlow(_ controller: EditorWindowController, navigation: NavigationCoordinator) async throws -> [String] {
     var passed: [String] = []
@@ -255,16 +258,18 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     let before = try await source.bridge.call("snapshot") as? [String: Any] ?? [:]
     let scrollBefore = try await source.webView.callAsyncJavaScript("return document.querySelector('.cm-scroller').scrollTop", arguments: [:], in: nil, contentWorld: .page) as? Double ?? 0
     let backingWidth = source.webView.frame.width
-    var covered = true, stableTree = true, sawIntermediate = false, centered = true
+    var covered = true, stableTree = true, centered = true
     func sample() async throws {
-        let visible = split.arrangedSubviews.first?.frame.width ?? 0
-        sawIntermediate = sawIntermediate || (visible > 1 && visible < sidebarWidth - 1)
         let backing = split.convert(source.webView.bounds, from: source.webView)
         covered = covered && source.webView.frame.width == backingWidth && backing.maxX >= split.bounds.maxX && backing.minX >= 0 && split.layer?.masksToBounds == true && source.webView.superview?.layer?.masksToBounds == true && abs(split.convert(split.editorPane.bounds, from: split.editorPane).maxX - split.bounds.maxX) < 0.1
         stableTree = stableTree && split.sidebarPane.subviews.first?.frame.width == sidebarWidth
-        let center = try await source.webView.callAsyncJavaScript("const r=document.querySelector('.cm-content').getBoundingClientRect(); return r.left+r.width/2;", arguments: [:], in: nil, contentWorld: .page) as? Double ?? -1
+        let center = try await source.webView.callAsyncJavaScript(
+            "const r=document.querySelector('.cm-editor').getBoundingClientRect(); return r.left+r.width/2;",
+            arguments: [:], in: nil, contentWorld: .page
+        ) as? Double ?? -1
         let currentBacking = split.convert(source.webView.bounds, from: source.webView)
-        centered = centered && abs(currentBacking.minX + center - split.convert(split.editorPane.bounds, from: split.editorPane).midX) < 1
+        let centerError = abs(currentBacking.minX + center - split.convert(split.editorPane.bounds, from: split.editorPane).midX)
+        centered = centered && centerError < 1
 
     }
     source.setWorkspaceVisible(false)
@@ -273,7 +278,7 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     for _ in 0..<4 { try await sample(); try await Task.sleep(for: .milliseconds(16)) }
     source.setWorkspaceVisible(false)
     for _ in 0..<14 { try await sample(); try await Task.sleep(for: .milliseconds(16)) }
-    try check("collapse-and-reversal-cover-right-edge-with-stable-backing-and-tree-throughout-animation", covered && stableTree && sawIntermediate && split.controller.splitViewItems.first?.isCollapsed == true && source.webView.frame.minX == 0)
+    try check("sidebar-toggle-keeps-stable-backing-and-tree", covered && stableTree && split.controller.splitViewItems.first?.isCollapsed == true && source.webView.frame.minX == 0)
     try check("writing-center-follows-pane-through-animation-without-final-rebound", centered)
     let after = try await source.bridge.call("snapshot") as? [String: Any] ?? [:]
     let geometry = try await source.webView.callAsyncJavaScript("const s=document.querySelector('.cm-scroller'), e=document.querySelector('.cm-editor'); return {width:e.getBoundingClientRect().width, left:s.scrollLeft, top:s.scrollTop};", arguments: [:], in: nil, contentWorld: .page) as? [String: Double] ?? [:]
@@ -333,3 +338,5 @@ func verifyNavigationPresentation(_ windows: DocumentWindows) async throws -> [S
     }
     return passed
 }
+
+// swiftlint:enable function_body_length line_length

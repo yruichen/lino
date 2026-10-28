@@ -256,6 +256,11 @@ impl DocumentRuntime {
             });
         }
         let snapshot = self.navigation()?;
+        let start_epoch = self
+            .navigation
+            .lock()
+            .map_err(|_| invalid("Navigation lock poisoned"))?
+            .epoch;
         let current_path = current
             .and_then(|path| navigation_path(Path::new(path)).ok())
             .map(|path| path.to_string_lossy().into_owned());
@@ -323,7 +328,11 @@ impl DocumentRuntime {
                     .map_err(|_| invalid("Navigation lock poisoned"))?;
                 (
                     runtime.epoch,
-                    runtime.indexes.get(&root).map(|(_, index)| index.clone()),
+                    runtime
+                        .indexes
+                        .get(&root)
+                        .filter(|(cached_epoch, _)| *cached_epoch == runtime.epoch)
+                        .map(|(_, index)| index.clone()),
                 )
             };
             let index = if let Some(index) = cached {
@@ -371,6 +380,17 @@ impl DocumentRuntime {
                 }
             }
         }
+        let current_epoch = self
+            .navigation
+            .lock()
+            .map_err(|_| invalid("Navigation lock poisoned"))?
+            .epoch;
+        if current_epoch != start_epoch {
+            return Ok(QuickResults {
+                cancelled: true,
+                ..Default::default()
+            });
+        }
         ranked.sort_by(|a, b| {
             a.0.cmp(&b.0)
                 .then(a.1.cmp(&b.1))
@@ -399,7 +419,7 @@ fn build_index(
             return Ok(QuickResults {
                 skipped: 1,
                 ..Default::default()
-            })
+            });
         }
     };
     let mut result = QuickResults::default();

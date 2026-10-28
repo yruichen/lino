@@ -19,6 +19,7 @@ import { t, normalizeLocale } from '../localization/index.ts';
 import { exportStyle } from './style.ts';
 import { underlineReading } from '../features/markdown/reading.ts';
 import { inlineHTML } from '../features/markdown/inline-reading.ts';
+import { replaceParsedHTML } from '../features/markdown/html.ts';
 
 export interface ExportPresentation { fontSize?: number; contentWidth?: number; padding?: number; imageScales?: ReadonlyMap<number, number> }
 interface Slot { image?: PreviewSource; input?: RenderInput; html?: string; block: boolean }
@@ -30,7 +31,7 @@ const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&am
 export class ExportPlan {
   readonly source: ExportSource;
   readonly images: string[];
-  private readonly markdown = new MarkdownIt({ html: false, linkify: true, typographer: false });
+  private readonly markdown = new MarkdownIt({ html: true, linkify: true, typographer: false });
   private readonly tokens: Token[];
   private readonly slots = new Map<string, Slot>();
   private readonly environment = {};
@@ -169,7 +170,7 @@ export class ExportPlan {
       }
       return imageRule(tokens, index, options, environment, renderer);
     };
-    const container = document.createElement('article'); container.innerHTML = md.renderer.render(this.tokens, md.options, this.environment);
+    const container = document.createElement('article'); replaceParsedHTML(container, md.renderer.render(this.tokens, md.options, this.environment));
     let remaining = this.slots.size;
     while (true) {
       const placeholders = [...container.querySelectorAll<HTMLAnchorElement>('a[href^="lino-slot:"]')];
@@ -188,13 +189,14 @@ export class ExportPlan {
           html = `<span class="export-image"><img src="${escape(data)}" alt="${escape(image.alt ?? '')}"${size}><span class="image-caption">${caption}</span></span>`;
         } else html = entry.html ?? (await this.renderer.request(entry.input!, this.abort.signal)).html;
         if (this.abort.signal.aborted) throw new Error(t('export.cancelled'));
-        const holder = document.createElement(entry.block ? 'div' : 'span'); holder.innerHTML = html; if (entry.input?.kind === 'diagram') holder.className = 'export-diagram';
+        const holder = document.createElement(entry.block ? 'div' : 'span'); replaceParsedHTML(holder, html); if (entry.input?.kind === 'diagram') holder.className = 'export-diagram';
         if (entry.block && placeholder.parentElement?.tagName === 'P' && placeholder.parentElement.textContent?.trim() === placeholder.textContent) placeholder.parentElement.replaceWith(holder);
         else placeholder.replaceWith(holder);
       }
     }
     // Generated namespaces are allowed; user HTML remains escaped literal text.
-    container.innerHTML = DOMPurify.sanitize(container.innerHTML, { USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true }, FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'], ALLOW_DATA_ATTR: false });
+    const sanitized = String(DOMPurify.sanitize(container.innerHTML, { USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true }, FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'style', 'template', 'audio', 'video', 'canvas'], FORBID_ATTR: ['srcset'], ALLOW_DATA_ATTR: false }));
+    replaceParsedHTML(container, sanitized);
     for (const link of container.querySelectorAll('a')) if (!safeURL(link.getAttribute('href') ?? '')) link.removeAttribute('href');
     for (const image of container.querySelectorAll('img')) if (!/^data:image\//i.test(image.getAttribute('src') ?? '')) throw new Error(t('export.invalid'));
     for (const table of container.querySelectorAll('table')) {

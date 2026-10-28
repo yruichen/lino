@@ -1,11 +1,19 @@
 .cm-tooltip.ot-contextual-controls {
-  box-sizing: border-box; max-width: min(560px, calc(100vw - 32px)); max-height: min(420px, 70vh);
-  overflow: auto; padding: 14px; gap: 10px; border: 1px solid var(--ot-border); border-radius: 12px;
-  background: var(--ot-panel); color: var(--ot-text); box-shadow: 0 8px 30px #0002;
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, sans-serif;
+  box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; max-width: min(560px, calc(100vw - 32px)); max-height: min(420px, 70vh);
+  overflow: auto; padding: 12px; gap: 9px; border: 1px solid color-mix(in srgb, var(--ot-border) 88%, transparent); border-radius: var(--ot-radius-large);
+  background: color-mix(in srgb, var(--ot-panel) 94%, var(--ot-background)); color: var(--ot-text); box-shadow: var(--ot-shadow-panel);
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; backdrop-filter: blur(18px);
 }
-.ot-contextual-controls label { flex: 1 1 180px; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
-.ot-contextual-controls input { box-sizing: border-box; width: 100%; min-width: 0; font: inherit; padding: 7px 9px; border-radius: 7px; }
-.ot-contextual-controls button { font: inherit; padding: 6px 10px; border-radius: 7px; }
-.ot-contextual-controls output { flex-basis: 100%; }
+.ot-contextual-controls label { flex: 1 1 180px; display: flex; flex-direction: column; align-items: stretch; gap: 5px; color: var(--ot-muted); }
+.ot-contextual-controls label > span, .ot-contextual-controls label::before { color: var(--ot-muted); font-size: 11px; }
+.ot-contextual-controls input { box-sizing: border-box; width: 100%; min-width: 0; font: inherit; padding: 7px 9px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-small); color: var(--ot-text); background: var(--ot-input); }
+.ot-contextual-controls input:focus-visible { outline: none; box-shadow: var(--ot-focus-ring); border-color: var(--ot-focus); }
+.ot-contextual-controls button { font: inherit; padding: 6px 10px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-small); color: var(--ot-text); background: var(--ot-button); cursor: pointer; }
+.ot-contextual-controls button[type=submit] { border-color: var(--ot-focus); background: var(--ot-focus); color: light-dark(#fff, #101318); }
+.ot-contextual-controls button:hover:not(:disabled) { border-color: var(--ot-focus); background: var(--ot-active); }
+.ot-contextual-controls button[type=submit]:hover:not(:disabled) { background: color-mix(in srgb, var(--ot-focus) 88%, #fff); }
+.ot-contextual-controls button:disabled { opacity: .45; cursor: default; }
+.ot-contextual-controls output { flex-basis: 100%; color: var(--ot-muted); overflow-wrap: anywhere; }
+.ot-contextual-controls output:empty { display: none; }
+.ot-contextual-controls output[data-error=true] { color: var(--ot-error); }
 .ot-contextual-controls [hidden] { display: none; }

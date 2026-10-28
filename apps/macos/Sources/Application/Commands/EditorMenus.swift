@@ -57,6 +57,8 @@ func installEditorMenus(target: AnyObject) {
     _ = action(file, localized("export.pageSetup"), #selector(EditorApplication.pageSetup), "p", [.command, .shift])
     _ = action(file, localized("export.print"), #selector(EditorApplication.printDocument), "p", [.command, .option])
     _ = action(file, localized("export.cancel"), #selector(EditorApplication.cancelExport))
+    _ = action(file, localized("latex.compile"), #selector(EditorApplication.compileLatex))
+    _ = action(file, localized("latex.cancel"), #selector(EditorApplication.cancelLatexCompile))
     file.addItem(.separator())
     _ = action(file, localized("menu.recovery"), #selector(EditorApplication.restoreDocument))
     _ = action(file, localized("menu.retry"), #selector(EditorApplication.retryPersistence))
@@ -77,7 +79,13 @@ func installEditorMenus(target: AnyObject) {
     command(edit, localized("menu.findPrevious"), "find-previous", "g", [.command, .shift])
     command(edit, localized("menu.gotoLine"), "goto-line", "g", [.command, .option])
     let formatItem = NSMenuItem(title: localized("format.title"), action: nil, keyEquivalent: "")
-    formatItem.submenu = formattingMenu(target: target, action: #selector(EditorApplication.editorCommand(_:)), keyboardShortcuts: true)
+    formatItem.submenu = formattingMenu(
+        target: target,
+        action: #selector(EditorApplication.editorCommand(_:)),
+        keyboardShortcuts: true,
+        localize: { key, arguments in LanguagePreferences.shared.string(key, arguments: arguments) },
+        applyShortcut: { command, item in EditorShortcuts.apply(command, to: item) }
+    )
     menu.addItem(formatItem)
     let view = section(localized("menu.view"))
     command(view, localized("menu.visual"), "visual")

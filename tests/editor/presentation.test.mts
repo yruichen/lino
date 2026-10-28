@@ -85,6 +85,42 @@ test('visual headings, quotes, lists and rules render while source mode and lite
   } finally { editor.destroy(); mount.remove(); }
 });
 
+test('selection formatting toolbar edits the same document history and stays keyboard accessible', async () => {
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, 'hello world', () => {});
+  try {
+    editor.select(0, 5); await settleDOM();
+    const toolbar = mount.querySelector<HTMLElement>('.ot-selection-toolbar');
+    assert(toolbar);
+    const bold = toolbar.querySelector<HTMLButtonElement>('.ot-format-bold');
+    assert(bold); assert.equal(bold.getAttribute('aria-label'), 'Bold');
+    bold.click();
+    assert.equal(editor.read(), '**hello** world');
+    assert.equal(undoDepth(editor.view.state), 1);
+    assert(editor.command('undo')); assert.equal(editor.read(), 'hello world');
+  } finally { editor.destroy(); mount.remove(); }
+});
+
+test('safe HTML renders in visual mode, keeps source editing available and never executes active content', async () => {
+  const raw = '<div class="callout"><strong>Block HTML</strong></div>\n\nInline <u>HTML</u> <script>alert(1)</script>';
+  const mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {});
+  try {
+    assert(forceParsing(editor.view, editor.view.state.doc.length, 50));
+    editor.select(raw.length);
+    await settleDOM();
+    assert.equal(mount.querySelector('.ot-html-block strong')?.textContent, 'Block HTML');
+    assert.equal(mount.querySelector('.ot-html-inline u')?.textContent, 'HTML');
+    assert.equal(mount.querySelectorAll('script').length, 0);
+    assert.equal(editor.read(), raw);
+    mount.querySelector<HTMLElement>('.ot-html-block')!.dispatchEvent(new fixture.dom.window.MouseEvent('click', { bubbles: true }));
+    assert.equal(editor.view.state.selection.main.head, 0);
+    assert.equal(mount.querySelector('.ot-html-block'), null);
+    editor.command('source');
+    assert(mount.querySelector('.cm-content')?.textContent?.includes('<div class="callout">'));
+    editor.command('visual'); editor.select(raw.length); await settleDOM();
+    assert.equal(mount.querySelector('.ot-html-block strong')?.textContent, 'Block HTML');
+  } finally { editor.destroy(); mount.remove(); }
+});
+
 test('properties follow their mapped image range, occupy a local tooltip and preserve the draft and document', async () => {
   const raw = 'start\n\n![alt](local.png)\n\nend', mount = fixture.mount(), editor = new MarkdownEditor(mount, raw, () => {});
   try {

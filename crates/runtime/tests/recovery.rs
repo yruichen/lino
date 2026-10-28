@@ -134,6 +134,35 @@ fn abrupt_exit_restores_only_checkpoint_and_never_binds_original_file() {
     }
 }
 #[test]
+fn latex_recovery_restores_the_latex_profile_from_its_label() {
+    let dir = tempfile::tempdir().unwrap();
+    let recovery = dir.path().join("recovery");
+    let path = dir.path().join("paper.tex");
+    std::fs::write(&path, "\\documentclass{article}\n").unwrap();
+    let runtime = DocumentRuntime::default();
+    runtime.configure_recovery(&recovery).unwrap();
+    let doc = runtime.open_file(&path, None).unwrap();
+    assert_eq!(doc.status.document_kind, "latex");
+    assert!(matches!(
+        edit(&runtime, &doc, 1, 0, "% draft\n"),
+        Response::Applied { .. }
+    ));
+    assert!(matches!(
+        checkpoint(&runtime, &doc),
+        Response::Checkpointed { .. }
+    ));
+    drop(runtime);
+
+    let runtime = DocumentRuntime::default();
+    runtime.configure_recovery(&recovery).unwrap();
+    let entries = runtime.list_recoveries().unwrap();
+    assert_eq!(entries.len(), 1);
+    let restored = runtime.restore_recovery(&entries[0].key, None).unwrap();
+    assert_eq!(restored.status.document_kind, "latex");
+    assert_eq!(restored.status.file_ref, None);
+    assert_eq!(restored.text, "% draft\n\\documentclass{article}\n");
+}
+#[test]
 fn webview_renewal_keeps_accepted_text_and_rejects_old_callbacks() {
     let runtime = DocumentRuntime::default();
     let doc = runtime.new_document(None).unwrap();

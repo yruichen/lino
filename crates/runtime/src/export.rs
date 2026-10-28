@@ -82,6 +82,7 @@ impl DocumentRuntime {
             runtime: self.clone(),
             input: ExportSnapshot {
                 owner: info.id,
+                epoch: info.epoch,
                 source: info.snapshot,
                 label: info.label,
             },
@@ -105,7 +106,14 @@ impl ExportJob {
             .unwrap_or(false)
     }
     fn check(&self) -> Result<(), WireError> {
-        self.runtime.info(self.input.owner)?;
+        let info = self.runtime.info(self.input.owner)?;
+        if info.epoch != self.input.epoch {
+            return Err(error(
+                ErrorCode::OldEpoch,
+                "Export view is no longer current",
+                false,
+            ));
+        }
         if self
             .state
             .lock()

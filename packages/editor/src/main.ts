@@ -10,6 +10,7 @@ import type { SaveTarget } from '@lino/protocol/generated/SaveTarget';
 import type { PreferenceSnapshot } from '@lino/protocol/generated/PreferenceSnapshot';
 import { PROTOCOL_VERSION, RESOURCE_VERSION } from '@lino/protocol/generated/version';
 import { MarkdownEditor } from './engine/editor.ts';
+import { LatexEditor } from './profiles/latex.ts';
 import { DocumentSession } from './session/document.ts';
 import { verifyDocumentEdit, verifyEditor } from './verification.ts';
 import { verifySearch } from './features/search/verification.ts';
@@ -43,7 +44,8 @@ let exportPresentation: ExportPresentation = {};
 // Window geometry belongs to the host view, and survives document replacement.
 let viewportWidth = (window as Window & { __linoViewportWidth?: number }).__linoViewportWidth;
 let viewportSequence = -1n;
-let editor = new MarkdownEditor(root, '', notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true, nativeAnalysis: true });
+type EditorProfile = MarkdownEditor | LatexEditor;
+let editor: EditorProfile = new MarkdownEditor(root, '', notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true, nativeAnalysis: true });
 if (viewportWidth !== undefined) editor.setViewportWidth(viewportWidth);
 editor.setReadOnly(true);
 let backgroundAsset = '';
@@ -66,7 +68,7 @@ function applyBackground(): void {
 function publish(): void {
   assets.setDocument(session?.status.session_id ?? null, session?.status.file_ref ?? null);
   if (session) notifyHost({ kind: 'document', dirty: session.dirty, saving: session.isSaving,
-    readOnly: session.status.read_only ?? false, sessionId: session.status.session_id, fileRef: session.status.file_ref,
+    readOnly: session.status.read_only ?? false, documentKind: session.status.document_kind, sessionId: session.status.session_id, epoch: session.status.epoch, fileRef: session.status.file_ref,
     hasFile: session.status.file_ref !== null, label: session.status.label, revision: session.status.revision,
     ...session.persistence.status });
 }
@@ -93,12 +95,19 @@ const api = {
       exportAppearance = editor.appearance();
       const style = getComputedStyle(editor.view.contentDOM), rect = editor.view.contentDOM.getBoundingClientRect();
       exportPresentation = { fontSize: parseFloat(style.fontSize), contentWidth: rect.width, padding: parseFloat(style.paddingLeft),
-        imageScales: new Map([...editor.view.state.field(imageSizes)].map(([from, entry]) => [from, entry.scale])) };
+        imageScales: editor instanceof MarkdownEditor
+          ? new Map([...editor.view.state.field(imageSizes)].map(([from, entry]) => [from, entry.scale]))
+          : new Map() };
       await capture;
       const { session_id, epoch, revision } = owner.status; return { session_id, epoch, revision };
     } catch (error) { owner.endExportCapture(); throw error; }
   },
   endExportCapture(): void { session?.endExportCapture(); },
+  async compileIdentity() {
+    await editor.settleResources(); await editor.settleComposition(); await current().flush();
+    const owner = current();
+    return { session_id: owner.status.session_id, epoch: owner.status.epoch, revision: owner.status.revision };
+  },
   prepareExport(json: string) {
     const source = JSON.parse(json);
     source.preferences.theme = exportAppearance;
@@ -145,11 +154,14 @@ const api = {
     if (next <= viewportSequence) return;
     viewportSequence = next; viewportWidth = width; editor.setViewportWidth(width);
   },
-  navigateAnchor(anchor: string): boolean { return openLink(editor.view, '#' + anchor, error => report(formatError(error))); },
+  navigateAnchor(anchor: string): boolean {
+    return editor instanceof MarkdownEditor && openLink(editor.view, '#' + anchor, error => report(formatError(error)));
+  },
   receive: (json: string) => client.receive(json),
   receiveClipboard: (id: string, error: string | null) => clipboard.receive(id, error),
   receiveAsset: (id: string, value: string | null, error: string | null) => assets.receive(id, value, error),
-  hasLocalImages: () => previewSources(editor.view.state).some(source => source.kind === 'image' && !/^https?:\/\//i.test(source.text)),
+  hasLocalImages: () => editor instanceof MarkdownEditor
+    && previewSources(editor.view.state).some(source => source.kind === 'image' && !/^https?:\/\//i.test(source.text)),
   setLocale(value: unknown): void { setLocale(value); publish(); },
   async prepareDocumentReadOnly() {
     await editor.settleResources(); await editor.settleComposition(); editor.setReadOnly(true);
@@ -178,7 +190,9 @@ const api = {
     const holder = document.createElement('div');
     assets.invalidate();
     assets.setDocument(opened.status.session_id, opened.status.file_ref);
-    const next = new MarkdownEditor(holder, opened.text, notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true, nativeAnalysis: true });
+    const next: EditorProfile = opened.status.document_kind === 'latex'
+      ? new LatexEditor(holder, opened.text, notifyHost, changed => session?.changed(changed))
+      : new MarkdownEditor(holder, opened.text, notifyHost, changed => session?.changed(changed), text => clipboard.write(text), assets, { nativeSearch: true, nativeAnalysis: true });
     if (viewportWidth !== undefined) next.setViewportWidth(viewportWidth);
     session?.destroy(); editor.destroy(); root.replaceChildren(...Array.from(holder.childNodes)); editor = next;
     session = new DocumentSession(client, opened, editor, publish, report);
@@ -246,7 +260,10 @@ const api = {
     picker.dispatch({ changes: { from: 0, to: picker.state.doc.length, insert: text },
       selection: { anchor: text.length }, userEvent: 'input.type' });
   },
-  verifyDocumentEdit: () => verifyDocumentEdit(editor),
+  verifyDocumentEdit: () => {
+    if (!(editor instanceof MarkdownEditor)) throw new Error('This verification requires a Markdown document.');
+    return verifyDocumentEdit(editor);
+  },
   verifyMediaLayout,
 };
 Object.assign(window, { lino: api });

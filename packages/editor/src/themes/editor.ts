@@ -33,6 +33,8 @@ export function themeConfiguration(dark: boolean): Extension {
         padding: '32px clamp(24px, 4vw, 56px) 120px', boxSizing: 'border-box',
       },
       '.cm-line': { padding: '0' },
+      '.cm-activeLine': { backgroundColor: 'var(--ot-active-line)' },
+      '.cm-activeLineGutter': { backgroundColor: 'transparent' },
       '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--ot-caret)' },
       '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': { backgroundColor: 'var(--ot-selection)' },
       '.cm-panels': { color: 'var(--ot-text)', backgroundColor: 'var(--ot-panel)' },

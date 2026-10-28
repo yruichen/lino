@@ -28,3 +28,15 @@
 .ot-preview-image img { max-height: none; }
 .ot-image-caption { display: block; margin-top: 10px; color: var(--ot-muted); font-size: .85em; line-height: 1.5; white-space: normal; text-align: center; }
 .ot-image-caption:empty { display: none; }
+.ot-preview { transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease; }
+.ot-preview:hover { border-color: color-mix(in srgb, var(--ot-focus) 58%, var(--ot-border)); }
+.ot-preview-block { width: min(100%, 720px); box-sizing: border-box; }
+.ot-preview-math { min-height: 1.4em; }
+.ot-preview[data-preview-state="loading"] { cursor: progress; }
+.ot-preview[data-preview-state="error"] output { padding: 3px 0; }
+.ot-media-panel { border-radius: var(--ot-radius-medium); box-shadow: var(--ot-shadow-panel); backdrop-filter: blur(16px); }
+.ot-media-panel input { min-width: 150px; }
+.ot-media-panel button { transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease; }
+.ot-media-panel button:hover:not(:disabled) { border-color: var(--ot-focus); background: var(--ot-active); }
+.ot-media-panel button:active:not(:disabled) { transform: translateY(1px); }
+@media (prefers-reduced-motion: reduce) { .ot-preview, .ot-media-panel button { transition: none; } }

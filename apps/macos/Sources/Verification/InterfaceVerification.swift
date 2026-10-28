@@ -28,10 +28,12 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
         passed.append(name)
     }
     func views(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(views) }
+    var waitSequence = 0
     func wait(_ condition: () async throws -> Bool) async throws {
+        waitSequence += 1
         let deadline = ContinuousClock.now.advanced(by: .seconds(5))
         while try await !condition(), ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(20)) }
-        try check("interface-request-settles", try await condition())
+        try check("interface-request-settles-\(waitSequence)", try await condition())
     }
     func capture(_ view: NSView, _ name: String) throws {
         view.layoutSubtreeIfNeeded()
@@ -43,10 +45,29 @@ func verifyInterface(_ controller: EditorWindowController) async throws -> [Stri
     if let menu = NSApp.mainMenu {
         func items(_ menu: NSMenu) -> [NSMenuItem] { menu.items + menu.items.flatMap { $0.submenu.map(items) ?? [] } }
         let formats = items(menu).filter { $0.representedObject is String }
-        try check("all-markdown-shortcuts-are-discoverable-in-native-menus", EditorShortcuts.bindings.allSatisfy { binding in formats.contains { $0.representedObject as? String == binding.command && $0.keyEquivalent == binding.key } })
+        let missing = EditorShortcuts.bindings.filter { binding in
+            !formats.contains {
+                ($0.representedObject as? String) == binding.command
+                    && $0.keyEquivalent.caseInsensitiveCompare(binding.key) == .orderedSame
+            }
+        }.map { binding in
+            let items = formats.filter { ($0.representedObject as? String) == binding.command }
+            let details = items.map { "\(String(reflecting: $0.keyEquivalent))/\(Array($0.keyEquivalent.utf8))" }.joined(separator: "|")
+            return "\(binding.command)=\(String(reflecting: binding.key))/\(Array(binding.key.utf8)) [\(details)]"
+        }
+        try check("all-markdown-shortcuts-are-discoverable-in-native-menus: \(missing.joined(separator: ","))", missing.isEmpty)
+        NSApp.activate(ignoringOtherApps: true)
         controller.window?.makeKeyAndOrderFront(nil); controller.window?.makeFirstResponder(controller.webView)
         _ = try await controller.bridge.call("focusEditor")
-        try await wait { controller.isActiveDocument }
+        if let application = NSApp.delegate as? EditorApplication {
+            application.showCommandPalette()
+            try check("command-palette-requested", application.commandPaletteVisible)
+            try await wait { application.commandPaletteVisible }
+            try check("command-palette-opens-from-the-active-document", application.commandPaletteVisible)
+            application.dismissCommandPalette()
+            controller.window?.makeKeyAndOrderFront(nil)
+            try check("command-palette-dismisses-without-changing-the-document", !application.commandPaletteVisible)
+        }
         let original = try await controller.bridge.call("snapshot") as? [String: Any] ?? [:]
         func press(_ key: String, _ code: UInt16) throws {
             guard let event = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: controller.window?.windowNumber ?? 0, context: nil, characters: key, charactersIgnoringModifiers: key, isARepeat: false, keyCode: code) else { throw CocoaError(.coderInvalidValue) }

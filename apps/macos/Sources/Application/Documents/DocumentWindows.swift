@@ -154,11 +154,14 @@ final class DocumentWindows {
             }
             if let empty = origin ?? active, (empty.window?.tabbedWindows?.count ?? 1) <= 1,
                try await empty.documents.openIfEmpty(path: path) {
+                empty.showWindow(nil)
+                empty.window?.makeKeyAndOrderFront(nil)
                 if let line { _ = try await empty.bridge.call("navigateLine", arguments: [line]) }
                 if let anchor { _ = try await empty.bridge.call("navigateAnchor", arguments: [anchor]) }
                 empty.window?.makeFirstResponder(empty.webView)
                 _ = try await empty.bridge.call("focusEditor")
                 await navigation.noteFile(path)
+                lastActive = empty
                 onDocumentPresented?()
                 return
             }

@@ -34,7 +34,8 @@ final class PrintSurface: NSObject, WKNavigationDelegate {
         timeout?.cancel()
         timeout = Task { [weak self] in
             do { try await Task.sleep(for: .seconds(20)) } catch { return }
-            self?.abort(NSError(domain: "Lino", code: 1, userInfo: [NSLocalizedDescriptionKey: localized("export.loadTimeout")]))
+            let message = Bundle.main.localizedString(forKey: "export.loadTimeout", value: "Export timed out while loading the document.", table: nil)
+            self?.abort(NSError(domain: "Lino", code: 1, userInfo: [NSLocalizedDescriptionKey: message]))
         }
     }
     private func finishLoad(_ error: Error? = nil) {
@@ -47,7 +48,8 @@ final class PrintSurface: NSObject, WKNavigationDelegate {
         Task { [weak self] in
             guard let self else { return }
             do {
-                _ = try await webView.callAsyncJavaScript("await document.fonts.ready; await Promise.all(Array.from(document.images, image => image.decode())); return true;", arguments: [:], in: nil, contentWorld: .page)
+                let settle = "await document.fonts.ready; await Promise.all(Array.from(document.images, image => image.decode())); return true;"
+                _ = try await webView.callAsyncJavaScript(settle, arguments: [:], in: nil, contentWorld: .page)
                 finishLoad()
             } catch { finishLoad(error) }
         }
@@ -66,7 +68,7 @@ final class PrintSurface: NSObject, WKNavigationDelegate {
         if preparedInfo != nil { return }
         guard let resources else { throw CocoaError(.fileNoSuchFile) }
         let script = try String(contentsOf: resources.appendingPathComponent("print.js"), encoding: .utf8)
-        let captured = info.copy() as! NSPrintInfo
+        guard let captured = info.copy() as? NSPrintInfo else { throw CocoaError(.coderInvalidValue) }
         let size = captured.paperSize
         guard [size.width, size.height, captured.topMargin, captured.rightMargin, captured.bottomMargin, captured.leftMargin].allSatisfy({ $0.isFinite && $0 >= 0 }),
               size.width > captured.leftMargin + captured.rightMargin,
@@ -83,23 +85,41 @@ final class PrintSurface: NSObject, WKNavigationDelegate {
                 guard let self else { return }
                 do {
                     _ = try await webView.evaluateJavaScript(script + ";window.LinoPrint=LinoPrint;void 0;")
-                    let result = try await webView.callAsyncJavaScript("return await window.LinoPrint.paginate(paper);", arguments: ["paper": ["width": size.width, "height": size.height, "top": captured.topMargin, "right": captured.rightMargin, "bottom": captured.bottomMargin, "left": captured.leftMargin]], in: nil, contentWorld: .page) as? [String: Int]
+                    let pageSettings: [String: Any] = ["width": size.width, "height": size.height, "top": captured.topMargin,
+                                                         "right": captured.rightMargin, "bottom": captured.bottomMargin, "left": captured.leftMargin]
+                    let result = try await webView.callAsyncJavaScript("return await window.LinoPrint.paginate(paper);",
+                                                                       arguments: ["paper": pageSettings], in: nil, contentWorld: .page) as? [String: Any]
                     guard !cancelled else { throw CancellationError() }
-                    guard let count = result?["pages"], count > 0 else { throw CocoaError(.coderInvalidValue) }
-                    // CSS pixels are 96/in; native PDF points are 72/in. Use
-                    // WebKit's vector PDF API rather than its integer AppKit
-                    // print rectangles, which truncate fractional page edges.
-                    webView.pageZoom = 72 / 96
-                    let origins = try await webView.callAsyncJavaScript("return [...document.querySelectorAll('.pagedjs_page')].map(page => page.getBoundingClientRect().top);", arguments: [:], in: nil, contentWorld: .page) as? [Double]
-                    guard let origins, origins.count == count else { throw CocoaError(.coderInvalidValue) }
+                    guard let count = result?["pages"] as? Int, count > 0,
+                          let rawRects = result?["rects"] as? [[String: Any]], rawRects.count == count else { throw CocoaError(.coderInvalidValue) }
+                    let number: (Any?) -> Double? = { value in
+                        if let value = value as? Double { return value }
+                        return (value as? NSNumber)?.doubleValue
+                    }
+                    let rects = try rawRects.map { raw -> CGRect in
+                        guard let top = number(raw["top"]), let left = number(raw["left"]),
+                              let width = number(raw["width"]), let height = number(raw["height"]),
+                              [top, left, width, height].allSatisfy({ $0.isFinite }), width > 0, height > 0 else { throw CocoaError(.coderInvalidValue) }
+                        return CGRect(x: left, y: top, width: width, height: height)
+                    }
+                    // Keep one explicit coordinate conversion: Paged.js reports
+                    // CSS pixels, while WKPDFConfiguration uses native points.
+                    // Crop each measured page box instead of reconstructing tops
+                    // from a second, independently rounded page-height formula.
+                    let scale = 72.0 / 96.0
+                    webView.pageZoom = scale
                     let document = PDFDocument()
-                    for origin in origins {
+                    for rect in rects {
                         guard !cancelled else { throw CancellationError() }
-                        let configuration = WKPDFConfiguration()
-                        configuration.rect = CGRect(x: 0, y: origin * 72 / 96, width: size.width, height: size.height)
+                        let pdfRect = CGRect(x: rect.minX * scale, y: rect.minY * scale,
+                                             width: size.width, height: size.height)
+                        guard pdfRect.width > 0, pdfRect.height > 0 else { throw CocoaError(.coderInvalidValue) }
+                        let configuration = WKPDFConfiguration(); configuration.rect = pdfRect
                         let data = try await webView.pdf(configuration: configuration)
                         guard !cancelled else { throw CancellationError() }
                         guard let single = PDFDocument(data: data), single.pageCount == 1, let page = single.page(at: 0) else { throw CocoaError(.coderInvalidValue) }
+                        let bounds = page.bounds(for: .mediaBox)
+                        guard abs(bounds.width - pdfRect.width) <= 1, abs(bounds.height - pdfRect.height) <= 1 else { throw CocoaError(.coderInvalidValue) }
                         document.insert(page, at: document.pageCount)
                     }
                     pageCount = count; preparedInfo = captured; preparedPDF = document; finishPreparation()
@@ -126,7 +146,7 @@ final class PrintSurface: NSObject, WKNavigationDelegate {
             guard let data = document.dataRepresentation() else { return false }
             do { try data.write(to: pdf, options: .atomic); return true } catch { return false }
         }
-        let printerInfo = preparedInfo.copy() as! NSPrintInfo
+        guard let printerInfo = preparedInfo.copy() as? NSPrintInfo else { return false }
         printerInfo.topMargin = 0; printerInfo.rightMargin = 0; printerInfo.bottomMargin = 0; printerInfo.leftMargin = 0
         guard let printer = document.printOperation(for: printerInfo, scalingMode: .pageScaleToFit, autoRotate: true) else { return false }
         printer.showsPrintPanel = true; printer.showsProgressPanel = true
