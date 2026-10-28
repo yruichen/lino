@@ -6,8 +6,42 @@ use lino_application::{
 use lino_document::{EditorEpoch, FileRef, ModelError, SessionId, TextChange, MAX_DOCUMENT_BYTES};
 use lino_protocol::{
     self as wire, ErrorCode, Request, RequestEnvelope, Response, ResponseEnvelope, WireError,
-    CAPABILITIES, PROTOCOL_VERSION, RESOURCE_VERSION,
+    PROTOCOL_VERSION, RESOURCE_VERSION,
 };
+
+const MAX_PROTOCOL_BYTES: usize = MAX_DOCUMENT_BYTES * 2 + 65_536;
+
+use std::{
+    collections::{hash_map::DefaultHasher, HashMap},
+    hash::{Hash, Hasher},
+};
+
+#[derive(Default)]
+pub(crate) struct RequestCache {
+    entries: HashMap<String, (u64, String)>,
+}
+impl RequestCache {
+    fn get(&self, request_id: &str, fingerprint: u64) -> Option<&str> {
+        self.entries
+            .get(request_id)
+            .filter(|(saved, _)| *saved == fingerprint)
+            .map(|(_, response)| response.as_str())
+    }
+    fn insert(&mut self, request_id: String, fingerprint: u64, response: String) {
+        if self.entries.len() >= 1024 && !self.entries.contains_key(&request_id) {
+            if let Some(oldest) = self.entries.keys().next().cloned() {
+                self.entries.remove(&oldest);
+            }
+        }
+        self.entries.insert(request_id, (fingerprint, response));
+    }
+}
+
+fn fingerprint(input: &str) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    input.hash(&mut hasher);
+    hasher.finish()
+}
 
 pub(crate) fn error(code: ErrorCode, message: &str, retryable: bool) -> WireError {
     WireError {
@@ -110,6 +144,7 @@ pub(crate) fn close_intent(value: wire::CloseIntent) -> Result<documents::CloseI
 pub(crate) fn status(info: DocumentInfo) -> wire::DocumentStatus {
     wire::DocumentStatus {
         read_only: info.read_only.then_some(true),
+        document_kind: info.kind.wire_name().into(),
         session_id: info.id.0.to_string(),
         epoch: info.epoch.0.to_string(),
         revision: info.snapshot.revision().value().to_string(),
@@ -134,30 +169,49 @@ pub(crate) fn to_opened(info: DocumentInfo) -> wire::OpenedDocument {
 
 impl DocumentRuntime {
     pub fn dispatch(&self, input: &str) -> Result<String, serde_json::Error> {
-        let envelope = if input.len() > MAX_DOCUMENT_BYTES * 6 + 65536 {
+        let fingerprint = fingerprint(input);
+        let envelope = if input.len() > MAX_PROTOCOL_BYTES {
             Err(error(ErrorCode::TooLarge, "协议消息超过当前上限。", false))
         } else {
             serde_json::from_str::<RequestEnvelope>(input)
                 .map_err(|_| error(ErrorCode::InvalidMessage, "无法识别协议消息。", false))
         };
-        let (request_id, result) = match envelope {
+        let (request_id, result, cacheable) = match envelope {
             Ok(request) => {
-                let result = if request.request_id.is_empty() || request.request_id.len() > 128 {
-                    Err(error(ErrorCode::InvalidMessage, "请求标识无效。", false))
-                } else if request.protocol_version != PROTOCOL_VERSION {
-                    Err(error(
-                        ErrorCode::ProtocolMismatch,
-                        "宿主与编辑器协议版本不一致。",
+                let id = request.request_id;
+                if id.is_empty() || id.len() > 128 {
+                    (
+                        id,
+                        Err(error(ErrorCode::InvalidMessage, "请求标识无效。", false)),
                         false,
-                    ))
+                    )
+                } else if request.protocol_version != PROTOCOL_VERSION {
+                    (
+                        id,
+                        Err(error(
+                            ErrorCode::ProtocolMismatch,
+                            "宿主与编辑器协议版本不一致。",
+                            false,
+                        )),
+                        false,
+                    )
                 } else {
-                    self.execute(request.operation)
-                };
-                (request.request_id, result)
+                    let cached = self
+                        .request_cache
+                        .lock()
+                        .ok()
+                        .and_then(|cache| cache.get(&id, fingerprint).map(str::to_owned));
+                    if let Some(response) = cached {
+                        return Ok(response);
+                    }
+                    let result = self.execute(request.operation);
+                    let cacheable = result.is_ok();
+                    (id, result, cacheable)
+                }
             }
             Err(error) => {
                 // Preserve correlation for a malformed envelope without reflecting document text.
-                let id = (input.len() <= MAX_DOCUMENT_BYTES * 6 + 65536)
+                let id = (input.len() <= MAX_PROTOCOL_BYTES)
                     .then(|| serde_json::from_str::<serde_json::Value>(input).ok())
                     .flatten()
                     .and_then(|v| {
@@ -167,14 +221,20 @@ impl DocumentRuntime {
                             .map(str::to_owned)
                     })
                     .unwrap_or_default();
-                (id, Err(error))
+                (id, Err(error), false)
             }
         };
-        serde_json::to_string(&ResponseEnvelope {
+        let response = serde_json::to_string(&ResponseEnvelope {
             protocol_version: PROTOCOL_VERSION,
-            request_id,
+            request_id: request_id.clone(),
             result: result.unwrap_or_else(|error| Response::Error { error }),
-        })
+        })?;
+        if cacheable {
+            if let Ok(mut cache) = self.request_cache.lock() {
+                cache.insert(request_id, fingerprint, response.clone());
+            }
+        }
+        Ok(response)
     }
     fn execute(&self, request: Request) -> Result<Response, WireError> {
         match request {
@@ -188,7 +248,7 @@ impl DocumentRuntime {
                 }
                 Ok(Response::Handshake {
                     resource_version: RESOURCE_VERSION.into(),
-                    capabilities: CAPABILITIES.iter().map(|c| (*c).into()).collect(),
+                    capabilities: self.capabilities(),
                 })
             }
             Request::ApplyChanges {

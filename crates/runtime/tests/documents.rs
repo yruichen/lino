@@ -116,6 +116,38 @@ fn open_edit_save_close_and_reopen_preserves_original_bytes_and_bom() {
     );
 }
 #[test]
+fn latex_open_edit_save_close_and_reopen_preserves_profile_and_text() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("paper.tex");
+    let initial = "\\documentclass{article}\n\\begin{document}\n中文\n\\end{document}\n";
+    fs::write(&path, initial).unwrap();
+    let runtime = DocumentRuntime::default();
+    let doc = runtime.open_file(&path, None).unwrap();
+    assert_eq!(doc.status.document_kind, "latex");
+    assert_eq!(doc.text, initial);
+    edit(&runtime, &doc, 1, 0, "% edited\n");
+    let ticket = prepare(&runtime, &doc, 1, None);
+    assert!(matches!(
+        commit(&runtime, &doc, ticket),
+        Response::Saved { .. }
+    ));
+    assert!(matches!(
+        call(
+            &runtime,
+            Request::Close {
+                session_id: doc.status.session_id.clone(),
+                epoch: doc.status.epoch.clone(),
+                revision: "1".into(),
+                discard: false
+            }
+        ),
+        Response::Closed
+    ));
+    let reopened = runtime.open_file(&path, None).unwrap();
+    assert_eq!(reopened.status.document_kind, "latex");
+    assert_eq!(reopened.text, "% edited\n".to_owned() + initial);
+}
+#[test]
 fn failed_open_and_conflicting_save_keep_old_session_text_and_external_file() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("document.md");

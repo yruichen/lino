@@ -68,69 +68,101 @@ impl FileAssets {
 
     pub fn copy_to(&self, target_document: &Path, sources: &[String]) -> Result<(), StorageError> {
         let target = FileWorkspace::open(target_document.parent().ok_or(StorageError::Denied)?)?;
-        if self.root.resolve("", false)? == target.resolve("", false)? {
-            return Ok(());
-        }
-        let mut total = 0usize;
-        for source in sources {
-            let relative = decode_source(source)?;
-            if Path::new(&relative).is_absolute() {
-                self.read_image(source)?;
-                continue;
-            }
-            let image = self.read_image(source)?;
-            total = total
-                .checked_add(image.bytes.len())
-                .ok_or(StorageError::LimitExceeded)?;
-            if total > 64 * 1024 * 1024 {
-                return Err(StorageError::LimitExceeded);
-            }
-            // Resolve each directory through the root policy before creating it.
-            let mut prefix = std::path::PathBuf::new();
-            for part in Path::new(&relative)
-                .parent()
-                .ok_or(StorageError::Denied)?
-                .components()
-            {
-                prefix.push(part);
-                let directory =
-                    target.resolve(prefix.to_str().ok_or(StorageError::Denied)?, true)?;
-                match fs::create_dir(&directory) {
-                    Ok(()) => {}
-                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
-                    Err(error) => return Err(io(error)),
-                }
-                if !target
-                    .resolve(prefix.to_str().ok_or(StorageError::Denied)?, false)?
-                    .is_dir()
-                {
-                    return Err(StorageError::UnsupportedFile);
-                }
-            }
-            let destination = target.resolve(&relative, true)?;
-            if destination.try_exists().map_err(io)? {
-                if read_selected(&destination)?.bytes == image.bytes {
-                    continue;
-                }
-                return Err(StorageError::ChangedExternally);
-            }
-            let parent = destination.parent().ok_or(StorageError::Denied)?;
-            let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(io)?;
-            temp.write_all(&image.bytes).map_err(io)?;
-            temp.as_file().sync_all().map_err(io)?;
-            match temp.persist_noclobber(&destination) {
-                Ok(_) => {}
-                Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
-                    if read_selected(&destination)?.bytes != image.bytes {
-                        return Err(StorageError::ChangedExternally);
+        let same_root = self.root.resolve("", false)? == target.resolve("", false)?;
+        let mut created_files = Vec::new();
+        let mut created_dirs = Vec::new();
+        let result = (|| {
+            if same_root {
+                // A same-directory save does not need to copy bytes, but still
+                // validates every relative source so missing resources are not
+                // silently hidden by the fast path.
+                for source in sources {
+                    if !Path::new(&decode_source(source)?).is_absolute() {
+                        self.read_image(source)?;
                     }
                 }
-                Err(error) => return Err(io(error.error)),
+                return Ok(());
             }
-            #[cfg(unix)]
-            fs::File::open(parent).map_err(io)?.sync_all().map_err(io)?;
+            let mut total = 0usize;
+            for source in sources {
+                let relative = decode_source(source)?;
+                if Path::new(&relative).is_absolute() {
+                    self.read_image(source)?;
+                    continue;
+                }
+                let image = self.read_image(source)?;
+                total = total
+                    .checked_add(image.bytes.len())
+                    .ok_or(StorageError::LimitExceeded)?;
+                if total > 64 * 1024 * 1024 {
+                    return Err(StorageError::LimitExceeded);
+                }
+                // Resolve each directory through the root policy before creating it.
+                let mut prefix = std::path::PathBuf::new();
+                for part in Path::new(&relative)
+                    .parent()
+                    .ok_or(StorageError::Denied)?
+                    .components()
+                {
+                    prefix.push(part);
+                    let directory = resolve_copy_destination(
+                        target_document.parent().ok_or(StorageError::Denied)?,
+                        prefix.to_str().ok_or(StorageError::Denied)?,
+                        true,
+                    )?;
+                    match fs::create_dir(&directory) {
+                        Ok(()) => created_dirs.push(directory.clone()),
+                        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+                        Err(error) => return Err(io(error)),
+                    }
+                    if !resolve_copy_destination(
+                        target_document.parent().ok_or(StorageError::Denied)?,
+                        prefix.to_str().ok_or(StorageError::Denied)?,
+                        false,
+                    )?
+                    .is_dir()
+                    {
+                        return Err(StorageError::UnsupportedFile);
+                    }
+                }
+                let destination = resolve_copy_destination(
+                    target_document.parent().ok_or(StorageError::Denied)?,
+                    &relative,
+                    true,
+                )?;
+                if destination.try_exists().map_err(io)? {
+                    if read_selected(&destination)?.bytes == image.bytes {
+                        continue;
+                    }
+                    return Err(StorageError::ChangedExternally);
+                }
+                let parent = destination.parent().ok_or(StorageError::Denied)?;
+                let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(io)?;
+                temp.write_all(&image.bytes).map_err(io)?;
+                temp.as_file().sync_all().map_err(io)?;
+                match temp.persist_noclobber(&destination) {
+                    Ok(_) => created_files.push(destination.clone()),
+                    Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
+                        if read_selected(&destination)?.bytes != image.bytes {
+                            return Err(StorageError::ChangedExternally);
+                        }
+                    }
+                    Err(error) => return Err(io(error.error)),
+                }
+                #[cfg(unix)]
+                fs::File::open(parent).map_err(io)?.sync_all().map_err(io)?;
+            }
+            Ok(())
+        })();
+        if result.is_err() {
+            for path in created_files.iter().rev() {
+                let _ = fs::remove_file(path);
+            }
+            for path in created_dirs.iter().rev() {
+                let _ = fs::remove_dir(path);
+            }
         }
-        Ok(())
+        result
     }
 }
 fn decode_source(source: &str) -> Result<String, StorageError> {
@@ -148,6 +180,49 @@ fn decode_source(source: &str) -> Result<String, StorageError> {
         }
     }
     String::from_utf8(bytes).map_err(|_| StorageError::Denied)
+}
+
+fn resolve_copy_destination(
+    base: &Path,
+    relative: &str,
+    new: bool,
+) -> Result<PathBuf, StorageError> {
+    let input = Path::new(relative);
+    if input.is_absolute() || relative.contains('\0') {
+        return Err(StorageError::Denied);
+    }
+    let mut path = base.to_owned();
+    for component in input.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if !path.pop() {
+                    return Err(StorageError::Denied);
+                }
+            }
+            Component::Normal(part) => {
+                path.push(part);
+                if fs::symlink_metadata(&path)
+                    .map_err(io)
+                    .ok()
+                    .is_some_and(|metadata| metadata.file_type().is_symlink())
+                {
+                    return Err(StorageError::UnsupportedFile);
+                }
+            }
+            _ => return Err(StorageError::Denied),
+        }
+    }
+    if new && !path.try_exists().map_err(io)? {
+        let parent = path
+            .parent()
+            .ok_or(StorageError::Denied)?
+            .canonicalize()
+            .map_err(io)?;
+        Ok(parent.join(path.file_name().ok_or(StorageError::Denied)?))
+    } else {
+        path.canonicalize().map_err(io)
+    }
 }
 /// Shared read resolver for bound documents and absolute references in drafts.
 pub fn resolve_image_path(directory: Option<&Path>, source: &str) -> Result<PathBuf, StorageError> {

@@ -1,6 +1,41 @@
 import AppKit
 
 @MainActor
+private final class SidebarSettingRow: NSView {
+    private let content: NSStackView
+
+    init(views: [NSView]) {
+        content = NSStackView(views: views)
+        super.init(frame: .zero)
+        content.orientation = .horizontal
+        content.alignment = .centerY
+        content.spacing = 8
+        content.edgeInsets = NSEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
+        content.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(content)
+        NSLayoutConstraint.activate([
+            content.leadingAnchor.constraint(equalTo: leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: trailingAnchor),
+            content.topAnchor.constraint(equalTo: topAnchor),
+            content.bottomAnchor.constraint(equalTo: bottomAnchor),
+            heightAnchor.constraint(greaterThanOrEqualToConstant: 38),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError("Use init(views:)") }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        ThemePalette.color("border").setStroke()
+        let divider = NSBezierPath()
+        divider.move(to: NSPoint(x: 10, y: 0.5))
+        divider.line(to: NSPoint(x: bounds.width - 10, y: 0.5))
+        divider.lineWidth = 1
+        divider.stroke()
+    }
+}
+
+@MainActor
 final class SidebarCustomizationController: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSPopoverDelegate {
     let view = NSView()
     private let navigation: NavigationCoordinator
@@ -35,52 +70,72 @@ final class SidebarCustomizationController: NSObject, NSTableViewDataSource, NST
     }
     private func buildContent() {
         let root = NSStackView(); root.orientation = .vertical; root.alignment = .leading; root.spacing = 0
+        let background = ThemeSurface(role: "sidebar")
+        background.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(background)
+        NSLayoutConstraint.activate([
+            background.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            background.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            background.topAnchor.constraint(equalTo: view.topAnchor),
+            background.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
         let title = SettingsForm.label("navigation.customizeTitle", size: 15, weight: .semibold)
-        let done = NSButton(title: localized("button.done"), target: self, action: #selector(close)); done.bezelStyle = .inline; done.identifier = .init("sidebar-customization-done")
+        let done = NSButton(title: localized("button.done"), target: self, action: #selector(close))
+        done.bezelStyle = .inline; done.isBordered = false; done.contentTintColor = ThemePalette.color("accent"); done.identifier = .init("sidebar-customization-done")
         let header = NSStackView(views: [title, NSView(), done]); header.alignment = .centerY
         header.edgeInsets = NSEdgeInsets(top: 14, left: 18, bottom: 12, right: 18)
         let scroll = NSScrollView(); scroll.drawsBackground = false; scroll.hasVerticalScroller = true; scroll.autohidesScrollers = true; scroll.documentView = body
-        body.orientation = .vertical; body.alignment = .leading; body.spacing = 16
-        body.edgeInsets = NSEdgeInsets(top: 0, left: 18, bottom: 18, right: 18); body.translatesAutoresizingMaskIntoConstraints = false
+        body.orientation = .vertical; body.alignment = .leading; body.spacing = 14
+        body.edgeInsets = NSEdgeInsets(top: 2, left: 18, bottom: 18, right: 18); body.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([body.leadingAnchor.constraint(equalTo: scroll.contentView.leadingAnchor), body.topAnchor.constraint(equalTo: scroll.contentView.topAnchor), body.widthAnchor.constraint(equalTo: scroll.contentView.widthAnchor)])
         for child in [header, scroll] { child.translatesAutoresizingMaskIntoConstraints = false; root.addArrangedSubview(child); child.widthAnchor.constraint(equalTo: root.widthAnchor).isActive = true }
         header.setContentHuggingPriority(.required, for: .vertical)
         root.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(root)
         NSLayoutConstraint.activate([root.leadingAnchor.constraint(equalTo: view.leadingAnchor), root.trailingAnchor.constraint(equalTo: view.trailingAnchor), root.topAnchor.constraint(equalTo: view.topAnchor), root.bottomAnchor.constraint(equalTo: view.bottomAnchor)])
         add(SettingsForm.label("navigation.customizeScope", size: 12))
-        groups.orientation = .vertical; groups.alignment = .leading; groups.spacing = 6
+        groups.orientation = .vertical; groups.alignment = .leading; groups.spacing = 4
         let paths: [(String, WritableKeyPath<NavigationPreferences, Bool>)] = [("favorites", \.show_favorites), ("locations", \.show_locations), ("open_files", \.show_open_files), ("recents", \.show_recents)]
         for (key, path) in paths {
             let toggle = checkbox("navigation." + key, path, id: "sidebar-group-" + key)
             let up = button("navigation.sectionUp", symbol: "chevron.up", id: "group-up-" + key) { [weak self] in self?.moveSection(key, -1) }
             let down = button("navigation.sectionDown", symbol: "chevron.down", id: "group-down-" + key) { [weak self] in self?.moveSection(key, 1) }
             up.setAccessibilityLabel(localized("navigation.sectionUp") + " · " + toggle.title); down.setAccessibilityLabel(localized("navigation.sectionDown") + " · " + toggle.title)
-            let row = NSStackView(views: [toggle, NSView(), up, down]); row.spacing = 6; row.alignment = .centerY
-            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 24).isActive = true
+            let row = settingRow([toggle, NSView(), up, down])
             sectionRows[key] = row; sectionButtons[key] = (up, down)
         }
         add(section("navigation.visibleGroups", [groups], detail: "navigation.sectionOrderDetail"))
-        locations.identifier = .init("sidebar-locations"); locations.headerView = nil; locations.style = .plain; locations.rowHeight = 44
-        locations.backgroundColor = .controlBackgroundColor; locations.usesAlternatingRowBackgroundColors = true
+        locations.identifier = .init("sidebar-locations"); locations.headerView = nil; locations.style = .sourceList; locations.rowHeight = 44
+        locations.backgroundColor = ThemePalette.color("surface"); locations.usesAlternatingRowBackgroundColors = false
+        locations.gridStyleMask = []; locations.intercellSpacing = NSSize(width: 0, height: 1)
         locations.addTableColumn(NSTableColumn(identifier: .init("location"))); locations.delegate = self; locations.dataSource = self
         locations.setAccessibilityLabel(localized("navigation.locations"))
         let locationScroll = NSScrollView(); locationScroll.documentView = locations; locationScroll.hasVerticalScroller = true; locationScroll.autohidesScrollers = true
-        locationScroll.borderType = .bezelBorder; locationScroll.heightAnchor.constraint(equalToConstant: 132).isActive = true
+        locationScroll.borderType = .noBorder; locationScroll.heightAnchor.constraint(equalToConstant: 88).isActive = true
+        locationScroll.setContentHuggingPriority(.required, for: .vertical)
+        locationScroll.setContentCompressionResistancePriority(.required, for: .vertical)
         let addFolder = button("navigation.addFolder", id: "add-location") { [weak self] in self?.addFolder() }
         let remove = button("navigation.removeLocation", symbol: "minus", id: "remove-location") { [weak self] in self?.removeLocation() }
         let up = button("navigation.locationUp", symbol: "chevron.up", id: "location-up") { [weak self] in self?.moveLocation(-1) }
         let down = button("navigation.locationDown", symbol: "chevron.down", id: "location-down") { [weak self] in self?.moveLocation(1) }
         locationButtons = [up, down, remove]
-        let controls = NSStackView(views: [addFolder, remove, NSView(), up, down]); controls.spacing = 6; controls.alignment = .centerY
+        let controls = settingRow([addFolder, remove, NSView(), up, down])
         locationDetail.font = .systemFont(ofSize: 11); locationDetail.textColor = .secondaryLabelColor
         add(section("navigation.locations", [locationScroll, controls, locationDetail]))
-        let options = [("navigation.follow", \NavigationPreferences.follow_active), ("navigation.showRoot", \.show_root), ("navigation.extensions", \.show_extensions), ("navigation.compact", \.compact)].map { checkbox($0.0, $0.1, id: $0.0) }
+        let optionKeys: [(String, WritableKeyPath<NavigationPreferences, Bool>)] = [
+            ("navigation.follow", \.follow_active),
+            ("navigation.showRoot", \.show_root),
+            ("navigation.extensions", \.show_extensions),
+            ("navigation.compact", \.compact),
+        ]
+        let options = optionKeys.map { settingRow([checkbox($0.0, $0.1, id: $0.0)]) }
         add(section("navigation.displayOptions", options))
     }
+    private func settingRow(_ views: [NSView]) -> NSView {
+        SidebarSettingRow(views: views)
+    }
+
     private func section(_ key: String, _ controls: [NSView], detail: String? = nil) -> NSStackView {
-        var children: [NSView] = [SettingsForm.label(key, size: 12, weight: .semibold)] + controls
-        if let detail { children.append(SettingsForm.label(detail, size: 11)) }
-        return SettingsForm.stack(children, spacing: 8)
+        SettingsForm.group(key, controls, detail: detail)
     }
     private func add(_ child: NSView) {
         body.addArrangedSubview(child); child.translatesAutoresizingMaskIntoConstraints = false
@@ -88,14 +143,20 @@ final class SidebarCustomizationController: NSObject, NSTableViewDataSource, NST
     }
     private func button(_ key: String, symbol: String? = nil, id: String, action: @escaping () -> Void) -> NSButton {
         let button = NSButton(title: localized(key), target: self, action: #selector(activateControl(_:)))
-        button.bezelStyle = .rounded; button.controlSize = .small; button.identifier = .init(id)
+        button.bezelStyle = symbol == nil ? .rounded : .inline
+        button.controlSize = .small; button.identifier = .init(id)
+        button.contentTintColor = ThemePalette.color(symbol == nil ? "accent" : "muted")
         if let symbol {
-            button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil); button.toolTip = button.title; button.setAccessibilityLabel(button.title)
-            button.title = ""; button.imagePosition = .imageOnly
+            button.isBordered = false; button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
+            button.toolTip = button.title; button.setAccessibilityLabel(button.title); button.title = ""
+            button.imagePosition = .imageOnly; button.imageScaling = .scaleProportionallyDown
+            button.widthAnchor.constraint(equalToConstant: 28).isActive = true
+            button.heightAnchor.constraint(equalToConstant: 24).isActive = true
         }
         actions[ObjectIdentifier(button)] = action; return button
     }
     private func render() {
+        ThemePalette.refresh(view)
         let values = navigation.values
         let orderedRows = values.sections.compactMap { sectionRows[$0] }
         if groups.arrangedSubviews != orderedRows {
@@ -122,6 +183,7 @@ final class SidebarCustomizationController: NSObject, NSTableViewDataSource, NST
     }
     private func checkbox(_ key: String, _ path: WritableKeyPath<NavigationPreferences, Bool>, id: String) -> NSButton {
         let toggle = NSButton(checkboxWithTitle: localized(key), target: self, action: #selector(activateControl(_:)))
+        toggle.controlSize = .regular; toggle.contentTintColor = ThemePalette.color("text")
         toggle.identifier = .init(id); toggles.append((toggle, path))
         actions[ObjectIdentifier(toggle)] = { [weak self, weak toggle] in guard let self, let toggle else { return }; let on = toggle.state == .on; commit { $0[keyPath: path] = on } }; return toggle
     }

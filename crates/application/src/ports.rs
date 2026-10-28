@@ -1,5 +1,6 @@
+use crate::compile::{CompileError, CompileOutcome, CompileRequest};
 use lino_document::{FileRef, Snapshot, TextFormat};
-use std::fmt;
+use std::{fmt, sync::atomic::AtomicBool};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DiskVersion(pub String);
@@ -37,6 +38,18 @@ impl fmt::Display for StorageError {
     }
 }
 impl std::error::Error for StorageError {}
+
+pub trait CompilerPort: Send + Sync {
+    fn is_available(&self) -> bool {
+        true
+    }
+
+    fn compile(
+        &self,
+        request: &CompileRequest,
+        cancelled: &AtomicBool,
+    ) -> Result<CompileOutcome, CompileError>;
+}
 
 pub trait StoragePort: Send + Sync {
     fn load(&self, file: FileRef) -> Result<LoadedFile, StorageError>;

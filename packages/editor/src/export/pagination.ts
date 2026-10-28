@@ -2,11 +2,12 @@ import { Previewer } from 'pagedjs';
 import { preparePrintTables } from './tables.ts';
 
 interface Paper { width: number; height: number; top: number; right: number; bottom: number; left: number }
+interface PageRect { top: number; left: number; width: number; height: number }
 let cancelled = false;
 export function cancel(): void { cancelled = true; }
 
 /** Only loaded by the isolated native print surface, never by the editor. */
-export async function paginate(paper: Paper): Promise<{ pages: number }> {
+export async function paginate(paper: Paper): Promise<{ pages: number; rects: readonly PageRect[] }> {
   if (cancelled) throw new Error('Print preparation cancelled');
   if (![paper.width, paper.height, paper.top, paper.right, paper.bottom, paper.left].every(value => Number.isFinite(value) && value >= 0)
     || paper.width <= paper.left + paper.right || paper.height <= paper.top + paper.bottom) throw new Error('Invalid paper geometry');
@@ -15,11 +16,12 @@ export async function paginate(paper: Paper): Promise<{ pages: number }> {
   const image = backdrop?.querySelector('img');
   const source = image?.src;
   const opacity = backdrop ? Number(getComputedStyle(backdrop).opacity) : 0;
-  if (source && (!source.startsWith('data:image/') || !Number.isFinite(opacity) || opacity < 0 || opacity > 1)) throw new Error('Invalid print background');
+  if (source && (!/^data:image\/[a-z\d.+-]+;base64,[a-z\d+/=]+$/i.test(source) || !Number.isFinite(opacity) || opacity < 0 || opacity > 1)) throw new Error('Invalid print background');
   document.querySelector('.export-paper')?.remove(); backdrop?.remove();
   const settings = document.head.appendChild(document.createElement('style'));
   settings.textContent = `@page{size:${paper.width}pt ${paper.height}pt;margin:${paper.top}pt ${paper.right}pt ${paper.bottom}pt ${paper.left}pt;background:${color}}
     article{min-height:0;width:${(paper.width - paper.left - paper.right) * 4 / 3}px;max-width:100%;margin:0;padding:0;background:transparent}
+    .pagedjs_page{box-sizing:border-box}
     .export-table-scroll{overflow:visible}td,th{overflow-wrap:anywhere}
     pre{white-space:pre-wrap;overflow:visible}thead{display:table-header-group}tr,img,svg{break-inside:avoid}`;
   await document.fonts.ready;
@@ -42,8 +44,16 @@ export async function paginate(paper: Paper): Promise<{ pages: number }> {
     background.alt = ''; background.setAttribute('aria-hidden', 'true'); background.src = source; background.style.opacity = String(opacity);
     page.prepend(background);
   }
-  await Promise.all([...document.images].map(image => image.decode()));
+  await Promise.all([...document.images].map(image => image.decode().then(() => {
+    if (!image.complete) throw new Error('Print image did not settle');
+    return image;
+  })));
   await document.fonts.ready;
   if (cancelled) throw new Error('Print preparation cancelled');
-  return { pages: flow.total };
+  const rects: PageRect[] = pages.map(page => {
+    const rect = page.getBoundingClientRect();
+    return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
+  });
+  if (rects.some(rect => ![rect.top, rect.left, rect.width, rect.height].every(Number.isFinite) || rect.width <= 0 || rect.height <= 0)) throw new Error('Invalid print page geometry');
+  return { pages: flow.total, rects };
 }

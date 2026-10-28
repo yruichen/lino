@@ -62,7 +62,11 @@ for (const entry of fs.readdirSync(nativeResources)) {
 require('./icon.cjs').writeAppIcon(path.join(root, 'assets/brand/lino.png'), path.join(contents, 'Resources/AppIcon.icns'));
 require('./licenses.cjs').writeLicenses(root, path.join(contents, 'Resources/Licenses'));
 const sources = fs.readdirSync(path.join(root, 'apps/macos/Sources'), { recursive: true }).filter(file => file.endsWith('.swift')).sort().map(file => path.join(root, 'apps/macos/Sources', file));
-run('xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', '-O', '-target', `${process.arch === 'arm64' ? 'arm64' : 'x86_64'}-apple-macosx14.0`, '-framework', 'AppKit', '-framework', 'WebKit', '-framework', 'PDFKit', '-I', generated, '-Xcc', `-fmodule-map-file=${path.join(generated, 'lino_ffiFFI.modulemap')}`, path.join(generated, 'lino_ffi.swift'), path.join(rustBuild, 'release/liblino_ffi.a'), ...sources, '-o', path.join(contents, 'MacOS/Lino')]);
+// Keep the compiler input immutable while the generated binding directory is
+// reused by other local tooling or an overlapping verification process.
+const generatedSwift = path.join(staging, 'lino_ffi.swift');
+fs.copyFileSync(path.join(generated, 'lino_ffi.swift'), generatedSwift);
+run('xcrun', ['swiftc', '-swift-version', '6', '-warnings-as-errors', '-O', '-target', `${process.arch === 'arm64' ? 'arm64' : 'x86_64'}-apple-macosx14.0`, '-framework', 'AppKit', '-framework', 'WebKit', '-framework', 'PDFKit', '-I', generated, '-Xcc', `-fmodule-map-file=${path.join(generated, 'lino_ffiFFI.modulemap')}`, generatedSwift, path.join(rustBuild, 'release/liblino_ffi.a'), ...sources, '-o', path.join(contents, 'MacOS/Lino')]);
 fs.writeFileSync(path.join(contents, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -77,20 +81,38 @@ fs.writeFileSync(path.join(contents, 'Info.plist'), `<?xml version="1.0" encodin
 <key>CFBundleVersion</key><string>1</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
-<key>CFBundleDocumentTypes</key><array><dict>
+<key>CFBundleDocumentTypes</key><array>
+<dict>
 <key>CFBundleTypeName</key><string>Markdown document</string>
 <key>CFBundleTypeRole</key><string>Editor</string>
 <key>LSHandlerRank</key><string>Alternate</string>
 <key>LSItemContentTypes</key><array><string>net.daringfireball.markdown</string></array>
-</dict></array>
-<key>UTImportedTypeDeclarations</key><array><dict>
+</dict>
+<dict>
+<key>CFBundleTypeName</key><string>LaTeX document</string>
+<key>CFBundleTypeRole</key><string>Editor</string>
+<key>LSHandlerRank</key><string>Alternate</string>
+<key>LSItemContentTypes</key><array><string>org.lino.latex</string></array>
+</dict>
+</array>
+<key>UTImportedTypeDeclarations</key><array>
+<dict>
 <key>UTTypeIdentifier</key><string>net.daringfireball.markdown</string>
 <key>UTTypeDescription</key><string>Markdown document</string>
 <key>UTTypeConformsTo</key><array><string>public.plain-text</string></array>
 <key>UTTypeTagSpecification</key><dict>
 <key>public.filename-extension</key><array><string>md</string><string>markdown</string><string>mdown</string><string>mkd</string></array>
 <key>public.mime-type</key><string>text/markdown</string>
-</dict></dict></array>
+</dict></dict>
+<dict>
+<key>UTTypeIdentifier</key><string>org.lino.latex</string>
+<key>UTTypeDescription</key><string>LaTeX document</string>
+<key>UTTypeConformsTo</key><array><string>public.plain-text</string></array>
+<key>UTTypeTagSpecification</key><dict>
+<key>public.filename-extension</key><array><string>tex</string></array>
+<key>public.mime-type</key><string>text/x-tex</string>
+</dict></dict>
+</array>
 </dict></plist>\n`);
 run('codesign', ['--force', '--sign', '-', stagedApp]);
 requireClosedApp();

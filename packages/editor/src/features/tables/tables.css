@@ -7,3 +7,9 @@
 .ot-table-insert output { flex-basis: 100%; color: var(--ot-error); }
 .ot-table-insert :focus-visible { outline: 2px solid var(--ot-focus); outline-offset: 1px; }
 .markdown-table > output:empty { display: none; }
+.markdown-table { border-radius: var(--ot-radius-medium); }
+.markdown-table th, .markdown-table td { transition: background-color 100ms ease, border-color 100ms ease; }
+.markdown-table th:hover, .markdown-table td:hover { background: color-mix(in srgb, var(--ot-active) 42%, transparent); }
+.markdown-table th:has(input:focus), .markdown-table td:has(input:focus) { background: color-mix(in srgb, var(--ot-active) 60%, transparent); border-color: var(--ot-focus); }
+.markdown-table > output:not(:empty) { display: block; margin-top: 8px; color: var(--ot-error); font: 12px/1.4 system-ui; }
+@media (prefers-reduced-motion: reduce) { .markdown-table th, .markdown-table td { transition: none; } }

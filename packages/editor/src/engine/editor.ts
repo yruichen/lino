@@ -1,7 +1,7 @@
 import { Compartment, EditorSelection, EditorState, Prec } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap, redo, redoDepth, undo, undoDepth, indentMore, indentLess } from '@codemirror/commands';
 import { markdown, markdownLanguage, markdownKeymap, insertNewlineContinueMarkupCommand } from '@codemirror/lang-markdown';
-import { EditorView, keymap } from '@codemirror/view';
+import { EditorView, highlightActiveLine, keymap } from '@codemirror/view';
 import { codeCommands, mediaCommands, referenceCommands, markdownShortcuts, type ReferenceCommand, type MediaCommand, type CodeCommand, type EditorCommand, type EditorHostEvent, type EditorStatus } from '@lino/protocol/editor-host';
 import type { AssetPort } from '@lino/protocol/assets';
 import type { EditorPreferences } from '@lino/protocol/generated/EditorPreferences';
@@ -9,7 +9,7 @@ import type { SaveTarget } from '@lino/protocol/generated/SaveTarget';
 import type { SaveTicket } from '@lino/protocol/generated/SaveTicket';
 import { sourceDocument } from '../transactions/line-endings.ts';
 import { changeComposition, changeMode, compositionState, modeState, type EditorMode } from '../features/source-mode/state.ts';
-import { markdownPresentation } from '../features/markdown/presentation.ts';
+import { htmlBlockPresentation, markdownPresentation } from '../features/markdown/presentation.ts';
 import { applyFormat, formatCommands, type FormatCommand } from '../features/markdown/commands.ts';
 import { tableView } from '../features/tables/view.ts';
 import { runTableCommand, tableCommands, tableControls, type TableCommand } from '../features/tables/commands.ts';
@@ -45,10 +45,13 @@ import { referenceSyntax } from '../features/references/syntax.ts';
 import { referenceIndex } from '../features/references/model.ts';
 import { referenceControls } from '../features/references/state.ts';
 import { referencePanels, runReferenceCommand } from '../features/references/controls.ts';
+import { openLink } from '../features/references/commands.ts';
 import { referencePresentation, referenceInteraction } from '../features/references/view.ts';
 import { taskPresentation, toggleTasks } from '../features/markdown/tasks.ts';
 import { localImageSources } from '../features/media/resources.ts';
 import { contextualViewport } from '../controls/contextual.ts';
+import { selectionToolbar } from '../controls/selection-toolbar.ts';
+import { htmlToMarkdown } from '../features/markdown/paste.ts';
 import { componentMenus } from '../controls/components.ts';
 import { pointerPresentation } from '../controls/pointer.ts';
 import '../controls/contextual.css';
@@ -109,17 +112,46 @@ export class MarkdownEditor {
           ...historyKeymap, ...defaultKeymap.filter(binding => binding.key !== 'Mod-/')]),
         this.preferences.of([Prec.high(keymap.of(continuingMarkdownKeymap)), EditorView.contentAttributes.of({ spellcheck: 'false' })]),
         markdown({ base: markdownLanguage, addKeymap: false, codeLanguages: codeLanguageForMarkdown, extensions: [mathSyntax, referenceSyntax] }), editorTheme(),
-        modeState, compositionState, pointerPresentation, editorLocalization(), contextualViewport, documentSearch, lineNavigation, tableControls, tableView, markdownPresentation,
-        codeOptions, codeControls, codePresentation, importAnchor, imageSizes, mediaControls, mediaPresentation, writingOptions, zoomLayout(), capabilities.nativeAnalysis ? [statistics, nativeAnalysisUI.of(true), analysisEmitter.of(emit), nativeAnalysisView] : documentAnalysis, writingPresentation, EditorView.lineWrapping,
+        modeState, compositionState, pointerPresentation, editorLocalization(), contextualViewport, selectionToolbar, documentSearch, lineNavigation, tableControls, tableView, htmlBlockPresentation, markdownPresentation,
+        codeOptions, codeControls, codePresentation, importAnchor, imageSizes, mediaControls, mediaPresentation, writingOptions, zoomLayout(), capabilities.nativeAnalysis ? [statistics, nativeAnalysisUI.of(true), analysisEmitter.of(emit), nativeAnalysisView] : documentAnalysis, writingPresentation, highlightActiveLine(), EditorView.lineWrapping,
         referenceIndex, referenceControls, referencePanels, referencePresentation, referenceInteraction, taskPresentation,
         componentMenus.of((context, x, y, imageScale) => this.emit({ kind: 'context-menu', context, x, y, imageScale })),
         nativeSearchUI.of(!!capabilities.nativeSearch),
         EditorView.updateListener.of(update => { this.publish(); this.onChange(update.docChanged); }),
         EditorView.domEventHandlers({
+          click: (event, view) => {
+            const target = event.target instanceof Element ? event.target : null;
+            const link = target?.closest<HTMLElement>('[data-lino-html-link]');
+            if (link) {
+              event.preventDefault();
+              try { return openLink(view, link.dataset.linoHtmlLink ?? '', error => this.emit({ kind: 'error', message: error instanceof Error ? error.message : String(error) })); }
+              catch (error) { this.emit({ kind: 'error', message: error instanceof Error ? error.message : String(error) }); return true; }
+            }
+            const html = target?.closest<HTMLElement>('.ot-html-block, .ot-html-inline');
+            const from = html ? Number(html.dataset.htmlFrom) : NaN;
+            if (!html || !Number.isInteger(from) || from < 0 || from > view.state.doc.length) return false;
+            event.preventDefault(); view.dispatch({ selection: { anchor: from }, effects: view.scrollSnapshot() }); view.focus(); return true;
+          },
+          keydown: (event, view) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return false;
+            const html = event.target instanceof Element ? event.target.closest<HTMLElement>('.ot-html-block, .ot-html-inline') : null;
+            const from = html ? Number(html.dataset.htmlFrom) : NaN;
+            if (!html || !Number.isInteger(from) || from < 0 || from > view.state.doc.length) return false;
+            event.preventDefault(); view.dispatch({ selection: { anchor: from }, effects: view.scrollSnapshot() }); view.focus(); return true;
+          },
           paste: (event, view) => {
             const image = Array.from(event.clipboardData?.items ?? []).some(item => item.kind === 'file' && item.type.startsWith('image/'));
-            if (!image || view.state.readOnly || this.composing()) return false;
-            event.preventDefault(); runMediaCommand(view, 'image-paste'); return true;
+            if (image && !view.state.readOnly && !this.composing()) {
+              event.preventDefault(); runMediaCommand(view, 'image-paste'); return true;
+            }
+            if (view.state.readOnly || this.composing()) return false;
+            const html = event.clipboardData?.getData('text/html') ?? '';
+            const markdownText = htmlToMarkdown(html);
+            if (!markdownText) return false;
+            event.preventDefault();
+            const selection = view.state.selection.main;
+            view.dispatch({ changes: { from: selection.from, to: selection.to, insert: markdownText }, userEvent: 'input.paste' });
+            return true;
           },
           compositionstart: (_event, view) => {
             this.compositionGeneration++;
@@ -214,7 +246,10 @@ export class MarkdownEditor {
     const code = codeBlockAt(this.view.state);
     const writing = this.view.state.field(writingOptions);
     const codeView = this.view.state.field(codeOptions);
-    return { ...writing, search: searchProjection(this.view.state, this.view.state.field(replacementVisible), String(this.nativeQuerySequence)), mode: this.view.state.field(modeState), composing: this.view.state.field(compositionState), pendingMode: this.pendingMode !== undefined,
+    const selection = this.view.state.selection.main;
+    const line = this.view.state.doc.lineAt(selection.head);
+    return { ...writing, cursorLine: line.number, cursorColumn: selection.head - line.from + 1, selectionLength: selection.to - selection.from,
+      search: searchProjection(this.view.state, this.view.state.field(replacementVisible), String(this.nativeQuerySequence)), mode: this.view.state.field(modeState), composing: this.view.state.field(compositionState), pendingMode: this.pendingMode !== undefined,
       canUndo: !this.view.state.readOnly && undoDepth(this.view.state) > 0, canRedo: !this.view.state.readOnly && redoDepth(this.view.state) > 0,
       changedFromInitial: !this.view.state.doc.eq(this.source.doc), codeBlock: !!code, codeFenced: code?.fenced ?? false, codeWrap: codeView.wrap, codeNumbers: codeView.numbers,
       codeCanIndent: !this.view.state.readOnly && !!code && !!selectedCodeLines(this.view.state, code) };

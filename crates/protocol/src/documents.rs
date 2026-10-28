@@ -36,6 +36,7 @@ pub struct DocumentStatus {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub read_only: Option<bool>,
+    pub document_kind: String,
     pub session_id: String,
     pub epoch: String,
     pub revision: String,

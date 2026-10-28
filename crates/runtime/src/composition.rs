@@ -1,8 +1,9 @@
 use crate::dispatch::{close_intent, document_error, storage_error, to_opened};
 use lino_adapters::storage::FileStorage;
 use lino_application::{
+    document_types::DocumentKind,
     documents::{CloseIntent, DocumentInfo, Documents},
-    ports::StoragePort,
+    ports::{CompilerPort, StoragePort},
 };
 use lino_document::FileRef;
 use lino_protocol::{OpenedDocument, SaveTarget, WireError};
@@ -19,14 +20,23 @@ pub struct DocumentRuntime {
     pub(crate) navigation: Mutex<crate::navigation::NavigationRuntime>,
     pub(crate) preferences: Mutex<crate::preferences::PreferenceRuntime>,
     pub(crate) exports: Mutex<crate::export::Exports>,
+    pub(crate) compiles: Mutex<crate::compile::Compiles>,
+    pub(crate) request_cache: Mutex<crate::dispatch::RequestCache>,
     pub(crate) storage: Arc<dyn StoragePort>,
+    pub(crate) compiler: Arc<dyn CompilerPort>,
     pub(crate) resources: Arc<FileStorage>,
     reservations: Mutex<TargetReservations>,
+}
+#[derive(Clone)]
+struct TargetReservation {
+    file: FileRef,
+    expected: Option<String>,
+    label: String,
 }
 #[derive(Default)]
 struct TargetReservations {
     next: u64,
-    targets: HashMap<u64, FileRef>,
+    targets: HashMap<u64, TargetReservation>,
 }
 
 impl Default for DocumentRuntime {
@@ -38,6 +48,17 @@ impl Default for DocumentRuntime {
 
 impl DocumentRuntime {
     pub fn from_ports(resources: Arc<FileStorage>, storage: Arc<dyn StoragePort>) -> Self {
+        let compiler: Arc<dyn CompilerPort> = Arc::new(
+            lino_adapters::compiler::LatexCompiler::new(resources.clone()),
+        );
+        Self::with_compiler(resources, storage, compiler)
+    }
+
+    pub fn with_compiler(
+        resources: Arc<FileStorage>,
+        storage: Arc<dyn StoragePort>,
+        compiler: Arc<dyn CompilerPort>,
+    ) -> Self {
         Self {
             file_gate: Mutex::new(()),
             documents: Mutex::new(Documents::default()),
@@ -45,7 +66,10 @@ impl DocumentRuntime {
             preferences: Mutex::default(),
             navigation: Mutex::default(),
             exports: Mutex::default(),
+            compiles: Mutex::default(),
+            request_cache: Mutex::default(),
             storage,
+            compiler,
             resources,
             reservations: Mutex::default(),
         }
@@ -69,7 +93,12 @@ impl DocumentRuntime {
             if self
                 .reservations
                 .lock()
-                .map(|reservations| reservations.targets.values().any(|target| *target == file))
+                .map(|reservations| {
+                    reservations
+                        .targets
+                        .values()
+                        .any(|target| target.file == file)
+                })
                 .unwrap_or(true)
             {
                 return;
@@ -114,7 +143,7 @@ impl DocumentRuntime {
             .extension()
             .and_then(|value| value.to_str())
             .unwrap_or_default();
-        if !lino_application::navigation::supported_document_extension(extension) {
+        if !DocumentKind::supports_extension(extension) {
             return Err(crate::dispatch::error(
                 lino_protocol::ErrorCode::UnsupportedFile,
                 "Unsupported document format",
@@ -150,12 +179,26 @@ impl DocumentRuntime {
         let previous = self.previous_file(&replace)?;
         let (file, _) = self.resources.register(path).map_err(storage_error)?;
         // Read/decode before replacing anything; invalid input keeps the old session.
+        let kind = DocumentKind::from_extension(
+            path.extension()
+                .and_then(|value| value.to_str())
+                .unwrap_or_default(),
+        )
+        .ok_or_else(|| {
+            crate::dispatch::error(
+                lino_protocol::ErrorCode::UnsupportedFile,
+                "Unsupported document format",
+                false,
+            )
+        })?;
         let result = self
             .storage
             .load(file)
             .map_err(storage_error)
             .and_then(|loaded| {
-                self.transition(replace, |docs, replace| docs.open(file, loaded, replace))
+                self.transition(replace, |docs, replace| {
+                    docs.open(file, loaded, kind, replace)
+                })
             });
         self.release_unused_in_gate(Some(file));
         let info = result?;
@@ -189,18 +232,29 @@ impl DocumentRuntime {
                         false,
                     ));
                 }
-                reservations.next = reservations.next.checked_add(1).ok_or_else(|| {
-                    crate::dispatch::error(
+                let Some(next) = reservations.next.checked_add(1) else {
+                    drop(reservations);
+                    self.release_unused_in_gate(Some(file));
+                    return Err(crate::dispatch::error(
                         lino_protocol::ErrorCode::ResourceLimit,
                         "Target identity exhausted",
                         false,
-                    )
-                })?;
+                    ));
+                };
+                reservations.next = next;
                 let id = reservations.next;
-                reservations.targets.insert(id, file);
+                let expected_version = version.map(|v| v.0);
+                reservations.targets.insert(
+                    id,
+                    TargetReservation {
+                        file,
+                        expected: expected_version.clone(),
+                        label: label.clone(),
+                    },
+                );
                 Ok(SaveTarget {
                     file_ref: file.0.to_string(),
-                    expected_version: version.map(|v| v.0),
+                    expected_version,
                     label,
                     reservation_id: Some(id.to_string()),
                 })
@@ -230,7 +284,7 @@ impl DocumentRuntime {
                 )
             })?;
             if let Some(existing) = reservations.targets.get(&id) {
-                if *existing != file {
+                if existing.file != file {
                     return Err(crate::dispatch::error(
                         lino_protocol::ErrorCode::InvalidTicket,
                         "Save target reservation mismatch",
@@ -238,6 +292,25 @@ impl DocumentRuntime {
                     ));
                 }
                 reservations.targets.remove(&id);
+            }
+        } else {
+            // Legacy messages did not carry a reservation identity. Release
+            // only an unambiguous reservation; never release another window's
+            // lease when two native targets point at the same file.
+            let mut reservations = self.reservations.lock().map_err(|_| {
+                crate::dispatch::error(
+                    lino_protocol::ErrorCode::Internal,
+                    "Target reservation lock poisoned",
+                    false,
+                )
+            })?;
+            let matches: Vec<u64> = reservations
+                .targets
+                .iter()
+                .filter_map(|(id, reservation)| (reservation.file == file).then_some(*id))
+                .collect();
+            if matches.len() == 1 {
+                reservations.targets.remove(&matches[0]);
             }
         }
         self.release_unused_in_gate(Some(file));
@@ -254,10 +327,20 @@ impl DocumentRuntime {
                     false,
                 )
             })?;
-            if reservations.targets.get(&id) != Some(&file) {
-                return Err(crate::dispatch::error(
+            let reservation = reservations.targets.get(&id).ok_or_else(|| {
+                crate::dispatch::error(
                     lino_protocol::ErrorCode::InvalidTicket,
                     "Save target reservation expired",
+                    false,
+                )
+            })?;
+            if reservation.file != file
+                || reservation.expected.as_deref() != target.expected_version.as_deref()
+                || reservation.label != target.label
+            {
+                return Err(crate::dispatch::error(
+                    lino_protocol::ErrorCode::InvalidTicket,
+                    "Save target reservation changed",
                     false,
                 ));
             }

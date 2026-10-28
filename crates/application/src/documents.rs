@@ -1,8 +1,11 @@
-use crate::ports::{DiskVersion, LoadedFile, StorageCommit, StorageError};
+use crate::{
+    document_types::DocumentKind,
+    ports::{DiskVersion, LoadedFile, StorageCommit, StorageError},
+};
 use lino_document::{
     EditorEpoch, FileRef, ModelError, Revision, SessionId, Snapshot, TextChange, TextFormat,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DocumentError {
@@ -31,6 +34,7 @@ pub struct DocumentInfo {
     pub dirty: bool,
     pub saving: bool,
     pub format: TextFormat,
+    pub kind: DocumentKind,
     pub read_only: bool,
 }
 
@@ -83,10 +87,12 @@ struct Session {
     snapshot: Snapshot,
     epoch: EditorEpoch,
     format: TextFormat,
+    kind: DocumentKind,
     saved_revision: Option<Revision>,
     saved_durable: bool,
     binding: Option<SaveTarget>,
-    last_batch: Option<(ApplyBatch, ApplyAck)>,
+    last_sequence: u64,
+    recent_batches: VecDeque<(ApplyBatch, ApplyAck)>,
     pending_save: Option<(SaveTicket, bool)>,
     last_receipt: Option<SaveReceipt>,
     transitioning: bool,
@@ -106,6 +112,7 @@ impl Documents {
         &mut self,
         text: String,
         format: TextFormat,
+        kind: DocumentKind,
         binding: Option<SaveTarget>,
         replace: Option<CloseIntent>,
     ) -> Result<DocumentInfo, DocumentError> {
@@ -143,10 +150,12 @@ impl Documents {
                 snapshot,
                 epoch: EditorEpoch(1),
                 format,
+                kind,
                 saved_revision,
                 saved_durable: true,
                 binding,
-                last_batch: None,
+                last_sequence: 0,
+                recent_batches: VecDeque::new(),
                 pending_save: None,
                 last_receipt: None,
                 transitioning: false,
@@ -163,17 +172,25 @@ impl Documents {
         &mut self,
         replace: Option<CloseIntent>,
     ) -> Result<DocumentInfo, DocumentError> {
-        self.create(String::new(), TextFormat::default(), None, replace)
+        self.create(
+            String::new(),
+            TextFormat::default(),
+            DocumentKind::Markdown,
+            None,
+            replace,
+        )
     }
     pub fn open(
         &mut self,
         file: FileRef,
         loaded: LoadedFile,
+        kind: DocumentKind,
         replace: Option<CloseIntent>,
     ) -> Result<DocumentInfo, DocumentError> {
         self.create(
             loaded.text,
             loaded.format,
+            kind,
             Some(SaveTarget {
                 file,
                 expected: Some(loaded.version),
@@ -189,7 +206,8 @@ impl Documents {
         intent: CloseIntent,
     ) -> Result<DocumentInfo, DocumentError> {
         let read_only = self.session(intent.session)?.read_only;
-        let info = self.open(file, loaded, Some(intent))?;
+        let kind = self.session(intent.session)?.kind;
+        let info = self.open(file, loaded, kind, Some(intent))?;
         self.sessions.get_mut(&info.id).unwrap().read_only = read_only;
         self.info(info.id)
     }
@@ -213,9 +231,14 @@ impl Documents {
             dirty: session
                 .saved_revision
                 .map(|saved| saved != session.snapshot.revision())
-                .unwrap_or(session.recovered || !session.snapshot.text().is_empty()),
+                .unwrap_or(
+                    session.recovered
+                        || session.snapshot.revision().value() != 0
+                        || !session.snapshot.text().is_empty(),
+                ),
             saving: session.pending_save.is_some(),
             format: session.format,
+            kind: session.kind,
             read_only: session.read_only,
         })
     }
@@ -230,23 +253,25 @@ impl Documents {
         if batch.epoch != session.epoch {
             return Err(DocumentError::OldEpoch);
         }
-        if let Some((last, ack)) = &session.last_batch {
-            if batch.sequence == last.sequence {
-                return if &batch == last {
-                    Ok(ack.clone())
-                } else {
-                    Err(DocumentError::DuplicateMismatch)
-                };
-            }
+        if let Some((previous, ack)) = session
+            .recent_batches
+            .iter()
+            .find(|(previous, _)| previous.sequence == batch.sequence)
+        {
+            return if &batch == previous {
+                Ok(ack.clone())
+            } else {
+                Err(DocumentError::DuplicateMismatch)
+            };
+        }
+        if batch.changes.len() > 4096 {
+            return Err(DocumentError::ResourceLimit);
         }
         if session.read_only {
             return Err(DocumentError::Storage(StorageError::Denied));
         }
         let expected = session
-            .last_batch
-            .as_ref()
-            .map(|(last, _)| last.sequence)
-            .unwrap_or(0)
+            .last_sequence
             .checked_add(1)
             .ok_or(DocumentError::ResourceLimit)?;
         if batch.sequence != expected {
@@ -264,7 +289,11 @@ impl Documents {
             revision: snapshot.revision(),
         };
         session.snapshot = snapshot;
-        session.last_batch = Some((batch, ack.clone()));
+        session.last_sequence = batch.sequence;
+        session.recent_batches.push_back((batch, ack.clone()));
+        while session.recent_batches.len() > 64 {
+            session.recent_batches.pop_front();
+        }
         Ok(ack)
     }
     pub fn prepare_save(
@@ -481,7 +510,17 @@ impl Documents {
         recovered: crate::recovery::RecoveredText,
         replace: Option<CloseIntent>,
     ) -> Result<DocumentInfo, DocumentError> {
-        let info = self.create(recovered.text, recovered.format, None, replace)?;
+        let info = self.create(
+            recovered.text,
+            recovered.format,
+            recovered
+                .label
+                .as_deref()
+                .map(DocumentKind::from_label)
+                .unwrap_or_default(),
+            None,
+            replace,
+        )?;
         let session = self.sessions.get_mut(&info.id).unwrap();
         session.recovered_label = recovered.label;
         session.recovered = true;
@@ -529,7 +568,8 @@ impl Documents {
             .pending_save
             .take()
             .map(|(ticket, _)| ticket.request.target);
-        session.last_batch = None;
+        session.last_sequence = 0;
+        session.recent_batches.clear();
         session.last_receipt = None;
         Ok((self.info(id)?, abandoned))
     }
@@ -627,6 +667,34 @@ mod tests {
             DocumentError::SequenceGap
         );
         assert_eq!(docs.info(doc.id).unwrap().snapshot.text(), "中");
+        assert_eq!(
+            docs.apply(doc.id, batch(doc.epoch, 1, 0, "中"))
+                .unwrap()
+                .revision
+                .value(),
+            1
+        );
+    }
+    #[test]
+    fn an_unsaved_document_remains_dirty_after_returning_to_empty_text() {
+        let mut docs = Documents::default();
+        let doc = docs.new_document(None).unwrap();
+        docs.apply(doc.id, batch(doc.epoch, 1, 0, "x")).unwrap();
+        docs.apply(
+            doc.id,
+            ApplyBatch {
+                epoch: doc.epoch,
+                sequence: 2,
+                base_revision: 1,
+                changes: vec![TextChange {
+                    from: 0,
+                    to: 1,
+                    insert: String::new(),
+                }],
+            },
+        )
+        .unwrap();
+        assert!(docs.info(doc.id).unwrap().dirty);
     }
     #[test]
     fn saving_fixed_revision_allows_later_input_and_never_clears_its_dirty_state() {

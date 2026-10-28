@@ -43,6 +43,12 @@
 "export.print" = "打印…";
 "export.pageSetup" = "页面设置…";
 "export.cancel" = "取消导出";
+"latex.compile" = "编译 LaTeX";
+"latex.cancel" = "取消 LaTeX 编译";
+"latex.compiling" = "正在编译 LaTeX…";
+"latex.compiled" = "LaTeX 编译完成";
+"latex.cancelled" = "LaTeX 编译已取消";
+"latex.failed" = "LaTeX 编译失败";
 "export.rendering" = "正在准备导出…";
 "export.saved" = "导出已保存";
 "export.savedNotDurable" = "导出文件已写入，但系统无法确认保存是否可靠。请重新导出。";
@@ -167,6 +173,7 @@
 "status.untitled" = "未命名文档";
 "status.autosaveEncoding" = "自动保存 · UTF-8";
 "status.markdownEncoding" = "Markdown · UTF-8";
+"status.latexEncoding" = "LaTeX · UTF-8";
 "status.retry" = "重试";
 "status.reconnect" = "恢复编辑器";
 "status.retryAccessibility" = "重试备份或自动保存";
@@ -223,6 +230,10 @@
 "workspace.recentFiles" = "最近文件";
 "workspace.reopen" = "重新打开已关闭文档";
 "workspace.quick" = "快速打开";
+"workspace.commandPalette" = "命令面板…";
+"workspace.commandPalettePlaceholder" = "搜索命令";
+"workspace.commandResults" = "命令结果";
+"workspace.commandKeys" = "↑↓ 选择     ↵ 执行     Esc 关闭";
 "workspace.search" = "文件夹搜索";
 "workspace.saveAll" = "保存全部";
 "workspace.sidebar" = "切换文件侧栏";
@@ -354,6 +365,8 @@
 "navigation.copied" = "副本已创建";
 "navigation.moved" = "文件已移动";
 "navigation.words" = "%ld 字词";
+"navigation.position" = "第 %ld 行，第 %ld 列";
+"navigation.positionAccessibility" = "光标位置";
 "navigation.selectionWords" = "已选 %ld 字词";
 "navigation.countDetails" = "%ld 字词 · %ld 字符 · %ld 行";
 "analysis.untitled" = "无标题内容";

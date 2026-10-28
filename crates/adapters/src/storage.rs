@@ -134,11 +134,9 @@ fn signature(bytes: &[u8], metadata: &Metadata) -> DiskVersion {
         use std::os::unix::fs::MetadataExt;
         identity.update(&metadata.dev().to_le_bytes());
         identity.update(&metadata.ino().to_le_bytes());
-        identity.update(&metadata.mode().to_le_bytes());
-        identity.update(&metadata.uid().to_le_bytes());
-        identity.update(&metadata.gid().to_le_bytes());
-        identity.update(&metadata.ctime().to_le_bytes());
-        identity.update(&metadata.ctime_nsec().to_le_bytes());
+        // Content is the conflict value; permissions and timestamps are
+        // preserved separately and must not turn an external chmod into a
+        // false content conflict.
     }
     #[cfg(not(unix))]
     {
@@ -182,6 +180,26 @@ fn read_file(path: &Path) -> Result<(File, Vec<u8>, DiskVersion), StorageError> 
     let after = file.metadata().map_err(io_error)?;
     if before.len() != after.len() || before.modified().ok() != after.modified().ok() {
         return Err(StorageError::ChangedExternally);
+    }
+    let current = fs::symlink_metadata(path).map_err(|error| {
+        if error.kind() == io::ErrorKind::NotFound {
+            StorageError::ChangedExternally
+        } else {
+            io_error(error)
+        }
+    })?;
+    if !current.file_type().is_file()
+        || current.len() != after.len()
+        || current.modified().ok() != after.modified().ok()
+    {
+        return Err(StorageError::ChangedExternally);
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if current.dev() != after.dev() || current.ino() != after.ino() {
+            return Err(StorageError::ChangedExternally);
+        }
     }
     let version = signature(&bytes, &after);
     Ok((file, bytes, version))
